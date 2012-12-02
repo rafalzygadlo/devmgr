@@ -18,6 +18,15 @@ CMySerial::~CMySerial()
 	bool flag = true;
 	_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetExit",&flag);
 }
+void CMySerial::SetDeviceName(wxString name)
+{
+	DeviceName = name;
+}
+
+wxString CMySerial::GetDeviceName()
+{
+	return DeviceName;
+}
 
 bool CMySerial::IsRunning()
 {
@@ -33,24 +42,13 @@ void CMySerial::OnConnect()
 
 void CMySerial::OnDisconnect()
 {
-    _ValidGPS = false;
+    
 }
-
 
 void CMySerial::OnData(unsigned char *buffer, int length)
 {
     //_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetLog",(void*)buffer);
     
-}
-
-void CMySerial::OnValid()
-{
-     _ValidGPS = true;	
-}
-
-void CMySerial::OnInvalid()
-{
-    _ValidGPS = false;
 }
 
 bool CMySerial::IsValidGPS()
@@ -83,6 +81,10 @@ void CMySerial::OnReconnect()
 	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetLog",&str);
 	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetPort",GetPortName());
 	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetBaud",(void*)GetBaudRate());
+
+	
+	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetExit",&flag);
+
 }
 
 void CMySerial::OnAfterMainLoop()

@@ -12,7 +12,7 @@
 	#define DIR_SEPARATOR "/"
 #endif
 
-#define PRODUCT_NAME		"Device Manager Plugin"
+#define PRODUCT_NAME		"Device Manager"
 #define PRODUCT_VERSION		"0.1"
 #define PRODUCT_COPYRIGHT	"Copyright 2010/2011 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE	"devmgr.conf"

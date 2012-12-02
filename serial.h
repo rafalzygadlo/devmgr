@@ -9,6 +9,7 @@
 class CMySerial :public CSerial
 {
 		bool _IsRunning;
+		wxString DeviceName;
 		CNaviBroker *_Broker;
 		bool _ValidGPS;								// valid gps ale mo¿e byæ nie zsynchronizowany
 		//bool _Exit;
@@ -23,10 +24,11 @@ public:
 		CMySerial(CNaviBroker *_Broker);
 		~CMySerial();
 		bool IsValidGPS();					// zwraca flagê czy prawid³owy sygna³ gps (mo¿e byæ nie z synchronizowany)
-		bool IsRunning();
 
-		virtual void OnValid();
-		virtual void OnInvalid();
+		bool IsRunning();
+		void SetDeviceName(wxString name);
+		wxString GetDeviceName();
+
 		virtual void OnConnect();
 		virtual void OnDisconnect();
 		virtual void OnData(unsigned char *buffer, int length);

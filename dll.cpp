@@ -31,24 +31,16 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	FileConfig = NULL;
     NeedExit = false;
     Broker = NaviBroker;
-	//_Exit = false;
-	//MySerial = NULL;
 	CreateApiMenu();
-	//GetBroker()->StartAnimation(true, GetBroker()->GetParentPtr());
-
-	// MAX function name 32
-	//AddExecuteFunction("gps_SetExit", SetExit);
-	//AddExecuteFunction("gps_SetNMEAInfo",SetNMEAInfo);
-	//AddExecuteFunction("gps_SetLog",SetLog);
-	//AddExecuteFunction("gps_SetPort",SetPort);
-	//AddExecuteFunction("gps_SetBaud",SetBaud);
+	
+	
 }
 
 CMapPlugin::~CMapPlugin()
 {
 	delete DisplaySignal;
 	MyFrame = NULL;
-	//MySerial = NULL;
+
 }
 
 void CMapPlugin::WriteConfig()
@@ -71,29 +63,49 @@ size_t CMapPlugin::GetDevicesCount()
 
 CMySerial *CMapPlugin::GetDevice(size_t idx)
 {
-	return vDevices[idx];
+	if(idx > vDevices.size())
+		return NULL;
+	else
+		return vDevices[idx];
 }
 
+void CMapPlugin::NewDevice(char *port, int baud)
+{
+	CMySerial *Serial = new CMySerial(Broker);
+	vDevices.push_back(Serial);
+	Serial->SetBaud(baud);
+	Serial->SetPort(port);
+	Serial->Start();
+}
+
+void CMapPlugin::DeleteDevice(size_t idx)
+{
+	vDevices[idx]->Stop();
+	vDevices.erase(vDevices.begin() + idx);
+}
 
 void CMapPlugin::Run(void *Params)
 {
     fprintf(stderr,"Loading GPS plugin.");
     
     CMySerial *MySerial1 = new CMySerial(Broker);
-	if(MySerial1->SetPort("COM2"))
-	{
-		if(MySerial1->SetBaud(4800))
-		    MySerial1->Start();
-		vDevices.push_back(MySerial1);
-	}
-
+	vDevices.push_back(MySerial1);
+	
+	MySerial1->SetPort("COM2");
+	MySerial1->SetBaud(4800);
+	MySerial1->SetDeviceName(_("Device 1"));
+	MySerial1->Start();
+		
+	
 	CMySerial *MySerial2 = new CMySerial(Broker);
-	if(MySerial2->SetPort("COM3"))
-	{
-		if(MySerial2->SetBaud(4800))
-		    MySerial2->Start();
-		vDevices.push_back(MySerial2);
-	}
+	vDevices.push_back(MySerial2);
+	
+	MySerial2->SetPort("COM3");
+	MySerial2->SetDeviceName(_("Device 2"));
+	MySerial2->SetBaud(4800);
+	MySerial2->Start();
+		
+
 }
 
 void CMapPlugin::Kill(void)
@@ -102,8 +114,10 @@ void CMapPlugin::Kill(void)
 	NeedExit = true;
  
 	for(size_t i = 0; i < vDevices.size(); i++)
-		vDevices[i]->Stop();
-	
+	{
+		if(vDevices[i]->IsRunning())		
+			vDevices[i]->Stop();
+	}
     
     if(FileConfig != NULL)
         delete FileConfig;

@@ -53,6 +53,9 @@ public:
 	CNaviBroker *GetBroker();
 	size_t GetDevicesCount();
 	CMySerial *GetDevice(size_t idx);
+	void DeleteDevice(size_t idx);
+	void NewDevice(char *port, int baud);
+
 
 	virtual void Run(void *Params);
 	virtual void Kill(void);
