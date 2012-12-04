@@ -27,20 +27,21 @@ unsigned char PluginInfoBlock[] = {
 CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 {
 
-	DisplaySignal = new CDisplaySignal(NDS_GPS);
-	FileConfig = NULL;
-    NeedExit = false;
-    Broker = NaviBroker;
-	CreateApiMenu();
+	m_DisplaySignal = new CDisplaySignal(NDS_DEVICE_MANAGER);
+	m_FileConfig = NULL;
+    m_NeedExit = false;
+    m_Broker = NaviBroker;
+	//m_MyFrame = NULL;
+
+	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	
+	//CreateApiMenu();
 	
 }
 
 CMapPlugin::~CMapPlugin()
 {
-	delete DisplaySignal;
-	MyFrame = NULL;
-
+	delete m_DisplaySignal;
 }
 
 void CMapPlugin::WriteConfig()
@@ -53,74 +54,82 @@ void CMapPlugin::WriteConfig()
 
 CNaviBroker *CMapPlugin::GetBroker()
 {
-    return Broker;
+    return m_Broker;
 }
 
 size_t CMapPlugin::GetDevicesCount()
 {
-	return vDevices.size();
+	return m_vDevices.size();
 }
 
 CMySerial *CMapPlugin::GetDevice(size_t idx)
 {
-	if(idx > vDevices.size())
+	if(idx > m_vDevices.size())
 		return NULL;
 	else
-		return vDevices[idx];
+		return m_vDevices[idx];
 }
 
-void CMapPlugin::NewDevice(char *port, int baud)
+void CMapPlugin::NewDevice(wxString name,char *port, int baud)
 {
-	CMySerial *Serial = new CMySerial(Broker);
-	vDevices.push_back(Serial);
+	CMySerial *Serial = new CMySerial(m_Broker);
+	m_vDevices.push_back(Serial);
+	Serial->SetDeviceId(m_vDevices.size() - 1);
 	Serial->SetBaud(baud);
 	Serial->SetPort(port);
+	Serial->SetDeviceName(name);
 	Serial->Start();
 }
 
 void CMapPlugin::DeleteDevice(size_t idx)
 {
-	vDevices[idx]->Stop();
-	vDevices.erase(vDevices.begin() + idx);
+	m_vDevices[idx]->Stop();
+	m_vDevices.erase(m_vDevices.begin() + idx);
 }
 
 void CMapPlugin::Run(void *Params)
 {
-    fprintf(stderr,"Loading GPS plugin.");
-    
-    CMySerial *MySerial1 = new CMySerial(Broker);
-	vDevices.push_back(MySerial1);
-	
-	MySerial1->SetPort("COM2");
+        
+    CMySerial *MySerial1 = new CMySerial(m_Broker);
+	m_vDevices.push_back(MySerial1);
+	MySerial1->SetDeviceId(m_vDevices.size() - 1);
+	MySerial1->SetPort("COM10");
 	MySerial1->SetBaud(4800);
 	MySerial1->SetDeviceName(_("Device 1"));
 	MySerial1->Start();
-		
 	
-	CMySerial *MySerial2 = new CMySerial(Broker);
-	vDevices.push_back(MySerial2);
-	
+	CMySerial *MySerial2 = new CMySerial(m_Broker);
+	m_vDevices.push_back(MySerial2);
+	MySerial2->SetDeviceId(m_vDevices.size() - 1);
 	MySerial2->SetPort("COM3");
 	MySerial2->SetDeviceName(_("Device 2"));
 	MySerial2->SetBaud(4800);
 	MySerial2->Start();
-		
+
+	CMySerial *MySerial3 = new CMySerial(m_Broker);
+	m_vDevices.push_back(MySerial3);
+	MySerial3->SetDeviceId(m_vDevices.size() - 1);
+	MySerial3->SetPort("COM3");
+	MySerial3->SetDeviceName(_("Device 4"));
+	MySerial3->SetBaud(4800);
+	MySerial3->Start();
+
 
 }
 
 void CMapPlugin::Kill(void)
 {
 
-	NeedExit = true;
+	m_NeedExit = true;
  
-	for(size_t i = 0; i < vDevices.size(); i++)
+	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(vDevices[i]->IsRunning())		
-			vDevices[i]->Stop();
+		if(m_vDevices[i]->IsRunning())		
+			m_vDevices[i]->Stop();
 	}
     
-    if(FileConfig != NULL)
-        delete FileConfig;
+    if(m_FileConfig != NULL)
+        delete m_FileConfig;
 	
 	// before myserial delete
 	WriteConfig();
@@ -129,30 +138,19 @@ void CMapPlugin::Kill(void)
 
 bool CMapPlugin::GetNeedExit(void)
 {
-    return NeedExit;
+    return m_NeedExit;
 }
 
 void CMapPlugin::CreateApiMenu(void) 
 {
 
-	NaviApiMenu = new CNaviApiMenu( L"Settings" );	// nie u¿uwaæ delete - klasa zwalnia obiejt automatycznie
-	NaviApiMenu->AddItem( L"Device Manager",this, MenuConfig );
+//	NaviApiMenu = new CNaviApiMenu( L"Settings" );	// nie u¿uwaæ delete - klasa zwalnia obiejt automatycznie
+//	NaviApiMenu->AddItem( L"Device Manager",this, MenuConfig );
 	
-}
-
-void *CMapPlugin::MenuConfig(void *NaviMapIOApiPtr, void *Input) 
-{
-
-	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	ThisPtr->Config();
-
-	return NULL;
 }
 
 void CMapPlugin::Config()
 {
-	CMyFrame *Frame = new CMyFrame(this);
-	Frame->Show();
 
 }
 
@@ -166,6 +164,44 @@ void CMapPlugin::MouseDBLClick(int x, int y)
 
 }
 
+void *CMapPlugin::OnDeviceSignal(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	CMySerial *Serial = (CMySerial*)Params;
+	ThisPtr->SendSignal(Serial->GetSignalType(),Serial->GetDeviceId());
+		
+	return NULL;
+}
+
+
+
+int CMapPlugin::GetDisplaySignalType()
+{
+	return m_DisplaySignalType;
+}
+
+void CMapPlugin::SetDeviceId(int id)
+{
+	m_DeviceId = id;
+}
+
+int CMapPlugin::GetDeviceId()
+{
+	return 	m_DeviceId;
+}
+
+void CMapPlugin::SetDisplaySignalType(int type)
+{
+	m_DisplaySignalType = type;
+}
+
+void CMapPlugin::SendSignal(int type, int id)
+{
+	SetDeviceId(id);
+	SetDisplaySignalType(type);
+	m_DisplaySignal->SetData((void*)this,sizeof(this));
+	GetBroker()->SendDisplaySignal((void*)m_DisplaySignal);
+}
 
 //	 API dla DLL
 void NAVIMAPAPI *CreateNaviClassInstance(CNaviBroker *NaviBroker)

@@ -5,93 +5,81 @@
 
 CMySerial::CMySerial(CNaviBroker *Broker):CSerial()
 {
-    _IsRunning = false;
-	_Broker = Broker;
-    //_Exit = false;
-    _LineBufLen = 0;
-    _ValidData = false; // valid parsed data
-	 
+    m_IsRunning = false;
+	m_Broker = Broker;
+    m_LineBufLen = 0;
+	m_DisplayPanel = NULL;
 }
 
 CMySerial::~CMySerial()
 {
-	bool flag = true;
-	_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetExit",&flag);
+	
 }
+
+void CMySerial::SetDeviceId(size_t id)
+{
+	m_DeviceId = id;
+}
+
+size_t CMySerial::GetDeviceId()
+{
+	return m_DeviceId;
+}
+
 void CMySerial::SetDeviceName(wxString name)
 {
-	DeviceName = name;
+	m_DeviceName = name;
 }
 
 wxString CMySerial::GetDeviceName()
 {
-	return DeviceName;
+	return m_DeviceName;
 }
 
 bool CMySerial::IsRunning()
 {
-	return _IsRunning;
+	return m_IsRunning;
 }
 
 void CMySerial::OnConnect()
 {
-    wxString port_name(GetPortName(),wxConvUTF8);
-    _ValidGPS = false;
-	
+
 }
 
 void CMySerial::OnDisconnect()
 {
-    
+   
 }
 
 void CMySerial::OnData(unsigned char *buffer, int length)
 {
-    //_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetLog",(void*)buffer);
-    
-}
-
-bool CMySerial::IsValidGPS()
-{
-    return _ValidGPS;
+	m_SignalType = SERIAL_SIGNAL_ONDATA;
+    m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
 void CMySerial::OnExit()
 {
-    //_Exit = true;
 }
 
 void CMySerial::OnStart()
 {
-	_IsRunning = true;
+	m_IsRunning = true;
 }
 
 void CMySerial::OnStop()
 {
-	_IsRunning = false;
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetNMEAInfo",NULL);
-
+	m_IsRunning = false;
 }
 
 void CMySerial::OnReconnect()
 {
-	//char str[32];
-	//sprintf(str,"%s %d\n",GetPortName(),GetBaudRate());
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetNMEAInfo",NULL);
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetLog",&str);
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetPort",GetPortName());
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetBaud",(void*)GetBaudRate());
-
-	
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetExit",&flag);
-
+	m_SignalType = SERIAL_SIGNAL_RECONNECT;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
 void CMySerial::OnAfterMainLoop()
 {
 	bool flag = true;
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetExit",&flag);
-		
 }
 
 void CMySerial::OnBeforeMainLoop()
@@ -101,9 +89,7 @@ void CMySerial::OnBeforeMainLoop()
 
 void CMySerial::OnLine(unsigned char *line)
 {
-	fprintf(stderr,"%s %d\n",GetPortName(),GetBaudRate());
-	fprintf(stderr,"%s",line);
-	//_Broker->ExecuteFunction(_Broker->GetParentPtr(),"gps_SetNMEAInfo",NULL);
+	
 }
 
 void CMySerial::OnNewSignal()
@@ -113,4 +99,8 @@ void CMySerial::OnNewSignal()
 		fprintf(stderr,"%s %d\n",GetSignal(i)->name,GetSignal(i)->count);	
 	}
 
+}
+int CMySerial::GetSignalType()
+{
+	return m_SignalType;
 }

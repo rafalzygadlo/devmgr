@@ -2,6 +2,13 @@
 #include "tools.h"
 #include <wx/stdpaths.h>
 
+wxMutex *mutex = new wxMutex;
+
+wxMutex *GetMutex()
+{
+	return mutex;
+}
+
 
 double DD( float DM ) 
 {
@@ -58,10 +65,11 @@ wxString FormatLatitude(float y)
 
 }
 
-void PrintInfo(CNaviBroker *Broker,int UID,wchar_t *text)
+void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 {
+	// 9 id chart_catalogu
 	if(Broker != NULL)
-		Broker->PrintInfoBlock(Broker->GetParentPtr(), UID , text, 5);
+		Broker->PrintInfoBlock(Broker->GetParentPtr(), 13 , text, 10);
 
 }
 

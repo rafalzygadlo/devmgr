@@ -113,6 +113,11 @@ bool CMyConfig::Validate()
 	
 	return result;
 }
+wxString CMyConfig::GetDeviceName()
+{
+	return NameText->GetValue();
+}
+
 
 wxString CMyConfig::GetPort()
 {

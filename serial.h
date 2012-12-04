@@ -4,42 +4,45 @@
 #include "serial_port.h"
 #include <wx/wx.h>
 #include "conf.h"
+#include "panel.h"
 #include "NaviMapIOApi.h"
 
 class CMySerial :public CSerial
 {
-		bool _IsRunning;
-		wxString DeviceName;
-		CNaviBroker *_Broker;
-		bool _ValidGPS;								// valid gps ale mo¿e byæ nie zsynchronizowany
-		//bool _Exit;
-		bool _ValidData;							// from parser
-		unsigned char _LineBuffer[BUFFER_LENGTH];
-		int _LineBufLen;
-		void FoldLine( unsigned char *Buffer, int BufferLength );
-		void BuildPortList();						// buduje liste portów
-		void SendInfoEvent(wxString info_text);     // wysylaj event do okienka informacyjnego
-
+	wxPanel *m_DisplayPanel;
+	bool m_IsRunning;
+	int m_DeviceId;
+	wxString m_DeviceName;
+	CNaviBroker *m_Broker;
+	unsigned char m_LineBuffer[BUFFER_LENGTH];
+	int m_LineBufLen;
+	int m_SignalType;
+		
+		
 public:
-		CMySerial(CNaviBroker *_Broker);
-		~CMySerial();
-		bool IsValidGPS();					// zwraca flagê czy prawid³owy sygna³ gps (mo¿e byæ nie z synchronizowany)
+	CMySerial(CNaviBroker *_Broker);
+	~CMySerial();
+	
+	bool IsRunning();
+	void SetDeviceName(wxString name);
+	wxString GetDeviceName();
+	void SetDeviceId(size_t id);			
+	size_t GetDeviceId();					
+	int GetSignalType();
 
-		bool IsRunning();
-		void SetDeviceName(wxString name);
-		wxString GetDeviceName();
+	
+	virtual void OnConnect();
+	virtual void OnDisconnect();
+	virtual void OnData(unsigned char *buffer, int length);
+	virtual void OnLine(unsigned char* line);
+	virtual void OnStart();
+	virtual void OnStop();
+	virtual void OnAfterMainLoop();
+	virtual void OnBeforeMainLoop();
+	virtual void OnExit();					// no gps found plugin ends working
+	virtual void OnReconnect();
+	virtual void OnNewSignal();
 
-		virtual void OnConnect();
-		virtual void OnDisconnect();
-		virtual void OnData(unsigned char *buffer, int length);
-		virtual void OnLine(unsigned char* line);
-		virtual void OnStart();
-		virtual void OnStop();
-		virtual void OnAfterMainLoop();
-		virtual void OnBeforeMainLoop();
-		virtual void OnExit();			// no gps found plugin ends working
-		virtual void OnReconnect();
-		virtual void OnNewSignal();
 };
 
 

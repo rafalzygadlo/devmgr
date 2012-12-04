@@ -27,6 +27,7 @@ public:
 	void ShowWindow(bool show);	
 	wxString GetPort();
 	int GetBaud();
+	wxString GetDeviceName();
 	
 	
 	DECLARE_EVENT_TABLE();

@@ -2,43 +2,44 @@
 #define __FRAME
 
 #include <wx/wx.h>
+
 #include "NaviMapIOApi.h"
 #include "dll.h"
-#include <wx/listctrl.h>
+#include "serial.h"
 
 
-class CMyPanel;
 class CMapPlugin;
-
 class CMyFrame: public wxDialog
 {
 	int PortSelection;
-	CMapPlugin *MapPlugin;
-	wxString ConfigPath;
-	wxFileConfig *FileConfig;
-	wxButton *ButtonStart;
-	wxListCtrl *DevicesList;
-		
-	bool _Start,_Stop , _Close;
-	void SetButtonStart(wxString label,int id);
-	void SetDevicesList();
-	long GetSelection();
+	CMapPlugin *m_MapPlugin;
+	wxString m_ConfigPath;
+	wxFileConfig *m_FileConfig;
 
+		
+	//void SetButtonStart(wxString label,int id);
+	//void SetDevicesList();
+	//long GetSelection();
+	//void SetButtons(CMySerial *Serial);
+	//void SetDeviceLog(CMySerial *Serial);
 
 	void OnButtonClose(wxCommandEvent &event);	
-	void OnButtonStart(wxCommandEvent &event);			
-	void OnButtonStop(wxCommandEvent &event);			
-	void OnButtonDelete(wxCommandEvent &event);
-	void OnButtonNew(wxCommandEvent &event);	
+	//void OnButtonStart(wxCommandEvent &event);			
+	//void OnButtonStop(wxCommandEvent &event);			
+	//void OnButtonDelete(wxCommandEvent &event);
+	//void OnButtonNew(wxCommandEvent &event);	
 
 	void OnClose(wxCloseEvent &event);
-	void OnList(wxCommandEvent &event);
+	//void OnSetItem(wxCommandEvent &event);
+	//void OnActivate(wxListEvent &event);
+	//void OnSelected(wxListEvent &event);
 	
 
 public:
 
 	CMyFrame(CMapPlugin *_MapPlugin);
 	~CMyFrame();
+	void SetDeviceStatus(CMySerial *Serial);
 	
 	DECLARE_EVENT_TABLE();
 
@@ -50,6 +51,7 @@ public:
 		ID_CLOSE,
 		ID_LIST,
 		ID_NEW,
+		ID_SET_ITEM,
 	};
 };
 

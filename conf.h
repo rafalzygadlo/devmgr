@@ -25,6 +25,10 @@
 
 #define DIR_WORKDIR "workdir"
 
+// sygna³y do display
+#define SERIAL_SIGNAL_RECONNECT 0
+#define SERIAL_SIGNAL_ONDATA 1
+
 // globalne identyfikatory eventów
 enum
 {

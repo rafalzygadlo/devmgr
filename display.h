@@ -10,6 +10,7 @@
 
 #include <wx/fileconf.h>
 #include "serial.h"
+#include <wx/treectrl.h>
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -23,44 +24,26 @@ extern "C" {
 class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi 
 {
 	
-	CNaviBroker *Broker;
-	CMapPlugin *MapPlugin;
-	wxCheckListBox *TrackList;
-	wxListBox *TrackData;
-	wxPanel *Panel;
-	int Radius;
-	int CenterX ,CenterY;
-	wxFont	*Font;
-	wxString buf;
+	CNaviBroker *m_Broker;
+	CMapPlugin *m_MapPlugin;
 	int ControlType, FormatType;
-	wxString action;
-	int Precision;
-	int Direction;
 	wxArrayString ArrayOfTypes;
 	wxString Name;
 	wxString ConfigPath;
-	int _Radius;
-	
+	int m_SignalType;
+	int m_DeviceId;
+	wxTreeCtrl *m_Devices;
+	wxTreeItemId m_Root;
+	bool m_FirstTime;
 	
 	wxString GetCaption();
-	bool CheckGpsValid(wxGCDC &dc);
-	double FormatValue(double data, int type);
+
+
 	void OnMenu(wxContextMenuEvent &event);
-	void DrawQuality(wxGCDC &dc);
-	void DrawFix(wxGCDC &dc);
+		
 	void DrawData(wxGCDC &dc, wxString caption,wxString text);
-	void DrawSatellites(wxGCDC &dc);
-	void DrawDirection(wxGCDC &dc);
-	void DrawDate(wxGCDC &dc);
-	void DrawTime(wxGCDC &dc);
-	void Draw(wxGCDC &dc);
 	void DrawBackground(wxGCDC &dc);
-	void DrawSpeed(wxGCDC &dc);
-	void DrawLon(wxGCDC &dc);
-	void DrawLat(wxGCDC &dc);
-	void DrawStatus(wxGCDC &dc);
-	void DrawTracks(wxGCDC &dc);
-	void DrawSearchSatellites(wxGCDC &dc);
+	
 	void OnMenuRange(wxCommandEvent &event);
 	void OnMouseWheel(wxMouseEvent & event);
 	void OnMouse(wxMouseEvent & event);
@@ -107,5 +90,30 @@ public:
 #ifdef __cplusplus
 }
 #endif
+
+
+class CList :public wxTreeItemData
+{
+	
+	wxString m_FullPath,m_FilePath;;
+	bool m_IsDir;
+	CMySerial *m_Serial;
+
+public:
+
+	CList();
+	~CList();
+
+	void SetFullPath(wxString &str);
+	wxString GetFullPath();
+	void SetFilePath(wxString &str);
+	wxString GetFilePath();
+	void SetSerial(CMySerial *serial);
+	void SetIsDir(bool val);
+	bool GetIsDir();
+
+
+};
+
 
 #endif
