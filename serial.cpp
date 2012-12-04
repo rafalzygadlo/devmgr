@@ -3,17 +3,35 @@
 #include "dll.h"
 #include "tools.h"
 
-CMySerial::CMySerial(CNaviBroker *Broker):CSerial()
+CMySerial::CMySerial()
+	:CSerial()
 {
-    m_IsRunning = false;
-	m_Broker = Broker;
-    m_LineBufLen = 0;
-	m_DisplayPanel = NULL;
+	m_DeviceId = -1;
+    m_RunOnStart = false;
+	m_IsRunning = false;
+	m_LineBufLen = 0;
+	m_SignalType = -1;
+	m_Broker = NULL;
 }
 
 CMySerial::~CMySerial()
 {
 	
+}
+
+void CMySerial::SetRunOnStart(bool val)
+{
+	m_RunOnStart = val;
+}
+
+bool CMySerial::RunOnStart()
+{
+	return m_RunOnStart;
+}
+
+void CMySerial::SetBroker(CNaviBroker *broker)
+{
+	m_Broker = broker;
 }
 
 void CMySerial::SetDeviceId(size_t id)
@@ -85,7 +103,6 @@ void CMySerial::OnAfterMainLoop()
 void CMySerial::OnBeforeMainLoop()
 {
 }
-
 
 void CMySerial::OnLine(unsigned char *line)
 {

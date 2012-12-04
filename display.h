@@ -10,6 +10,7 @@
 
 #include <wx/fileconf.h>
 #include "serial.h"
+#include "item.h"
 #include <wx/treectrl.h>
 
 #ifdef _WIN32
@@ -24,6 +25,8 @@ extern "C" {
 class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi 
 {
 	
+	CMySerial *m_SelectedDevice;
+	CItem *m_SelectedItem;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
 	int ControlType, FormatType;
@@ -35,20 +38,22 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxTreeCtrl *m_Devices;
 	wxTreeItemId m_Root;
 	bool m_FirstTime;
+	wxImageList *ImageListSmall;
 	
 	wxString GetCaption();
-
-
-	void OnMenu(wxContextMenuEvent &event);
-		
+	void SetData();
+	void InitDisplay();
+	void GetSignal();
+	void OnTreeMenu(wxTreeEvent &event);
 	void DrawData(wxGCDC &dc, wxString caption,wxString text);
 	void DrawBackground(wxGCDC &dc);
-	
-	void OnMenuRange(wxCommandEvent &event);
 	void OnMouseWheel(wxMouseEvent & event);
 	void OnMouse(wxMouseEvent & event);
-	void OnListCheck(wxCommandEvent &event);
-	void OnListBox(wxCommandEvent &event);
+	void OnStop(wxCommandEvent &event);
+	void OnStart(wxCommandEvent &event);
+	void OnRemove(wxCommandEvent &event);
+	void OnConfigure(wxCommandEvent &event);
+	void OnAdd(wxCommandEvent &event);
 	
 
 public:
@@ -64,26 +69,15 @@ public:
 
 	enum
 	{
-		ID_ABOUT,
-		ID_SPEED = 1000,
-		ID_DATE,
-		ID_TIME,
-		ID_FIX,
-		ID_DIRECTION,
-		ID_LON,
-		ID_LAT,
-		ID_PDOP,
-		ID_HDOP,
-		ID_VDOP,
-		ID_QUALITY,
-		ID_SATELLITES,
-		ID_STATUS,
-		ID_TRACKS,
-		// buttons DrawTracks
-		ID_DELETE,
-		ID_TRACK_LIST,
+		ID_TREE = 4500,
+		ID_STOP,
+		ID_START,
+		ID_CONFIGURE,
+		ID_REMOVE,
+		ID_ADD
 	};
-	
+
+
 	DECLARE_EVENT_TABLE();
 };
 
@@ -92,28 +86,6 @@ public:
 #endif
 
 
-class CList :public wxTreeItemData
-{
-	
-	wxString m_FullPath,m_FilePath;;
-	bool m_IsDir;
-	CMySerial *m_Serial;
-
-public:
-
-	CList();
-	~CList();
-
-	void SetFullPath(wxString &str);
-	wxString GetFullPath();
-	void SetFilePath(wxString &str);
-	wxString GetFilePath();
-	void SetSerial(CMySerial *serial);
-	void SetIsDir(bool val);
-	bool GetIsDir();
-
-
-};
 
 
 #endif

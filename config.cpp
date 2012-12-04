@@ -13,11 +13,10 @@ BEGIN_EVENT_TABLE(CMyConfig,wxDialog)
 END_EVENT_TABLE()
 
 
-CMyConfig::CMyConfig(void *Parent, wxWindow *ParentPtr)
+CMyConfig::CMyConfig()
 	:wxDialog(NULL,wxID_ANY, _("New Device"), wxDefaultPosition, wxDefaultSize )
 {
-	m_DLL = (CMapPlugin*)Parent;
-
+	
 	MainSizer = new wxBoxSizer(wxVERTICAL);
 	MainSizer->SetMinSize(300,-1);
 	
@@ -40,7 +39,7 @@ CMyConfig::CMyConfig(void *Parent, wxWindow *ParentPtr)
 
 
 	Panel1->SetSizer(Panel1Sizer);
-	CMySerial *mySerial = new CMySerial(NULL);
+	CMySerial *mySerial = new CMySerial();
 	mySerial->ScanPorts();
 
 	for(size_t i = 0; i < mySerial->GetPortInfoLength(); i++)
@@ -117,7 +116,6 @@ wxString CMyConfig::GetDeviceName()
 {
 	return NameText->GetValue();
 }
-
 
 wxString CMyConfig::GetPort()
 {

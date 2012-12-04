@@ -21,10 +21,8 @@ extern "C" {
 
 
 class CMyFrame;
-
 class CMapPlugin :public CNaviMapIOApi
 {
-
 	std::vector<CMySerial*> m_vDevices;
 	CNaviBroker *m_Broker;
 	bool m_NeedExit;
@@ -33,6 +31,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_DisplaySignalType;
 	int m_DeviceId;
 	CDisplaySignal *m_DisplaySignal;
+	bool m_Init;
 	
 	
 	void CreateApiMenu(void);
@@ -41,8 +40,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void SendSignal(int type, int id);
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);
-	
+	wxArrayString GetDevicesConfig(wxString path);
 	void OnReconnect(CMySerial *Serial);
+	bool IsInited();
 
 					
 public:
@@ -55,12 +55,10 @@ public:
 	size_t GetDevicesCount();
 	CMySerial *GetDevice(size_t idx);
 	void DeleteDevice(size_t idx);
-	void NewDevice(wxString name, char *port, int baud);
+	void AddDevice(CMySerial *serial);
 	int GetDisplaySignalType();
 	int GetDeviceId();
 	
-
-
 	virtual void Run(void *Params);
 	virtual void Kill(void);
 	//virtual void Render(void);
@@ -70,6 +68,8 @@ public:
 		
 	// funkcje dostêpne dla innych pluginów
 	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial onReconnect
+	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
+	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
 };	
 
 #ifdef __cplusplus

@@ -9,7 +9,6 @@
 
 class CMySerial :public CSerial
 {
-	wxPanel *m_DisplayPanel;
 	bool m_IsRunning;
 	int m_DeviceId;
 	wxString m_DeviceName;
@@ -17,20 +16,24 @@ class CMySerial :public CSerial
 	unsigned char m_LineBuffer[BUFFER_LENGTH];
 	int m_LineBufLen;
 	int m_SignalType;
+	bool m_RunOnStart;
 		
 		
 public:
-	CMySerial(CNaviBroker *_Broker);
+	CMySerial();
 	~CMySerial();
 	
 	bool IsRunning();
+	bool RunOnStart();
 	void SetDeviceName(wxString name);
-	wxString GetDeviceName();
 	void SetDeviceId(size_t id);			
+	void SetBroker(CNaviBroker *broker);
+	void SetRunOnStart(bool val);
+	wxString GetDeviceName();
+	
 	size_t GetDeviceId();					
 	int GetSignalType();
 
-	
 	virtual void OnConnect();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);

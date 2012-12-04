@@ -1,5 +1,5 @@
-#ifndef __NEW
-#define __NEW
+#ifndef __CONFIG
+#define __CONFIG
 
 #include <wx/wx.h>
 #include "conf.h"
@@ -11,7 +11,6 @@ class CMyConfig: public wxDialog
 {
 	
 	wxBoxSizer *MainSizer;
-	CMapPlugin *m_DLL;
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
 	wxTextCtrl *NameText;
@@ -22,7 +21,7 @@ class CMyConfig: public wxDialog
 	
 public:
 
-	CMyConfig(void *Parent, wxWindow *ParentPtr);
+	CMyConfig();
 	~CMyConfig();
 	void ShowWindow(bool show);	
 	wxString GetPort();

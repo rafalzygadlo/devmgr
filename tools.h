@@ -3,16 +3,12 @@
 
 #include <wx/wx.h>
 #include "NaviBroker.h"
+#include "serial.h"
 
 wxMutex *GetMutex();
-char *gen_random(const int len) ;
-wxString GenerateRandomFileName(wxString dir, wxString ext, int len);
+wxString GetPluginConfigPath();								
 wxString GetWorkDir(void);
 void PrintInfo(CNaviBroker *Broker,wchar_t *text);	// drukuj info na mapie
-wxString ConvertDegree(float degree);
-double ConvertDegreeDouble(float degree);
-wxString FormatLongitude(float x);
-wxString FormatLatitude(float y);
-double DD(float DM);
+CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run);
 
 #endif
