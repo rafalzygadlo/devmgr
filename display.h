@@ -29,31 +29,38 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	CItem *m_SelectedItem;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
-	int ControlType, FormatType;
-	wxArrayString ArrayOfTypes;
 	wxString Name;
-	wxString ConfigPath;
 	int m_SignalType;
 	int m_DeviceId;
 	wxTreeCtrl *m_Devices;
 	wxTreeItemId m_Root;
+	wxTextCtrl *m_Logger;
+	wxToolBar *ToolBar;
 	bool m_FirstTime;
 	wxImageList *ImageListSmall;
 	
 	wxString GetCaption();
-	void SetData();
+	void SetDevicesData();
+	void SetDevices();
 	void InitDisplay();
+	void ClearDisplay();
+	void AddDevice();				// odebrano sygna³ nowego urzadzenia
+	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
+	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
+
 	void GetSignal();
 	void OnTreeMenu(wxTreeEvent &event);
-	void DrawData(wxGCDC &dc, wxString caption,wxString text);
-	void DrawBackground(wxGCDC &dc);
-	void OnMouseWheel(wxMouseEvent & event);
+	void OnTreeSelChanged(wxTreeEvent &event);
+	//void DrawData(wxGCDC &dc, wxString caption,wxString text);
+	//void DrawBackground(wxGCDC &dc);
+	//void OnMouseWheel(wxMouseEvent & event);
 	void OnMouse(wxMouseEvent & event);
 	void OnStop(wxCommandEvent &event);
 	void OnStart(wxCommandEvent &event);
 	void OnRemove(wxCommandEvent &event);
 	void OnConfigure(wxCommandEvent &event);
 	void OnAdd(wxCommandEvent &event);
+	void OnSetLogger(wxCommandEvent &event);
 	
 
 public:
@@ -74,7 +81,8 @@ public:
 		ID_START,
 		ID_CONFIGURE,
 		ID_REMOVE,
-		ID_ADD
+		ID_ADD,
+		ID_LOGGER
 	};
 
 

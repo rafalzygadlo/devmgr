@@ -111,12 +111,19 @@ void CMySerial::OnLine(unsigned char *line)
 
 void CMySerial::OnNewSignal()
 {
-	for(size_t i = 0; i < GetSignalCount(); i++)
-	{
-		fprintf(stderr,"%s %d\n",GetSignal(i)->name,GetSignal(i)->count);	
-	}
-
+	m_SignalType = SERIAL_SIGNAL_NEW_SIGNAL;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	
 }
+
+void CMySerial::OnNoSignal()
+{
+	m_SignalType = SERIAL_SIGNAL_NO_SIGNAL;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	
+}
+
+
 int CMySerial::GetSignalType()
 {
 	return m_SignalType;

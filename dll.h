@@ -56,6 +56,7 @@ public:
 	CMySerial *GetDevice(size_t idx);
 	void DeleteDevice(size_t idx);
 	void AddDevice(CMySerial *serial);
+	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
 	int GetDisplaySignalType();
 	int GetDeviceId();
 	

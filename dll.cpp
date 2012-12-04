@@ -1,8 +1,8 @@
+#include "NaviDisplaySignals.h"
 #include "dll.h"
 #include "serial.h"
-#include "NaviDisplaySignals.h"
 #include "tools.h"
-
+#include "info.h"
 
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
@@ -122,9 +122,14 @@ CMySerial *CMapPlugin::GetDevice(size_t idx)
 void *CMapPlugin::AddDevice(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	ThisPtr->AddDevice((CMySerial*)Params);
+	ThisPtr->AddDeviceFunc((CMySerial*)Params);
 
 	return NULL;
+}
+void CMapPlugin::AddDeviceFunc(CMySerial *serial)
+{
+	AddDevice(serial);
+	SendSignal(ADD_DEVICE,0);
 }
 
 
@@ -133,7 +138,7 @@ void CMapPlugin::AddDevice(CMySerial *serial)
 	m_vDevices.push_back(serial);
 
 	serial->SetBroker(m_Broker);
-	//serial->SetDeviceId(m_vDevices.size() - 1);
+	serial->SetDeviceId(m_vDevices.size() - 1);
 		
 	if(serial->RunOnStart())
 		serial->Start();
@@ -154,6 +159,7 @@ wxArrayString CMapPlugin::GetDevicesConfig(wxString path)
 
     wxString old_path = m_FileConfig->GetPath();
     m_FileConfig->SetPath(path);
+
     bool bCont = m_FileConfig->GetFirstGroup(path, dummy);
 
     while ( bCont )
@@ -184,21 +190,26 @@ void CMapPlugin::Run(void *Params)
 void CMapPlugin::Kill(void)
 {
 	
-	
+	//SendSignal(CLEAR_DISPLAY,0);
 	m_NeedExit = true;
 	WriteConfig();
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(m_vDevices[i]->IsRunning())		
+		if(m_vDevices[i]->IsRunning())
+		{
+			CMyInfo Info(NULL,wxString::Format(_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time.\n "),m_vDevices[i]->GetDeviceName()));
 			m_vDevices[i]->Stop();
+			wxMilliSleep(1000);
+		}
+		
 		delete m_vDevices[i];
 	}
     
     if(m_FileConfig != NULL)
         delete m_FileConfig;
 	
-	//SendSignal(CLEAR_DISPLAY,0);
+	
 	// before myserial delete
 	
 

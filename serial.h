@@ -45,6 +45,7 @@ public:
 	virtual void OnExit();					// no gps found plugin ends working
 	virtual void OnReconnect();
 	virtual void OnNewSignal();
+	virtual void OnNoSignal();
 
 };
 
