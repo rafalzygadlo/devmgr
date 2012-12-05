@@ -147,6 +147,16 @@ void CMapPlugin::RemoveDevice(CMySerial *serial)
 			SendSignal(REMOVE_DEVICE,0);
 		}
 	}
+
+	ReindexDevics();
+}
+
+void CMapPlugin::ReindexDevics()
+{
+	for(size_t i = 0; i < m_vDevices.size(); i++)
+	{
+		m_vDevices[i]->SetDeviceId(i);
+	}
 }
 
 void CMapPlugin::AddDevice(CMySerial *serial)
@@ -360,6 +370,5 @@ unsigned char *GetNaviPluginInfoBlock()
 void NAVIMAPAPI FreeNaviClassInstance(void *ptr)
 {
 	delete (CMapPlugin*)ptr;
-	_CrtDumpMemoryLeaks();
 }
 

@@ -185,6 +185,7 @@ void CDisplayPlugin::OnRemove(wxCommandEvent &event)
 {
 	m_SelectedDevice->Stop();
 	m_MapPlugin->RemoveDevice(m_SelectedDevice);
+	
 }
 
 void CDisplayPlugin::OnConfigure(wxCommandEvent &event)
@@ -219,7 +220,7 @@ void CDisplayPlugin::OnAdd(wxCommandEvent &event)
 	if(Config->ShowModal() == wxID_OK)
 	{
 		int count = m_MapPlugin->GetDevicesCount(); 
-		wxString name = wxString::Format(_("[%d]:%s"),count,Config->GetDeviceName().wc_str());
+		wxString name = wxString::Format(_("%s"),Config->GetDeviceName().wc_str());
 		Config->GetPort();
 		Config->GetBaud();
 		CMySerial *serial = CreateNewDevice(name, Config->GetPort().char_str(),	Config->GetBaud(),true);
@@ -308,7 +309,7 @@ void CDisplayPlugin::AddDevice()
 	int count =	m_MapPlugin->GetDevicesCount() - 1;
 	CMySerial *Serial = m_MapPlugin->GetDevice(count);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
-	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s [%s][%d]"),Serial->GetDeviceName(),port.wc_str(),Serial->GetBaudRate()));
+	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()));
 	CItem *Item = new CItem();
 	Item->SetSerial(Serial);
 	m_Devices->SetItemData(id,Item);
@@ -439,7 +440,7 @@ const wchar_t *NaviDisplayIntroduce(int LanguageID)
 
 const int NaviDisplayID()
 {
-	return NDS_GPS;
+	return NDS_DEVICE_MANAGER;
 }
 
 CNaviDiaplayApi *CreateDisplayInstance(wxWindow *Parent, wxWindowID WindowID,int LangID) 
