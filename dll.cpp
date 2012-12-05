@@ -215,7 +215,7 @@ void CMapPlugin::Kill(void)
 		{
 			CMyInfo Info(NULL,wxString::Format(_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time.\n "),m_vDevices[i]->GetDeviceName()));
 			m_vDevices[i]->Stop();
-			wxMilliSleep(1000);
+			wxMilliSleep(100);
 		}
 		
 		delete m_vDevices[i];

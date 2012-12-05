@@ -29,15 +29,18 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	CItem *m_SelectedItem;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
-	wxString Name;
+	wxString m_Name;
 	int m_SignalType;
 	int m_DeviceId;
 	wxTreeCtrl *m_Devices;
 	wxTreeItemId m_Root;
 	wxTextCtrl *m_Logger;
-	wxToolBar *ToolBar;
+	wxToolBar *m_ToolBar;
 	bool m_FirstTime;
-	wxImageList *ImageListSmall;
+	wxImageList *m_ImageListSmall;
+	wxBoxSizer *m_Sizer;
+	wxScrolledWindow *m_Scroll;
+	wxBoxSizer *m_ScrollSizer;
 	
 	wxString GetCaption();
 	void SetDevicesData();

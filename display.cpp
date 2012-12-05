@@ -27,18 +27,42 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 :CNaviDiaplayApi( parent, id, pos, size, style, name )
 {
 	m_SelectedDevice = NULL;
-	SetDisplayID(NDS_GPS);
+	SetDisplayID(NDS_DEVICE_MANAGER);
 	m_Broker = NULL;
-	wxBoxSizer *Sizer = new wxBoxSizer(wxVERTICAL);
+	
+	m_Sizer = new wxBoxSizer(wxVERTICAL);
+	
+	//wxBoxSizer *PanelSizer = new wxBoxSizer(wxHORIZONTAL);
+	//wxPanel *Panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	
+	//m_Sizer->Add(Panel,1,wxALL|wxEXPAND,25);
+
+
+	//m_ScrollSizer = new wxBoxSizer(wxVERTICAL);
+	//m_Scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	//m_Sizer->Add(m_Scroll,1,wxALL|wxEXPAND,5);
+
+	//wxButton *but = new wxButton(Scroll,wxID_ANY,wxEmptyString);
+	//m_ScrollSizer->Add(but,0,wxALL,5);
+
+	//m_Scroll->SetFocusIgnoringChildren();
+	//m_Scroll->SetSizer(m_ScrollSizer);
+	
+	
+	//m_Scroll->SetScrollbars(20, 20, 20, 20);
+
+
+
+	
 	m_Devices = new wxTreeCtrl(this,ID_TREE,wxDefaultPosition,wxDefaultSize);
 
-	ImageListSmall = new wxImageList(16, 16, true);
-	ToolBar = new wxToolBar(this,wxID_ANY,wxDefaultPosition,wxDefaultSize, wxTB_FLAT| wxTB_TEXT| wxTB_NOICONS);
+	m_ImageListSmall = new wxImageList(16, 16, true);
+	m_ToolBar = new wxToolBar(this,wxID_ANY,wxDefaultPosition,wxDefaultSize, wxTB_FLAT| wxTB_TEXT| wxTB_NOICONS);
 
-	ToolBar->AddTool(ID_START , _("Start"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
-	ToolBar->AddTool(ID_STOP , _("Stop"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
-    ToolBar->Realize();
-	Sizer->Add(ToolBar,0,wxEXPAND|wxALL,0);
+	m_ToolBar->AddTool(ID_START , _("Start"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
+	m_ToolBar->AddTool(ID_STOP , _("Stop"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
+    m_ToolBar->Realize();
+	m_Sizer->Add(m_ToolBar,0,wxEXPAND|wxALL,0);
 	//wxMemoryInputStream in_1((const unsigned char*)up_sort,up_sort_size);
     //wxImage myImage_1(in_1, wxBITMAP_TYPE_PNG);
     //ImageListSmall->Add(myImage_1);
@@ -49,18 +73,18 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	
 	wxMemoryInputStream in_3((const unsigned char*)warning,warning_size);
     wxImage myImage_3(in_3, wxBITMAP_TYPE_PNG);
-    ImageListSmall->Add(myImage_3);
+    m_ImageListSmall->Add(myImage_3);
 	
 
 	//m_Devices->AssignImageList(ImageListSmall);
 	
 	m_Root = m_Devices->AddRoot(_("Devices"));
-	Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
+	m_Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
 
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 	wxPanel *Panel = new wxPanel(this);
 	Panel->SetSizer(PanelSizer);
-	Sizer->Add(Panel,0,wxEXPAND,0);
+	m_Sizer->Add(Panel,0,wxEXPAND,0);
 	//Panel->SetBackgroundColour(*wxRED);
 	
 	wxStaticText *LabelConnected = new wxStaticText(Panel,wxID_ANY,_("is connected ?"));
@@ -73,8 +97,10 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	PanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 
 	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
-	Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
-	this->SetSizer(Sizer);
+	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
+		
+	
+	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 
@@ -90,20 +116,20 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
 	if(m_SelectedItem == NULL)
 	{
-		ToolBar->EnableTool(ID_START,false);
-		ToolBar->EnableTool(ID_STOP,false);
+		m_ToolBar->EnableTool(ID_START,false);
+		m_ToolBar->EnableTool(ID_STOP,false);
 		return;
 	}
 
 	if(m_SelectedItem->GetSerial()->IsRunning())
 	{	
-		ToolBar->EnableTool(ID_START,false);
-		ToolBar->EnableTool(ID_STOP,true);
+		m_ToolBar->EnableTool(ID_START,false);
+		m_ToolBar->EnableTool(ID_STOP,true);
 	
 	}else{
 		
-		ToolBar->EnableTool(ID_START,true);
-		ToolBar->EnableTool(ID_STOP,false);
+		m_ToolBar->EnableTool(ID_START,true);
+		m_ToolBar->EnableTool(ID_STOP,false);
 	}
 
 }
@@ -307,7 +333,7 @@ void CDisplayPlugin::RemoveDevice()
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
 	//GetMutex()->Lock();
-	SetLogger(event.GetString());
+	//SetLogger(event.GetString());
 	//GetMutex()->Unlock();
 }
 
@@ -336,13 +362,27 @@ void CDisplayPlugin::SetLogger(wxString txt)
 
 void CDisplayPlugin::SetDevices() 
 {
+
+	//for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
+	//{
+		//wxPanel *Panel = m_MapPlugin->GetDevice(i)->CreateConfigPanel(m_Scroll);
+		//
+		//Panel->SetParent();
+		//m_ScrollSizer->Add(Panel,0,wxALL|wxEXPAND,10);
+		//Panel->SetBackgroundColour(*wxRED);
+		//wxString port(Serial->GetPortName(),wxConvUTF8);
+		//m_ScrollSizer->Layout();
+	
+	//}
+	//m_Scroll->SetScrollbars(20, 20, 20, 20);
+	//return;
 	m_Devices->DeleteChildren(m_Root);
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
 	{
 		CMySerial *Serial = m_MapPlugin->GetDevice(i);
 		wxString port(Serial->GetPortName(),wxConvUTF8);
-		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s [%s][%d]"),Serial->GetDeviceName(),port.wc_str(),Serial->GetBaudRate()));
+		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()));
 		//SetDevicesData(Serial,id);
 		CItem *Item = new CItem();
 		Item->SetSerial(Serial);
