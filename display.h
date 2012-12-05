@@ -47,6 +47,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void AddDevice();				// odebrano sygna³ nowego urzadzenia
 	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
+	void RemoveDevice();
 
 	void GetSignal();
 	void OnTreeMenu(wxTreeEvent &event);

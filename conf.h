@@ -24,13 +24,14 @@
 #define DIR_WORKDIR "workdir"
 
 // sygna³y do display
-#define SERIAL_SIGNAL_RECONNECT 1 // sygna³ urzadzenia o ponownym polaczeniu
-#define SERIAL_SIGNAL_ONDATA 2	// sygna³ z portu o danych
-#define SERIAL_SIGNAL_NEW_SIGNAL 3 // linia nowego typu dostêpna
-#define SERIAL_SIGNAL_NO_SIGNAL 4 // polaczony ale brak sygnalu
-#define CLEAR_DISPLAY 5	// wyczyszczenie kontrolek nie u¿ywamy narazie
-#define INIT_SIGNAL 6	// zainicjowanie kontrolek
-#define ADD_DEVICE 7	// dodanie urz¹dzenia
+#define SERIAL_SIGNAL_RECONNECT 1	// sygna³ urzadzenia o ponownym polaczeniu
+#define SERIAL_SIGNAL_ONDATA 2		// sygna³ z portu o danych
+#define SERIAL_SIGNAL_NEW_SIGNAL 3	// linia nowego typu dostêpna
+#define SERIAL_SIGNAL_NO_SIGNAL 4	// polaczony ale brak sygnalu
+#define CLEAR_DISPLAY 5				// wyczyszczenie kontrolek nie u¿ywamy narazie
+#define INIT_SIGNAL 6				// zainicjowanie kontrolek
+#define ADD_DEVICE 7				// dodanie urz¹dzenia
+#define REMOVE_DEVICE 8				// usuwanie urzadzenia
 
 // globalne identyfikatory eventów
 enum

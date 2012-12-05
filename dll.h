@@ -57,6 +57,8 @@ public:
 	void DeleteDevice(size_t idx);
 	void AddDevice(CMySerial *serial);
 	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
+	void RemoveDevice(CMySerial *serial);
+
 	int GetDisplaySignalType();
 	int GetDeviceId();
 	
@@ -71,6 +73,7 @@ public:
 	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial onReconnect
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
+	
 };	
 
 #ifdef __cplusplus

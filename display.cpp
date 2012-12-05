@@ -15,6 +15,7 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_STOP,OnStop)
 	EVT_MENU(ID_START,OnStart)
 	EVT_MENU(ID_CONFIGURE,OnConfigure)
+	EVT_MENU(ID_REMOVE,OnRemove)
 	EVT_MENU(ID_ADD,OnAdd)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,OnSetLogger)
 	//EVT_TOOL(ID_TOOL_STOP,
@@ -156,7 +157,8 @@ void CDisplayPlugin::OnStart(wxCommandEvent &event)
 
 void CDisplayPlugin::OnRemove(wxCommandEvent &event)
 {
-	//m_SelectedDevice->Stop();
+	m_SelectedDevice->Stop();
+	m_MapPlugin->RemoveDevice(m_SelectedDevice);
 }
 
 void CDisplayPlugin::OnConfigure(wxCommandEvent &event)
@@ -244,6 +246,10 @@ void CDisplayPlugin::GetSignal()
 		case ADD_DEVICE:	
 			AddDevice();	
 		break;		// dodano nowe urzadzenie
+
+		case REMOVE_DEVICE:
+			RemoveDevice();
+		break;
 		
 		case SERIAL_SIGNAL_RECONNECT: 
 		case SERIAL_SIGNAL_ONDATA: 	
@@ -283,6 +289,21 @@ void CDisplayPlugin::AddDevice()
 
 }
 
+void CDisplayPlugin::RemoveDevice()
+{
+	SetDevices();
+	//int count =	m_MapPlugin->GetDevicesCount() - 1;
+	//CMySerial *Serial = m_MapPlugin->GetDevice(count);
+	//wxString port(Serial->GetPortName(),wxConvUTF8);
+	//wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s [%s][%d]"),Serial->GetDeviceName(),port.wc_str(),Serial->GetBaudRate()));
+	//CItem *Item = new CItem();
+	//Item->SetSerial(Serial);
+	//m_Devices->SetItemData(id,Item);
+
+}
+
+
+
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
 	//GetMutex()->Lock();
@@ -315,6 +336,7 @@ void CDisplayPlugin::SetLogger(wxString txt)
 
 void CDisplayPlugin::SetDevices() 
 {
+	m_Devices->DeleteChildren(m_Root);
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
 	{

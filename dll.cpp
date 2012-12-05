@@ -53,6 +53,8 @@ void CMapPlugin::WriteConfig()
 	int baud;
 	bool running;
 	
+	m_FileConfig->DeleteGroup(_(KEY_DEVICES));
+	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
 		CMySerial *Serial = m_vDevices[i];
@@ -126,12 +128,26 @@ void *CMapPlugin::AddDevice(void *NaviMapIOApiPtr, void *Params)
 
 	return NULL;
 }
+
 void CMapPlugin::AddDeviceFunc(CMySerial *serial)
 {
 	AddDevice(serial);
 	SendSignal(ADD_DEVICE,0);
 }
 
+void CMapPlugin::RemoveDevice(CMySerial *serial)
+{
+	for(size_t i = 0; i < m_vDevices.size(); i++)
+	{
+		if(m_vDevices[i] == serial)
+		{
+			m_vDevices[i]->Stop();
+			delete m_vDevices[i];
+			m_vDevices.erase(m_vDevices.begin() + i);
+			SendSignal(REMOVE_DEVICE,0);
+		}
+	}
+}
 
 void CMapPlugin::AddDevice(CMySerial *serial)
 {
@@ -189,8 +205,7 @@ void CMapPlugin::Run(void *Params)
 
 void CMapPlugin::Kill(void)
 {
-	
-	//SendSignal(CLEAR_DISPLAY,0);
+		
 	m_NeedExit = true;
 	WriteConfig();
 	
