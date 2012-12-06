@@ -21,7 +21,10 @@
 #define KEY_PORT "port"
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
+#define KEY_DATA "data"
+
 #define DIR_WORKDIR "workdir"
+
 
 // sygna³y do display
 #define SERIAL_SIGNAL_RECONNECT 1	// sygna³ urzadzenia o ponownym polaczeniu
@@ -32,6 +35,31 @@
 #define INIT_SIGNAL 6				// zainicjowanie kontrolek
 #define ADD_DEVICE 7				// dodanie urz¹dzenia
 #define REMOVE_DEVICE 8				// usuwanie urzadzenia
+
+
+
+#define MAX_DATA_POSITIONS		10
+typedef struct TDataDefinition_s {
+
+	int	 DataID;							// id definicji danych pobrane ze zdalnego serwera
+	char Name[32 + 1];						// nazwa definicji
+	char Marker[5 + 1];						// nazwa markera NMEA do pobrania danych
+	int  Position[MAX_DATA_POSITIONS];		// pozycje w lini NMEA (w formie indeksu), których wartoœci nale¿y wyci¹æ. Maksymalnie 10 pozycji
+	bool Average;							// czy uœredniaæ dane
+
+} TDataDefinition;
+
+typedef struct TData_s {
+
+	char	Marker[5 + 1];	// id definicji danych
+	char	Value[16 + 1];
+	bool	Average;							// czy uœredniaæ dane
+	time_t	DateTime;
+
+} TData;
+
+
+
 
 // globalne identyfikatory eventów
 enum

@@ -1,5 +1,5 @@
-#ifndef __CONFIG
-#define __CONFIG
+#ifndef __DEVICE_CONFIG
+#define __DEVICE_CONFIG
 
 #include <wx/wx.h>
 #include "conf.h"
@@ -7,26 +7,29 @@
 #include "tools.h"
 #include <vector>
 
-class CMyConfig: public wxDialog
+class CDeviceConfig: public wxDialog
 {
 	
 	wxBoxSizer *MainSizer;
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
 	wxTextCtrl *NameText;
+	wxTextCtrl *DataDefinition;
 	
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
 	
+	
 public:
 
-	CMyConfig();
-	~CMyConfig();
+	CDeviceConfig();
+	~CDeviceConfig();
 	void ShowWindow(bool show);	
-	wxString GetPort();
 	int GetBaud();
 	wxString GetDeviceName();
+	wxString GetDataDefinition();
+	wxString GetPort();
 	
 	
 	DECLARE_EVENT_TABLE();

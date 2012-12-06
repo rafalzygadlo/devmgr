@@ -5,6 +5,8 @@
 #include "dll.h"
 #include "tools.h"
 
+
+
 CMySerial::CMySerial()
 	:CSerial()
 {
@@ -20,13 +22,6 @@ CMySerial::CMySerial()
 CMySerial::~CMySerial()
 {
 	
-}
-
-wxPanel *CMySerial::CreateConfigPanel(wxWindow *parent)
-{
-	//if(m_ConfigPanel == NULL)
-		m_ConfigPanel = new CPanel(parent,this);
-	return m_ConfigPanel;
 }
 
 void CMySerial::SetRunOnStart(bool val)
@@ -116,7 +111,7 @@ void CMySerial::OnBeforeMainLoop()
 
 void CMySerial::OnLine(unsigned char *line)
 {
-	
+	Parse(line);
 }
 
 void CMySerial::OnNewSignal()
@@ -139,8 +134,142 @@ int CMySerial::GetSignalType()
 	return m_SignalType;
 }
 
-// config panel
+wxString CMySerial::GetDataDefinitionAsString()
+{
+	return m_DataDefinitionString;
 
+}
+
+void CMySerial::CreateDataDefinitionTable(char *data) 
+{
+	wxString str(data,wxConvUTF8);
+	m_DataDefinitionString = str;
+	
+	int ListSize;
+	char **DataDefinitionList = ExplodeStr(data, ";", &ListSize );
+	
+	if( ListSize % 5 ) {
+
+		FreeStrList( DataDefinitionList, ListSize );
+		//if( !SilentMode )
+			//wxMessageBox(MSG_008, MSG_007, wxICON_ERROR );
+		return;
+	};
+
+	//if( DDTProtector->Lock() != wxMUTEX_NO_ERROR ) {
+
+		//FreeStrList( DataDefinitionList, ListSize );
+		//return;
+	//};
+
+	m_DataDefinitionTable.clear();
+	TDataDefinition DefBuf;
+	for(int i = 0; i < ListSize; i+=5 ) {
+
+		memset( &DefBuf, 0, sizeof(TDataDefinition) );
+		memset( &DefBuf.Position, -1, MAX_DATA_POSITIONS * sizeof(int) );	// wszystkie pozycje do wycinania na pocz¹tku -1
+
+		DefBuf.DataID = atoi( DataDefinitionList[ i + 0] );
+		strcpy( DefBuf.Name, DataDefinitionList[ i + 1] );		// oczyt nazwy parametru oraz markera sentencji NMEA
+		strcpy( DefBuf.Marker, DataDefinitionList[ i + 2] );
+
+		if( DataDefinitionList[ i + 3] != NULL ) {	// odczyt listy pozycji do wyciêcia z sentencji NMEA. Zazwyczaj jedna pozycja. Maksymalna iloœæ pozycji zawarta w MAX_DATA_POSITIONS
+
+			int PositionsSize;
+			char **Positions = ExplodeStr( DataDefinitionList[ i + 3], ",", &PositionsSize);
+
+			if( (PositionsSize > 0) && (PositionsSize < MAX_DATA_POSITIONS) ) {
+
+				for( int p = 0; p < PositionsSize; p++ ) {
+
+					
+					DefBuf.Position[p] = atoi( Positions[p] );
+				};
+			};
+			FreeStrList( Positions, PositionsSize );
+		};
+		DefBuf.Average = (bool)(atoi( DataDefinitionList[ i + 4] ) != 0 );
+
+		m_DataDefinitionTable.push_back( DefBuf );
+	};
+	FreeStrList( DataDefinitionList, ListSize );
+
+	if( m_DataDefinitionTable.size() == 0 ) {
+
+		//if( !SilentMode )
+			//wxMessageBox(MSG_008, MSG_007, wxICON_ERROR );
+
+	};
+
+	//DDTProtector->Unlock();
+};
+
+void CMySerial::Parse(unsigned char *line)
+{
+
+	//sygna³ nowej lini
+			
+	TDataDefinition *DataDefinition;
+	for( size_t d = 0; d < m_DataDefinitionTable.size() ; d++ ) 
+	{
+
+		DataDefinition = &m_DataDefinitionTable[d];
+
+		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition->Marker, (int)strlen( DataDefinition->Marker ), 0 ) != -1 ) ) {	// linia zawiera dane, które nale¿y wyci¹æ
+
+			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition->Marker );	
+			int Size;
+			char **StrList = ExplodeStr(ValidLine, ",", &Size);
+			free( ValidLine );
+
+
+			TData Data;
+			memset( &Data, 0, sizeof(TData) );
+			strcpy(Data.Marker, DataDefinition->Marker);
+
+			// Obliczanie czasu uniwersalnego
+			//Data.DateTime = GetUTCTimeNow();	// nie brane pod uwagê
+			Data.Average = DataDefinition->Average;
+			// odczyt kolumn na podstawie definicji odczytu
+			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego
+
+			bool ValidData = true;	// flaga wa¿noœci danych 
+			for(size_t i = 0; i < MAX_DATA_POSITIONS; i++ ) {
+
+				if( DataDefinition->Position[i] == -1 )	// pozycja niezdefiniowana, przerywamy 
+					break;
+
+				if( DataDefinition->Position[i] < Size ) {
+
+					char *MarkerValue = StrList[ DataDefinition->Position[i] ];
+					if( MarkerValue != NULL ) {
+	
+						size_t MarkerValueSize = strlen( MarkerValue );
+						memcpy( Data.Value + WriteStrPor, MarkerValue, MarkerValueSize );
+						WriteStrPor += MarkerValueSize;
+					};
+
+				} else {
+
+					ValidData = false;	// próba odczytu parametru poza zakresem
+					break;
+				};
+			};
+
+			if( ValidData )
+			{
+				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&Data);
+				// sygna³ danych
+			}	
+			FreeStrList( StrList, Size );
+		};
+
+	};
+
+}
+
+
+// config panel
 BEGIN_EVENT_TABLE(CPanel,wxPanel)
 END_EVENT_TABLE()
 

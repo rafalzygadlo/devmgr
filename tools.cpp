@@ -43,3 +43,85 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run)
 	return Serial;
 
 }
+
+char **ExplodeStr(const char *str, const char *separator, int *size) {
+
+	size_t seplen = strlen(separator);	// d³ugoœæ separatora
+	size_t start = 0;
+	char **List = NULL;
+	char *Element;
+
+	*size = 0;
+	for(size_t i=0; i < strlen(str); i++ ) {
+
+		if( memcmp(str + i, separator, seplen) == 0 ) {
+
+			*size = *size + 1;
+			List = (char**)realloc(List, *size * (sizeof(*List)) );
+			size_t ElementLen = strlen(str) - start;
+			Element = (char*)malloc( ElementLen * sizeof( char ) );
+			memset(Element, 0, ElementLen * sizeof( char ) );
+			int id = 0;
+			for(size_t j = start; j < i; j++ ) {
+
+				Element[id] = str[j];
+				id++;
+			};
+			start = i + seplen;
+			List[ *size - 1] = Element;
+		};
+	};
+
+	// ostatni element ,xxx
+	if( strlen(str) > 0 ) {
+		*size = *size + 1;
+		List = (char**)realloc(List, *size * (sizeof(*List)) );
+		size_t ElementLen = strlen(str) - start + 1;
+		Element = (char*)malloc( ElementLen * sizeof( char ) );
+		memset(Element, 0, ElementLen * sizeof( char ) );
+		int id = 0;
+		for(size_t j = start; j < strlen(str); j++ ) {
+
+			Element[id] = str[j];
+			id++;
+		};
+		List[ *size - 1] = Element;
+	};
+
+	return List;
+
+};
+
+void FreeStrList(char **list, int length) {
+
+	for( int i = 0; i < length; i++ )
+		free( list[i] );
+
+	free(list);
+};
+
+char *GetSentenceFromLine(const char *line, const char *identyfier) {
+
+	int IdentSuplement = 5 - (int)strlen(identyfier);	// uzupe³nienie wycinania w przypadku gdy nie podano identyfikatora w ca³oœci (5 znaków)
+	int ValidSentenceLen = (int)strlen(line) - ((int)strlen(identyfier) + 2) - 3 - IdentSuplement;
+	char *ValidSentence = (char*)malloc( ValidSentenceLen + 1 );
+
+	memcpy( ValidSentence, line + strlen(identyfier) + 2 + IdentSuplement, ValidSentenceLen );
+	ValidSentence[ ValidSentenceLen ] = 0; 
+
+	return ValidSentence;
+
+};
+
+int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Search, int SearchSize, int StartAt ) {
+
+	int Len = MemorySize - SearchSize;
+	for( int i = StartAt; i < Len + 1; i++ ) {
+
+		if( memcmp( Memory + i, Search, SearchSize ) == 0 )
+			return i;
+
+	};
+
+	return -1;
+};

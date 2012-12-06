@@ -18,6 +18,9 @@ class CMySerial :public CSerial
 	int m_SignalType;
 	bool m_RunOnStart;
 	CPanel *m_ConfigPanel;
+	std::vector<TDataDefinition> m_DataDefinitionTable;
+	wxString m_DataDefinitionString;
+	
 		
 		
 public:
@@ -31,10 +34,13 @@ public:
 	void SetBroker(CNaviBroker *broker);
 	void SetRunOnStart(bool val);
 	wxString GetDeviceName();
-	wxPanel *CreateConfigPanel(wxWindow *parent);
-	
+	void SetDataDefinition();
 	size_t GetDeviceId();					
 	int GetSignalType();
+	void CreateDataDefinitionTable(char *data);
+	void Parse(unsigned char *line);
+	//TDataDefinition *GetDataDefinition(const char *NMEALine);
+	wxString GetDataDefinitionAsString();
 
 	virtual void OnConnect();
 	virtual void OnDisconnect();

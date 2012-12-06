@@ -72,7 +72,8 @@ public:
 	virtual void MouseDBLClick(int x, int y);
 		
 	// funkcje dostêpne dla innych pluginów
-	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial onReconnect
+	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial signal (recnnec, on data etc...)
+	static void *OnDeviceData(void *NaviMapIOApiPtr, void *Params);		// dane które by³y w definicji s¹ dostêpne
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
 	

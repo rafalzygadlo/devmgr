@@ -62,7 +62,8 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnStop(wxCommandEvent &event);
 	void OnStart(wxCommandEvent &event);
 	void OnRemove(wxCommandEvent &event);
-	void OnConfigure(wxCommandEvent &event);
+	void OnConfigureDevice(wxCommandEvent &event);
+	void OnConfigureData(wxCommandEvent &event);
 	void OnAdd(wxCommandEvent &event);
 	void OnSetLogger(wxCommandEvent &event);
 	
@@ -83,7 +84,8 @@ public:
 		ID_TREE = 4500,
 		ID_STOP,
 		ID_START,
-		ID_CONFIGURE,
+		ID_CONFIGURE_DATA,
+		ID_CONFIGURE_DEVICE,
 		ID_REMOVE,
 		ID_ADD,
 		ID_LOGGER

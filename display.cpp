@@ -4,7 +4,8 @@
 #include "tools.h"
 #include "display.h"
 #include "item.h"
-#include "config.h"
+#include "device_config.h"
+#include "data_config.h"
 #include "warning.h"
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
@@ -14,7 +15,8 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_TREE_SEL_CHANGED(ID_TREE, OnTreeSelChanged)
 	EVT_MENU(ID_STOP,OnStop)
 	EVT_MENU(ID_START,OnStart)
-	EVT_MENU(ID_CONFIGURE,OnConfigure)
+	EVT_MENU(ID_CONFIGURE_DEVICE,OnConfigureDevice)
+	EVT_MENU(ID_CONFIGURE_DATA,OnConfigureData)
 	EVT_MENU(ID_REMOVE,OnRemove)
 	EVT_MENU(ID_ADD,OnAdd)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,OnSetLogger)
@@ -87,17 +89,17 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Sizer->Add(Panel,0,wxEXPAND,0);
 	//Panel->SetBackgroundColour(*wxRED);
 	
-	wxStaticText *LabelConnected = new wxStaticText(Panel,wxID_ANY,_("is connected ?"));
-	PanelSizer->Add(LabelConnected,0,wxEXPAND|wxALL,2);
+	//wxStaticText *LabelConnected = new wxStaticText(Panel,wxID_ANY,_("is connected ?"));
+	//PanelSizer->Add(LabelConnected,0,wxEXPAND|wxALL,2);
 
-	wxStaticText *LabelRunning = new wxStaticText(Panel,wxID_ANY,_("is running ?"));
-	PanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
+	//wxStaticText *LabelRunning = new wxStaticText(Panel,wxID_ANY,_("is running ?"));
+	//PanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
 
-	wxStaticText *LabelHasSignal = new wxStaticText(Panel,wxID_ANY,_("has signal ?"));
-	PanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
+	//wxStaticText *LabelHasSignal = new wxStaticText(Panel,wxID_ANY,_("has signal ?"));
+	//PanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 
-	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
-	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
+	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
+	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
 	this->SetSizer(m_Sizer);
@@ -151,14 +153,16 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	
 	CMySerial *Serial = m_SelectedItem->GetSerial();
 	m_SelectedDevice = Serial;
-	wxMenu *Menu = new wxMenu();
+	wxMenu *Menu = new wxMenu(wxString::Format(_("%s(%d)"),Serial->GetDeviceName().wc_str(),Serial->GetSignalCount()));
 		
+
 	if(Serial->IsRunning())
 		Menu->Append(ID_STOP,_("Stop"));
 	else
 		Menu->Append(ID_START,_("Start"));
 	
-	//Menu->Append(ID_CONFIGURE,_("Configure"));
+	Menu->Append(ID_CONFIGURE_DEVICE,_("Configure Device"));
+	Menu->Append(ID_CONFIGURE_DATA,_("Configure Data"));
 	Menu->Append(ID_REMOVE,_("Remove"));
 
 	PopupMenu(Menu);
@@ -188,9 +192,9 @@ void CDisplayPlugin::OnRemove(wxCommandEvent &event)
 	
 }
 
-void CDisplayPlugin::OnConfigure(wxCommandEvent &event)
+void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 {
-	CMyConfig *Config = new CMyConfig();
+	CDeviceConfig *Config = new CDeviceConfig();
 //	if(m_SelectedDevice != NULL)
 //	{
 		//Config->SetPort();
@@ -203,27 +207,37 @@ void CDisplayPlugin::OnConfigure(wxCommandEvent &event)
 		Config->GetDeviceName();
 		Config->GetPort();
 		Config->GetBaud();
-		
-		
-		
-		
 	}	
 	
 	
 	delete Config;
 }
 
+void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
+{
+	CDataConfig *Config = new CDataConfig(m_SelectedDevice);
+	
+	if(Config->ShowModal() == wxID_OK)
+	{
+	
+	}
+	delete Config;
+}
+
+
+
 void CDisplayPlugin::OnAdd(wxCommandEvent &event)
 {
-	CMyConfig *Config = new CMyConfig();
+	CDeviceConfig *Config = new CDeviceConfig();
 	
 	if(Config->ShowModal() == wxID_OK)
 	{
 		int count = m_MapPlugin->GetDevicesCount(); 
 		wxString name = wxString::Format(_("%s"),Config->GetDeviceName().wc_str());
-		Config->GetPort();
-		Config->GetBaud();
+		
 		CMySerial *serial = CreateNewDevice(name, Config->GetPort().char_str(),	Config->GetBaud(),true);
+		serial->CreateDataDefinitionTable(Config->GetDataDefinition().char_str());
+		
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
 	}	
 	

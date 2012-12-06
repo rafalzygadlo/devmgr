@@ -1,6 +1,6 @@
 #include "conf.h"
 #include "dll.h"
-#include "config.h"
+#include "device_config.h"
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <wx/dirdlg.h>
@@ -8,13 +8,13 @@
 #include <wx/hyperlink.h>
 #include <wx/settings.h>
 
-BEGIN_EVENT_TABLE(CMyConfig,wxDialog)
-	EVT_BUTTON(ID_CLOSE,CMyConfig::OnCloseButton)
+BEGIN_EVENT_TABLE(CDeviceConfig,wxDialog)
+	EVT_BUTTON(ID_CLOSE,CDeviceConfig::OnCloseButton)
 END_EVENT_TABLE()
 
 
-CMyConfig::CMyConfig()
-	:wxDialog(NULL,wxID_ANY, _("New Device"), wxDefaultPosition, wxDefaultSize )
+CDeviceConfig::CDeviceConfig()
+	:wxDialog(NULL,wxID_ANY, _("Device"), wxDefaultPosition, wxDefaultSize )
 {
 	
 	MainSizer = new wxBoxSizer(wxVERTICAL);
@@ -56,7 +56,13 @@ CMyConfig::CMyConfig()
 	for(size_t i = 0; i < mySerial->GetBaudInfoLength(); i++)
 		BaudCombo->Append(wxString::Format(_("%d"),mySerial->GetBaudInfo(i)));
 
+	delete mySerial;
 	
+	wxStaticText *DataDefinitionLabel = new wxStaticText(Panel1,wxID_ANY,_("Data definition:"));
+	FlexGrid1Sizer->Add(DataDefinitionLabel,0,wxALL,5);
+	DataDefinition = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(400,-1),wxTE_MULTILINE);
+	FlexGrid1Sizer->Add(DataDefinition,0,wxALL|wxEXPAND,5);
+			
 	this->SetSizer(MainSizer);
 	
 	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,5);
@@ -74,12 +80,12 @@ CMyConfig::CMyConfig()
 		
 }	
 
-CMyConfig::~CMyConfig(void)
+CDeviceConfig::~CDeviceConfig(void)
 {
 
 }
 
-bool CMyConfig::Validate()
+bool CDeviceConfig::Validate()
 {
 	bool result = true;
 	
@@ -112,17 +118,18 @@ bool CMyConfig::Validate()
 	
 	return result;
 }
-wxString CMyConfig::GetDeviceName()
+
+wxString CDeviceConfig::GetDeviceName()
 {
 	return NameText->GetValue();
 }
 
-wxString CMyConfig::GetPort()
+wxString CDeviceConfig::GetPort()
 {
 	return PortCombo->GetValue();
 }
 
-int CMyConfig::GetBaud()
+int CDeviceConfig::GetBaud()
 {
 	long val;
 	BaudCombo->GetValue().ToLong(&val);
@@ -130,18 +137,22 @@ int CMyConfig::GetBaud()
 	return val;
 }
 
+wxString CDeviceConfig::GetDataDefinition()
+{
+	return DataDefinition->GetValue();
+}
 
-void CMyConfig::ShowWindow(bool show)
+void CDeviceConfig::ShowWindow(bool show)
 {
 	Show(show);
 }
 
-void CMyConfig::OnCloseButton(wxCommandEvent &event)
+void CDeviceConfig::OnCloseButton(wxCommandEvent &event)
 {	
 	Hide();
 }
 
-void CMyConfig::OnClose(wxCloseEvent &event)
+void CDeviceConfig::OnClose(wxCloseEvent &event)
 {
 	Destroy();
 }
