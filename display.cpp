@@ -7,6 +7,7 @@
 #include "device_config.h"
 #include "data_config.h"
 #include "warning.h"
+#include "battery.h"
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 
@@ -58,27 +59,27 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	
 	m_Devices = new wxTreeCtrl(this,ID_TREE,wxDefaultPosition,wxDefaultSize);
 
-	m_ImageListSmall = new wxImageList(16, 16, true);
-	m_ToolBar = new wxToolBar(this,wxID_ANY,wxDefaultPosition,wxDefaultSize, wxTB_FLAT| wxTB_TEXT| wxTB_NOICONS);
+	m_ImageListSmall = new wxImageList(16, 16);
+	//m_ToolBar = new wxToolBar(this,wxID_ANY,wxDefaultPosition,wxDefaultSize, wxTB_FLAT| wxTB_TEXT| wxTB_NOICONS);
 
-	m_ToolBar->AddTool(ID_START , _("Start"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
-	m_ToolBar->AddTool(ID_STOP , _("Stop"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
-    m_ToolBar->Realize();
-	m_Sizer->Add(m_ToolBar,0,wxEXPAND|wxALL,0);
+	//m_ToolBar->AddTool(ID_START , _("Start"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
+	//m_ToolBar->AddTool(ID_STOP , _("Stop"),wxNullBitmap,wxNullBitmap,wxITEM_NORMAL);
+    //m_ToolBar->Realize();
+	//m_Sizer->Add(m_ToolBar,0,wxEXPAND|wxALL,0);
 	//wxMemoryInputStream in_1((const unsigned char*)up_sort,up_sort_size);
     //wxImage myImage_1(in_1, wxBITMAP_TYPE_PNG);
     //ImageListSmall->Add(myImage_1);
 
-	//wxMemoryInputStream in_2((const unsigned char*)down_sort,down_sort_size);
-    //wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
-    //ImageListSmall->Add(myImage_2);
+	wxMemoryInputStream in_2((const unsigned char*)battery,battery_size);
+    wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
+    m_ImageListSmall->Add(myImage_2);
 	
 	wxMemoryInputStream in_3((const unsigned char*)warning,warning_size);
     wxImage myImage_3(in_3, wxBITMAP_TYPE_PNG);
     m_ImageListSmall->Add(myImage_3);
 	
 
-	//m_Devices->AssignImageList(ImageListSmall);
+	m_Devices->AssignImageList(m_ImageListSmall);
 	
 	m_Root = m_Devices->AddRoot(_("Devices"));
 	m_Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
@@ -115,6 +116,7 @@ CDisplayPlugin::~CDisplayPlugin()
 
 void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 {
+	m_SelectedItemId = event.GetItem();
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
 	if(m_SelectedItem == NULL)
 	{
@@ -153,18 +155,22 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	
 	CMySerial *Serial = m_SelectedItem->GetSerial();
 	m_SelectedDevice = Serial;
-	wxMenu *Menu = new wxMenu(wxString::Format(_("%s(%d)"),Serial->GetDeviceName().wc_str(),Serial->GetSignalCount()));
+	wxMenu *Menu = new wxMenu(wxString::Format(_("%s"),Serial->GetDeviceName().wc_str()));
 		
-
-	if(Serial->IsRunning())
-		Menu->Append(ID_STOP,_("Stop"));
-	else
-		Menu->Append(ID_START,_("Start"));
-	
+	Menu->Append(ID_STOP,_("Stop"));
+	Menu->Append(ID_START,_("Start"));
+	Menu->AppendSeparator();
 	Menu->Append(ID_CONFIGURE_DEVICE,_("Configure Device"));
-	Menu->Append(ID_CONFIGURE_DATA,_("Configure Data"));
+	Menu->Append(ID_CONFIGURE_DATA,_("Configure Device Data"));
+	Menu->AppendSeparator();
+	Menu->Append(ID_STATUS,_("Status"));
 	Menu->Append(ID_REMOVE,_("Remove"));
 
+	bool running = m_SelectedDevice->IsRunning();
+	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
+	Menu->Enable(ID_CONFIGURE_DATA,!running);
+	Menu->Enable(ID_STOP,running);
+	Menu->Enable(ID_START,!running);
 	PopupMenu(Menu);
 	
 	delete Menu;
@@ -175,14 +181,14 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 void CDisplayPlugin::OnStop(wxCommandEvent &event)
 {
 	m_SelectedDevice->Stop();
-	m_Devices->SetItemImage(m_SelectedItem,0, wxTreeItemIcon_Normal);
-	m_Devices->Refresh();
-	
+	m_Devices->SetItemImage(m_SelectedItemId,0, wxTreeItemIcon_Normal);
+		
 }
 
 void CDisplayPlugin::OnStart(wxCommandEvent &event)
 {
 	m_SelectedDevice->Start();
+	m_Devices->SetItemImage(m_SelectedItemId,1, wxTreeItemIcon_Normal);
 }
 
 void CDisplayPlugin::OnRemove(wxCommandEvent &event)
@@ -194,23 +200,29 @@ void CDisplayPlugin::OnRemove(wxCommandEvent &event)
 
 void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 {
-	CDeviceConfig *Config = new CDeviceConfig();
-//	if(m_SelectedDevice != NULL)
-//	{
-		//Config->SetPort();
-		//Config->SetBaud();
-		//Config->SetDeviceName();
-	//}
-	
-	if(Config->ShowModal() == wxID_OK)
+	if(m_SelectedDevice->IsRunning())
 	{
-		Config->GetDeviceName();
-		Config->GetPort();
-		Config->GetBaud();
+		wxMessageBox(_("Stop the device first."));
+		return;
+
+	}
+
+	CDeviceConfig *DeviceConfig = new CDeviceConfig();
+	DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
+	DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
+	DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
+	
+	
+	if(DeviceConfig->ShowModal() == wxID_OK)
+	{
+		m_SelectedDevice->SetPort(DeviceConfig->GetPort().char_str());
+		m_SelectedDevice->SetBaud(DeviceConfig->GetBaud());
+		m_SelectedDevice->SetDeviceName(DeviceConfig->GetDeviceName());
+		
 	}	
 	
 	
-	delete Config;
+	delete DeviceConfig;
 }
 
 void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
@@ -236,8 +248,7 @@ void CDisplayPlugin::OnAdd(wxCommandEvent &event)
 		wxString name = wxString::Format(_("%s"),Config->GetDeviceName().wc_str());
 		
 		CMySerial *serial = CreateNewDevice(name, Config->GetPort().char_str(),	Config->GetBaud(),true);
-		serial->CreateDataDefinitionTable(Config->GetDataDefinition().char_str());
-		
+				
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
 	}	
 	
@@ -323,7 +334,11 @@ void CDisplayPlugin::AddDevice()
 	int count =	m_MapPlugin->GetDevicesCount() - 1;
 	CMySerial *Serial = m_MapPlugin->GetDevice(count);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
-	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()));
+	int icon_id = 0;
+	if(Serial->IsRunning())
+		icon_id = 1;
+	
+	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
 	CItem *Item = new CItem();
 	Item->SetSerial(Serial);
 	m_Devices->SetItemData(id,Item);

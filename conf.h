@@ -12,6 +12,8 @@
 	#define DIR_SEPARATOR "/"
 #endif
 
+#define nvPI 3.1415926535897932384626433832795
+
 #define PRODUCT_NAME "Device Manager"
 #define PRODUCT_VERSION "0.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2011 by NavSim. All rights reserved"
@@ -58,6 +60,12 @@ typedef struct TData_s {
 
 } TData;
 
+typedef struct
+{
+	double x;
+	double y;
+
+} SPoint;
 
 
 

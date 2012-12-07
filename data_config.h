@@ -13,6 +13,7 @@ class CDataConfig: public wxDialog
 	wxBoxSizer *MainSizer;
 	wxTextCtrl *DataDefinition;
 	
+	
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);

@@ -15,7 +15,7 @@ class CDeviceConfig: public wxDialog
 	wxComboBox *PortCombo;
 	wxTextCtrl *NameText;
 	wxTextCtrl *DataDefinition;
-	
+		
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
@@ -30,6 +30,10 @@ public:
 	wxString GetDeviceName();
 	wxString GetDataDefinition();
 	wxString GetPort();
+
+	void SetDeviceName(wxString name);
+	void SetPort(char *port);
+	void SetBaud(int baud);
 	
 	
 	DECLARE_EVENT_TABLE();

@@ -27,6 +27,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	
 	CMySerial *m_SelectedDevice;
 	CItem *m_SelectedItem;
+	wxTreeItemId m_SelectedItemId;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
 	wxString m_Name;
@@ -88,7 +89,8 @@ public:
 		ID_CONFIGURE_DEVICE,
 		ID_REMOVE,
 		ID_ADD,
-		ID_LOGGER
+		ID_STATUS,
+		ID_LOGGER,
 	};
 
 

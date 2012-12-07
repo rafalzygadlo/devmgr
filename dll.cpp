@@ -1,8 +1,11 @@
+#include <wx/wx.h>
 #include "NaviDisplaySignals.h"
+#include "conf.h"
 #include "dll.h"
 #include "serial.h"
 #include "tools.h"
 #include "info.h"
+
 
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
@@ -37,7 +40,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
-	
+	BuildGeometry();
 	//CreateApiMenu();
 	
 }
@@ -249,6 +252,96 @@ void CMapPlugin::Kill(void)
 
 }
 
+void CMapPlugin::BuildGeometry()
+{
+    // first circle
+    SPoint Points;
+    float Radius = 0.2f;
+    
+    for(int i=0; i<360; i+=6)
+    {
+        Points.x = Radius*(float)sin(i*nvPI/180.0);
+        Points.y = Radius*(float)cos(i*nvPI/180.0);
+        vCircle1.push_back(Points);
+    }
+
+    // second circle
+    Radius = 0.08f;
+    for(int i=0; i<360; i+=6)
+    {
+        Points.x = Radius*(float)sin(i*nvPI/180.0);
+        Points.y = Radius*(float)cos(i*nvPI/180.0);
+        vCircle2.push_back(Points);
+    }
+
+	// third circle
+    Radius = 1.0f;
+	CircleRadius = Radius;
+    for(int i=0; i<360; i+=6)
+    {
+        Points.x = Radius*(float)sin(i*nvPI/180.0);
+        Points.y = Radius*(float)cos(i*nvPI/180.0);
+        vCircle3.push_back(Points);
+    }
+
+
+    // line H
+    Points.x = -0.3;	Points.y =	0.0;    vLineH.push_back(Points);
+    Points.x = 0.3;		Points.y =	0.0;    vLineH.push_back(Points);
+    //line V
+    Points.x = 0.0;		Points.y =	0.3;	vLineH.push_back(Points);
+    Points.x = 0.0;		Points.y =	-1.0;   vLineH.push_back(Points);
+	// bok
+	Points.x = 0.0;		Points.y = -1.0;	vLineH.push_back(Points);
+	Points.x = 0.3;		Points.y = 0.0;		vLineH.push_back(Points);
+	// bok
+	Points.x = 0.0;		Points.y = -1.0;	vLineH.push_back(Points);
+	Points.x = -0.3;	Points.y = 0.0;		vLineH.push_back(Points);
+	// end
+    Points.x = -0.3;    Points.y =	0.3;    vLineH.push_back(Points);
+    Points.x = 0.3;		Points.y =	0.3;    vLineH.push_back(Points);
+	// end1
+	Points.x = -0.2;    Points.y =	0.5;    vLineH.push_back(Points);
+    Points.x = 0.2;		Points.y =	0.5;    vLineH.push_back(Points);
+
+
+}
+
+void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
+{
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_DOUBLE, 0, RawData);
+    glDrawArrays(Mode, 0, DataLength);
+    glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void CMapPlugin::RenderPosition()
+{
+		
+	glColor4f(0.0f,0.0f,1.0f,0.5f);
+	glPushMatrix();
+		glLineWidth(2);
+		glTranslated(0.0,0.0,0.0);
+		glScalef(50.0/Scale,50.0/Scale,0.0f);
+		glRotatef(Hdg,0.0f,0.0f,1.0f);
+		RenderGeometry(GL_LINE_LOOP,&vCircle1[0],vCircle1.size());	// circle 0
+		RenderGeometry(GL_LINE_LOOP,&vCircle2[0],vCircle2.size());  // circle 1
+		RenderGeometry(GL_LINE_LOOP,&vCircle3[0],vCircle3.size());  // circle 1
+		RenderGeometry(GL_LINES,&vLineH[0],vLineH.size());			// line H
+		glLineWidth(1);
+    glPopMatrix();
+
+}
+
+
+
+void CMapPlugin::Render()
+{
+	Scale = m_Broker->GetMapScale();
+	RenderPosition();
+}
+
+
 bool CMapPlugin::GetNeedExit(void)
 {
     return m_NeedExit;
@@ -308,10 +401,19 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
 	TData *Data = (TData*)Params;
 
+	if(strcmp(Data->Marker,"HDG") == 0)
+		ThisPtr->SetHDG(atof(Data->Value));
 	
-	//ThisPtr->SendSignal(Serial->GetSignalType(),Serial->GetDeviceId());
-		
+	
+
 	return NULL;
+
+}
+void CMapPlugin::SetHDG(double val)
+{
+	Hdg = val;
+	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
+	//m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 int CMapPlugin::GetDisplaySignalType()

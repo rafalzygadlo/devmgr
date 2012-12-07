@@ -7,6 +7,7 @@
 #include <wx/wx.h>
 #include "NaviDisplayApi.h"
 #include <wx/fileconf.h>
+#include "gl/gl.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -32,6 +33,10 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_DeviceId;
 	CDisplaySignal *m_DisplaySignal;
 	bool m_Init;
+	float Scale;
+	std::vector <SPoint> vCircle1,vCircle2,vCircle3,vLineV, vLineH;
+	float CircleRadius;
+	double Hdg;
 	
 	
 	void CreateApiMenu(void);
@@ -43,7 +48,9 @@ class CMapPlugin :public CNaviMapIOApi
 	wxArrayString GetDevicesConfig(wxString path);
 	void OnReconnect(CMySerial *Serial);
 	bool IsInited();
-
+	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
+	void BuildGeometry();
+	void SetHDG(double val);
 					
 public:
 
@@ -59,14 +66,14 @@ public:
 	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
 	void RemoveDevice(CMySerial *serial);
 	void ReindexDevics();
-
-
+	void RenderPosition();
+	
 	int GetDisplaySignalType();
 	int GetDeviceId();
 	
 	virtual void Run(void *Params);
 	virtual void Kill(void);
-	//virtual void Render(void);
+	virtual void Render(void);
 	virtual void Config();
 	virtual void Mouse(int x, int y, bool lmb, bool mmb, bool rmb );
 	virtual void MouseDBLClick(int x, int y);

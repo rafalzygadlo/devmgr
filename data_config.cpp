@@ -21,13 +21,14 @@ CDataConfig::CDataConfig(CMySerial *serial)
 	MainSizer->SetMinSize(300,-1);
 	
 	wxPanel *Panel1 = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Panel1->SetBackgroundColour(*wxWHITE);
 	wxBoxSizer *Panel1Sizer = new wxBoxSizer(wxVERTICAL);
 	
 	Panel1->SetSizer(Panel1Sizer);
 		
 	wxStaticText *DataDefinitionLabel = new wxStaticText(Panel1,wxID_ANY,_("Data definition:"));
 	Panel1Sizer->Add(DataDefinitionLabel,0,wxALL,5);
-	DataDefinition = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(600,-1),wxTE_MULTILINE);
+	DataDefinition = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(400,-1),wxTE_MULTILINE);
 	Panel1Sizer->Add(DataDefinition,0,wxALL|wxEXPAND,5);
 
 	for(size_t i = 0; i < serial->GetSignalCount();i++)

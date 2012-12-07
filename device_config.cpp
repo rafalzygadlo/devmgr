@@ -21,10 +21,11 @@ CDeviceConfig::CDeviceConfig()
 	MainSizer->SetMinSize(300,-1);
 	
 	wxPanel *Panel1 = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Panel1->SetBackgroundColour(*wxWHITE);
 	wxBoxSizer *Panel1Sizer = new wxBoxSizer(wxVERTICAL);
 	wxFlexGridSizer *FlexGrid1Sizer = new wxFlexGridSizer(2);
 	FlexGrid1Sizer->AddGrowableCol(1);
-	Panel1Sizer->Add(FlexGrid1Sizer,1,wxALL|wxEXPAND,5);
+	Panel1Sizer->Add(FlexGrid1Sizer,1,wxALL|wxEXPAND,10);
 	
 	wxStaticText *NameLabel = new wxStaticText(Panel1,wxID_ANY,_("Name:"));
 	FlexGrid1Sizer->Add(NameLabel,0,wxALL,5);
@@ -57,15 +58,10 @@ CDeviceConfig::CDeviceConfig()
 		BaudCombo->Append(wxString::Format(_("%d"),mySerial->GetBaudInfo(i)));
 
 	delete mySerial;
-	
-	wxStaticText *DataDefinitionLabel = new wxStaticText(Panel1,wxID_ANY,_("Data definition:"));
-	FlexGrid1Sizer->Add(DataDefinitionLabel,0,wxALL,5);
-	DataDefinition = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(400,-1),wxTE_MULTILINE);
-	FlexGrid1Sizer->Add(DataDefinition,0,wxALL|wxEXPAND,5);
-			
+				
 	this->SetSizer(MainSizer);
 	
-	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,5);
+	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,0);
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
 	ButtonSizer->AddStretchSpacer(1);
@@ -137,9 +133,20 @@ int CDeviceConfig::GetBaud()
 	return val;
 }
 
-wxString CDeviceConfig::GetDataDefinition()
+void CDeviceConfig::SetPort(char *port)
 {
-	return DataDefinition->GetValue();
+	wxString str(port,wxConvUTF8);
+	PortCombo->SetValue(str);
+}
+
+void CDeviceConfig::SetBaud(int baud)
+{
+	BaudCombo->SetValue(wxString::Format(_("%d"),baud));
+}
+
+void CDeviceConfig::SetDeviceName(wxString name)
+{
+	NameText->SetLabel(name);
 }
 
 void CDeviceConfig::ShowWindow(bool show)
