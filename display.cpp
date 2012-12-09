@@ -120,27 +120,27 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
 	if(m_SelectedItem == NULL)
 	{
-		m_ToolBar->EnableTool(ID_START,false);
-		m_ToolBar->EnableTool(ID_STOP,false);
+//		m_ToolBar->EnableTool(ID_START,false);
+//		m_ToolBar->EnableTool(ID_STOP,false);
 		return;
 	}
 
 	if(m_SelectedItem->GetSerial()->IsRunning())
 	{	
-		m_ToolBar->EnableTool(ID_START,false);
-		m_ToolBar->EnableTool(ID_STOP,true);
+//		m_ToolBar->EnableTool(ID_START,false);
+//		m_ToolBar->EnableTool(ID_STOP,true);
 	
 	}else{
 		
-		m_ToolBar->EnableTool(ID_START,true);
-		m_ToolBar->EnableTool(ID_STOP,false);
+//		m_ToolBar->EnableTool(ID_START,true);
+//		m_ToolBar->EnableTool(ID_STOP,false);
 	}
 
 }
 
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 {
-		
+	m_SelectedItemId = event.GetItem();
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
 
 	if(m_SelectedItem == NULL)
@@ -157,14 +157,14 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	m_SelectedDevice = Serial;
 	wxMenu *Menu = new wxMenu(wxString::Format(_("%s"),Serial->GetDeviceName().wc_str()));
 		
-	Menu->Append(ID_STOP,_("Stop"));
 	Menu->Append(ID_START,_("Start"));
+	Menu->Append(ID_STOP,_("Stop"));
 	Menu->AppendSeparator();
 	Menu->Append(ID_CONFIGURE_DEVICE,_("Configure Device"));
 	Menu->Append(ID_CONFIGURE_DATA,_("Configure Device Data"));
 	Menu->AppendSeparator();
 	Menu->Append(ID_STATUS,_("Status"));
-	Menu->Append(ID_REMOVE,_("Remove"));
+	Menu->Append(ID_REMOVE,_("Uninstall"));
 
 	bool running = m_SelectedDevice->IsRunning();
 	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
@@ -218,7 +218,7 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 		m_SelectedDevice->SetPort(DeviceConfig->GetPort().char_str());
 		m_SelectedDevice->SetBaud(DeviceConfig->GetBaud());
 		m_SelectedDevice->SetDeviceName(DeviceConfig->GetDeviceName());
-		
+		m_Devices->SetItemText(m_SelectedItemId,DeviceConfig->GetDeviceName());
 	}	
 	
 	
@@ -335,6 +335,7 @@ void CDisplayPlugin::AddDevice()
 	CMySerial *Serial = m_MapPlugin->GetDevice(count);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
 	int icon_id = 0;
+	
 	if(Serial->IsRunning())
 		icon_id = 1;
 	
@@ -348,14 +349,6 @@ void CDisplayPlugin::AddDevice()
 void CDisplayPlugin::RemoveDevice()
 {
 	SetDevices();
-	//int count =	m_MapPlugin->GetDevicesCount() - 1;
-	//CMySerial *Serial = m_MapPlugin->GetDevice(count);
-	//wxString port(Serial->GetPortName(),wxConvUTF8);
-	//wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s [%s][%d]"),Serial->GetDeviceName(),port.wc_str(),Serial->GetBaudRate()));
-	//CItem *Item = new CItem();
-	//Item->SetSerial(Serial);
-	//m_Devices->SetItemData(id,Item);
-
 }
 
 
@@ -392,27 +385,18 @@ void CDisplayPlugin::SetLogger(wxString txt)
 
 void CDisplayPlugin::SetDevices() 
 {
-
-	//for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
-	//{
-		//wxPanel *Panel = m_MapPlugin->GetDevice(i)->CreateConfigPanel(m_Scroll);
-		//
-		//Panel->SetParent();
-		//m_ScrollSizer->Add(Panel,0,wxALL|wxEXPAND,10);
-		//Panel->SetBackgroundColour(*wxRED);
-		//wxString port(Serial->GetPortName(),wxConvUTF8);
-		//m_ScrollSizer->Layout();
-	
-	//}
-	//m_Scroll->SetScrollbars(20, 20, 20, 20);
-	//return;
 	m_Devices->DeleteChildren(m_Root);
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
 	{
 		CMySerial *Serial = m_MapPlugin->GetDevice(i);
 		wxString port(Serial->GetPortName(),wxConvUTF8);
-		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()));
+
+		int icon_id = 0;
+		if(Serial->IsRunning())
+			icon_id = 1;
+
+		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
 		//SetDevicesData(Serial,id);
 		CItem *Item = new CItem();
 		Item->SetSerial(Serial);
