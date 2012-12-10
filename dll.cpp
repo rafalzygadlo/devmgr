@@ -235,7 +235,7 @@ void CMapPlugin::Kill(void)
 	{
 		if(m_vDevices[i]->IsRunning())
 		{
-			CMyInfo Info(NULL,wxString::Format(_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time.\n "),m_vDevices[i]->GetDeviceName()));
+			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
 			m_vDevices[i]->Stop();
 			wxMilliSleep(100);
 		}
@@ -337,8 +337,8 @@ void CMapPlugin::RenderPosition()
 
 void CMapPlugin::Render()
 {
-	Scale = m_Broker->GetMapScale();
-	RenderPosition();
+	//Scale = m_Broker->GetMapScale();
+	//RenderPosition();
 }
 
 
@@ -404,11 +404,10 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 	if(strcmp(Data->Marker,"HDG") == 0)
 		ThisPtr->SetHDG(atof(Data->Value));
 	
-	
-
 	return NULL;
 
 }
+
 void CMapPlugin::SetHDG(double val)
 {
 	Hdg = val;

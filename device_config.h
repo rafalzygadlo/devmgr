@@ -2,6 +2,7 @@
 #define __DEVICE_CONFIG
 
 #include <wx/wx.h>
+#include <wx/hyperlink.h>
 #include "conf.h"
 #include "dll.h"
 #include "tools.h"
@@ -10,6 +11,7 @@
 class CDeviceConfig: public wxDialog
 {
 	
+	CMySerial *mySerial;
 	wxBoxSizer *MainSizer;
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
@@ -19,6 +21,7 @@ class CDeviceConfig: public wxDialog
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
+	void OnScanPorts(wxHyperlinkEvent &event);
 	
 	
 public:
@@ -42,6 +45,7 @@ public:
 	enum
 	{
 		ID_CLOSE,
+		ID_REFRESH,
 	};
 
 };

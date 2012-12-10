@@ -16,5 +16,6 @@ void FreeStrList(char **list, int length);
 time_t GetUTCTimeNow(void);
 char *GetSentenceFromLine(const char *line, const char *identyfier);
 int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Search, int SearchSize, int StartAt = 0 );
+wxString GetMsg(int id);
 
 #endif

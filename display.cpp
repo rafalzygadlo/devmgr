@@ -8,6 +8,7 @@
 #include "data_config.h"
 #include "warning.h"
 #include "battery.h"
+#include "status.h"
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 
@@ -18,8 +19,9 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_START,OnStart)
 	EVT_MENU(ID_CONFIGURE_DEVICE,OnConfigureDevice)
 	EVT_MENU(ID_CONFIGURE_DATA,OnConfigureData)
-	EVT_MENU(ID_REMOVE,OnRemove)
+	EVT_MENU(ID_UNINSTALL,OnUninstall)
 	EVT_MENU(ID_ADD,OnAdd)
+	EVT_MENU(ID_STATUS,OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,OnSetLogger)
 	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
@@ -81,7 +83,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 	m_Devices->AssignImageList(m_ImageListSmall);
 	
-	m_Root = m_Devices->AddRoot(_("Devices"));
+	m_Root = m_Devices->AddRoot(GetMsg(MSG_DEVICES));
 	m_Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
 
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
@@ -106,12 +108,14 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
+	m_DeviceConfig = NULL;
 
 };
 
 CDisplayPlugin::~CDisplayPlugin()
 {
-
+	if(m_DeviceConfig != NULL)
+		delete m_DeviceConfig;
 }
 
 void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
@@ -146,7 +150,7 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	if(m_SelectedItem == NULL)
 	{
 		wxMenu *Menu = new wxMenu();
-		Menu->Append(ID_ADD,_("Add device"));
+		Menu->Append(ID_ADD,GetMsg(MSG_NEW_DEVICE));
 		PopupMenu(Menu);
 		delete Menu;
 		return;
@@ -157,14 +161,14 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	m_SelectedDevice = Serial;
 	wxMenu *Menu = new wxMenu(wxString::Format(_("%s"),Serial->GetDeviceName().wc_str()));
 		
-	Menu->Append(ID_START,_("Start"));
-	Menu->Append(ID_STOP,_("Stop"));
+	Menu->Append(ID_START,GetMsg(MSG_START));
+	Menu->Append(ID_STOP,GetMsg(MSG_STOP));
 	Menu->AppendSeparator();
-	Menu->Append(ID_CONFIGURE_DEVICE,_("Configure Device"));
-	Menu->Append(ID_CONFIGURE_DATA,_("Configure Device Data"));
+	Menu->Append(ID_CONFIGURE_DEVICE,GetMsg(MSG_CONFIGURE_DEVICE));
+	Menu->Append(ID_CONFIGURE_DATA,GetMsg(MSG_CONFIGURE_DEVICE_DATA));
 	Menu->AppendSeparator();
-	Menu->Append(ID_STATUS,_("Status"));
-	Menu->Append(ID_REMOVE,_("Uninstall"));
+	Menu->Append(ID_STATUS,GetMsg(MSG_STATUS));
+	Menu->Append(ID_UNINSTALL,GetMsg(MSG_UNINSTALL));
 
 	bool running = m_SelectedDevice->IsRunning();
 	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
@@ -176,6 +180,13 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	delete Menu;
 	event.Skip();
 
+}
+
+void CDisplayPlugin::OnStatus(wxCommandEvent &event)
+{
+	CStatus *_Status = new CStatus(m_SelectedDevice);
+	_Status->ShowModal();
+	delete _Status;
 }
 
 void CDisplayPlugin::OnStop(wxCommandEvent &event)
@@ -191,8 +202,10 @@ void CDisplayPlugin::OnStart(wxCommandEvent &event)
 	m_Devices->SetItemImage(m_SelectedItemId,1, wxTreeItemIcon_Normal);
 }
 
-void CDisplayPlugin::OnRemove(wxCommandEvent &event)
+void CDisplayPlugin::OnUninstall(wxCommandEvent &event)
 {
+
+
 	m_SelectedDevice->Stop();
 	m_MapPlugin->RemoveDevice(m_SelectedDevice);
 	
@@ -202,27 +215,25 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 {
 	if(m_SelectedDevice->IsRunning())
 	{
-		wxMessageBox(_("Stop the device first."));
+		wxMessageBox(GetMsg(MSG_STOP_THE_DEVICE));
 		return;
-
 	}
-
-	CDeviceConfig *DeviceConfig = new CDeviceConfig();
-	DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
-	DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
-	DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
+	
+	if(m_DeviceConfig == NULL)
+		m_DeviceConfig = new CDeviceConfig();
+	m_DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
+	m_DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
+	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
 	
 	
-	if(DeviceConfig->ShowModal() == wxID_OK)
+	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
-		m_SelectedDevice->SetPort(DeviceConfig->GetPort().char_str());
-		m_SelectedDevice->SetBaud(DeviceConfig->GetBaud());
-		m_SelectedDevice->SetDeviceName(DeviceConfig->GetDeviceName());
-		m_Devices->SetItemText(m_SelectedItemId,DeviceConfig->GetDeviceName());
+		m_SelectedDevice->SetPort(m_DeviceConfig->GetPort().char_str());
+		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
+		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
+		m_Devices->SetItemText(m_SelectedItemId,m_DeviceConfig->GetDeviceName());
 	}	
-	
-	
-	delete DeviceConfig;
+			
 }
 
 void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
@@ -240,19 +251,20 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 
 void CDisplayPlugin::OnAdd(wxCommandEvent &event)
 {
-	CDeviceConfig *Config = new CDeviceConfig();
+	if(m_DeviceConfig == NULL)
+		m_DeviceConfig = new CDeviceConfig();
 	
-	if(Config->ShowModal() == wxID_OK)
+	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
 		int count = m_MapPlugin->GetDevicesCount(); 
-		wxString name = wxString::Format(_("%s"),Config->GetDeviceName().wc_str());
+		wxString name = wxString::Format(_("%s"),m_DeviceConfig->GetDeviceName().wc_str());
 		
-		CMySerial *serial = CreateNewDevice(name, Config->GetPort().char_str(),	Config->GetBaud(),true);
+		CMySerial *serial = CreateNewDevice(name, m_DeviceConfig->GetPort().char_str(),	m_DeviceConfig->GetBaud(),true);
 				
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
 	}	
 	
-	delete Config;
+	
 }
 
 
@@ -402,7 +414,7 @@ void CDisplayPlugin::SetDevices()
 		Item->SetSerial(Serial);
 		m_Devices->SetItemData(id,Item);
 	}
-
+	m_Devices->ExpandAll();
 
 }
 

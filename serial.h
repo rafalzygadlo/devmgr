@@ -20,7 +20,6 @@ class CMySerial :public CSerial
 	CPanel *m_ConfigPanel;
 	std::vector<TDataDefinition> m_DataDefinitionTable;
 	wxString m_DataDefinitionString;
-	
 		
 		
 public:

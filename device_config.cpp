@@ -1,22 +1,24 @@
+#include <wx/settings.h>
+#include <wx/wx.h>
+#include <wx/statline.h>
+#include "NaviMapIOApi.h"
 #include "conf.h"
 #include "dll.h"
 #include "device_config.h"
-#include <wx/wx.h>
-#include <wx/statline.h>
-#include <wx/dirdlg.h>
-#include "NaviMapIOApi.h"
-#include <wx/hyperlink.h>
-#include <wx/settings.h>
+#include "info.h"
+
 
 BEGIN_EVENT_TABLE(CDeviceConfig,wxDialog)
-	EVT_BUTTON(ID_CLOSE,CDeviceConfig::OnCloseButton)
+	EVT_BUTTON(ID_CLOSE,OnCloseButton)
+	EVT_HYPERLINK(ID_REFRESH,OnScanPorts)
 END_EVENT_TABLE()
 
 
 CDeviceConfig::CDeviceConfig()
-	:wxDialog(NULL,wxID_ANY, _("Device"), wxDefaultPosition, wxDefaultSize )
+	:wxDialog(NULL,wxID_ANY, _(PRODUCT_NAME), wxDefaultPosition, wxDefaultSize )
 {
-	
+	mySerial = new CMySerial();
+
 	MainSizer = new wxBoxSizer(wxVERTICAL);
 	MainSizer->SetMinSize(300,-1);
 	
@@ -27,29 +29,27 @@ CDeviceConfig::CDeviceConfig()
 	FlexGrid1Sizer->AddGrowableCol(1);
 	Panel1Sizer->Add(FlexGrid1Sizer,1,wxALL|wxEXPAND,10);
 	
-	wxStaticText *NameLabel = new wxStaticText(Panel1,wxID_ANY,_("Name:"));
+	wxStaticText *NameLabel = new wxStaticText(Panel1,wxID_ANY,GetMsg(MSG_DEVICE_NAME));
 	FlexGrid1Sizer->Add(NameLabel,0,wxALL,5);
 	NameText = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString);
 	FlexGrid1Sizer->Add(NameText,0,wxALL|wxEXPAND,5);
 
 
-	wxStaticText *PortLabel = new wxStaticText(Panel1,wxID_ANY,_("Port:"));
+	wxStaticText *PortLabel = new wxStaticText(Panel1,wxID_ANY,GetMsg(MSG_PORT));
 	FlexGrid1Sizer->Add(PortLabel,0,wxALL,5);
+
+	wxBoxSizer *PortSizer = new wxBoxSizer(wxVERTICAL);
 	PortCombo = new wxComboBox(Panel1,wxID_ANY,wxEmptyString);
-	FlexGrid1Sizer->Add(PortCombo,0,wxALL,5);
-
-
+	FlexGrid1Sizer->Add(PortSizer,0,wxALL,0);
+	PortSizer->Add(PortCombo,0,wxALL,5);
+	wxStaticText *ScanInfo = new wxStaticText(Panel1,wxID_ANY,GetMsg(MSG_PORT_INFO));
+	PortSizer->Add(ScanInfo,0,wxALL|wxEXPAND,5);
+	wxHyperlinkCtrl *Scan = new wxHyperlinkCtrl(Panel1,ID_REFRESH,GetMsg(MSG_SCAN),wxEmptyString);
+	PortSizer->Add(Scan,0,wxALL,5);
+	
 	Panel1->SetSizer(Panel1Sizer);
-	CMySerial *mySerial = new CMySerial();
-	mySerial->ScanPorts();
-
-	for(size_t i = 0; i < mySerial->GetPortInfoLength(); i++)
-	{
-		wxString port(mySerial->GetPortInfo(i).port_name,wxConvUTF8);
-		PortCombo->Append(wxString::Format(_("%s"),port.wc_str()));
-	}
 		
-	wxStaticText *BaudLabel = new wxStaticText(Panel1,wxID_ANY,_("Baud:"));
+	wxStaticText *BaudLabel = new wxStaticText(Panel1,wxID_ANY,GetMsg(MSG_BAUD));
 	FlexGrid1Sizer->Add(BaudLabel,0,wxALL,5);
 	BaudCombo = new wxComboBox(Panel1,wxID_ANY,wxEmptyString);
 	FlexGrid1Sizer->Add(BaudCombo,0,wxALL,5);
@@ -57,18 +57,17 @@ CDeviceConfig::CDeviceConfig()
 	for(size_t i = 0; i < mySerial->GetBaudInfoLength(); i++)
 		BaudCombo->Append(wxString::Format(_("%d"),mySerial->GetBaudInfo(i)));
 
-	delete mySerial;
-				
+					
 	this->SetSizer(MainSizer);
 	
 	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,0);
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
 	ButtonSizer->AddStretchSpacer(1);
-	wxButton *ButtonOk = new wxButton(this,wxID_OK,_("Ok"),wxDefaultPosition,wxDefaultSize);
+	wxButton *ButtonOk = new wxButton(this,wxID_OK,GetMsg(MSG_OK),wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(ButtonOk,0,wxALL|wxALIGN_RIGHT,5);
 
-	wxButton *ButtonCancel = new wxButton(this,wxID_CANCEL,_("Cancel"),wxDefaultPosition,wxDefaultSize);
+	wxButton *ButtonCancel = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CANCEL),wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(ButtonCancel,0,wxALL|wxALIGN_RIGHT,5);
 
 	MainSizer->SetSizeHints(this);
@@ -78,7 +77,7 @@ CDeviceConfig::CDeviceConfig()
 
 CDeviceConfig::~CDeviceConfig(void)
 {
-
+	delete mySerial;
 }
 
 bool CDeviceConfig::Validate()
@@ -113,6 +112,23 @@ bool CDeviceConfig::Validate()
 	Refresh();
 	
 	return result;
+}
+
+void CDeviceConfig::OnScanPorts(wxHyperlinkEvent &event)
+{
+	wxWindowDisabler();
+	CMyInfo Info(this,GetMsg(MSG_SCANNING_PORTS));
+	mySerial->ScanPorts();
+	wxString value = PortCombo->GetValue();
+	PortCombo->Clear();
+	
+	for(size_t i = 0; i < mySerial->GetPortInfoLength(); i++)
+	{
+		wxString port(mySerial->GetPortInfo(i).port_name,wxConvUTF8);
+		PortCombo->Append(wxString::Format(_("%s"),port.wc_str()));
+	}
+
+	PortCombo->SetValue(value);
 }
 
 wxString CDeviceConfig::GetDeviceName()

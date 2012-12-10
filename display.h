@@ -1,17 +1,16 @@
 #ifndef __DISPLAY
 #define __DISPLAY
 
-#include "dll.h"
-#include "NaviMapIOApi.h"
-#include <wx/fileconf.h>
-#include <vector>
 #include <wx/wx.h>
-#include "NaviDisplayApi.h"
-
 #include <wx/fileconf.h>
+#include <wx/treectrl.h>
+#include <vector>
+#include "NaviMapIOApi.h"
+#include "NaviDisplayApi.h"
+#include "dll.h"
 #include "serial.h"
 #include "item.h"
-#include <wx/treectrl.h>
+#include "device_config.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -25,6 +24,7 @@ extern "C" {
 class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi 
 {
 	
+	CDeviceConfig *m_DeviceConfig;
 	CMySerial *m_SelectedDevice;
 	CItem *m_SelectedItem;
 	wxTreeItemId m_SelectedItemId;
@@ -62,11 +62,12 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnMouse(wxMouseEvent & event);
 	void OnStop(wxCommandEvent &event);
 	void OnStart(wxCommandEvent &event);
-	void OnRemove(wxCommandEvent &event);
+	void OnUninstall(wxCommandEvent &event);
 	void OnConfigureDevice(wxCommandEvent &event);
 	void OnConfigureData(wxCommandEvent &event);
 	void OnAdd(wxCommandEvent &event);
 	void OnSetLogger(wxCommandEvent &event);
+	void OnStatus(wxCommandEvent &event);
 	
 
 public:
@@ -87,7 +88,7 @@ public:
 		ID_START,
 		ID_CONFIGURE_DATA,
 		ID_CONFIGURE_DEVICE,
-		ID_REMOVE,
+		ID_UNINSTALL,
 		ID_ADD,
 		ID_STATUS,
 		ID_LOGGER,
