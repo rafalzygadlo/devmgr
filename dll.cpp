@@ -233,7 +233,7 @@ void CMapPlugin::Kill(void)
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(m_vDevices[i]->IsRunning())
+		if(m_vDevices[i]->GetWorkingFlag())
 		{
 			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
 			m_vDevices[i]->Stop();

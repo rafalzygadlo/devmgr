@@ -39,7 +39,7 @@ CStatus::CStatus(CMySerial *serial)
 	for(size_t i = 0; i < serial->GetSignalCount();i++)
 	{
 		wxString name((char*)serial->GetSignal(i)->name,wxConvUTF8);
-		Status->AppendText(wxString::Format(_("%s"),name.wc_str()));
+		Status->AppendText(wxString::Format(_("%s\n"),name.wc_str()));
 	}
 			
 	this->SetSizer(MainSizer);

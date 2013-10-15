@@ -75,7 +75,7 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run)
 {
 	CMySerial *Serial = new CMySerial();
 	Serial->SetBaud(baud);
-	Serial->SetPort(port);
+	Serial->_SetPort(port);
 	Serial->SetDeviceName(name);
 	Serial->SetRunOnStart(run);
 	

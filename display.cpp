@@ -204,11 +204,8 @@ void CDisplayPlugin::OnStart(wxCommandEvent &event)
 
 void CDisplayPlugin::OnUninstall(wxCommandEvent &event)
 {
-
-
 	m_SelectedDevice->Stop();
 	m_MapPlugin->RemoveDevice(m_SelectedDevice);
-	
 }
 
 void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
@@ -228,7 +225,7 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
-		m_SelectedDevice->SetPort(m_DeviceConfig->GetPort().char_str());
+		m_SelectedDevice->_SetPort(m_DeviceConfig->GetPort().char_str());
 		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
 		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
 		m_Devices->SetItemText(m_SelectedItemId,m_DeviceConfig->GetDeviceName());
@@ -362,8 +359,6 @@ void CDisplayPlugin::RemoveDevice()
 {
 	SetDevices();
 }
-
-
 
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {

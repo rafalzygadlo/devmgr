@@ -13,7 +13,7 @@ class CMySerial :public CSerial
 	int m_DeviceId;
 	wxString m_DeviceName;
 	CNaviBroker *m_Broker;
-	unsigned char m_LineBuffer[BUFFER_LENGTH];
+	unsigned char *m_LineBuffer;
 	int m_LineBufLen;
 	int m_SignalType;
 	bool m_RunOnStart;

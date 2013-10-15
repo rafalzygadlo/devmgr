@@ -424,7 +424,7 @@ void CPanel::OnStartButton(wxCommandEvent &event)
 	m_BaudComboBox->Disable();
 	m_PortComboBox->SetValue(port);
 	m_BaudComboBox->SetValue(baud);
-	m_Serial->SetPort(m_PortComboBox->GetValue().char_str());
+	m_Serial->_SetPort(m_PortComboBox->GetValue().char_str());
 	long _baud;
 	m_BaudComboBox->GetValue().ToLong(&_baud);
 	m_Serial->SetBaud(_baud);
