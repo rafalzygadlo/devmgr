@@ -25,7 +25,7 @@ const wxChar *nvLanguage[2][20] =
 		_("Status"),
 		_("Uninstall"),
 		_("Stop The Device"),
-		_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time.\n "),
+		_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time."),
 		_("Is Connected"),
 		_("Is Running")
 	},
@@ -57,8 +57,8 @@ wxString GetPluginConfigPath()
 void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 {
 	// 9 id chart_catalogu
-	if(Broker != NULL)
-		Broker->PrintInfoBlock(Broker->GetParentPtr(), 13 , text, 10);
+//	if(Broker != NULL)
+//		Broker->PrintInfoBlock(Broker->GetParentPtr(), 13 , text, 10);
 
 }
 

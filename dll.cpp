@@ -233,13 +233,11 @@ void CMapPlugin::Kill(void)
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(m_vDevices[i]->GetWorkingFlag())
-		{
-			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
-			m_vDevices[i]->Stop();
-			wxMilliSleep(100);
-		}
-		
+		m_vDevices[i]->Stop();
+		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
+		while(m_vDevices[i]->GetWorkingFlag())
+			wxMilliSleep(10);
+				
 		delete m_vDevices[i];
 	}
     
@@ -463,10 +461,10 @@ const NAVIMAPAPI wchar_t *NaviPluginDescription(int LangID)
 const NAVIMAPAPI wchar_t *NaviPluginIntroduce(int LangID)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return TEXT("devmgr");
+    return TEXT("Device Manager");
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
-    return L"devmgr";
+    return L"Device Manager";
 #endif
 }
 
