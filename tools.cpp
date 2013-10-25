@@ -57,8 +57,8 @@ wxString GetPluginConfigPath()
 void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 {
 	// 9 id chart_catalogu
-	if(Broker != NULL)
-		Broker->PrintInfoBlock(Broker->GetParentPtr(), 13 , text, 10);
+//	if(Broker != NULL)
+//		Broker->PrintInfoBlock(Broker->GetParentPtr(), 13 , text, 10);
 
 }
 

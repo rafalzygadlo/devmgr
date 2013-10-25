@@ -70,10 +70,11 @@ void CMapPlugin::WriteConfig()
 		baud = Serial->GetBaudRate();
 		wxString data = Serial->GetDataDefinitionAsString();
 		
-		m_FileConfig->Write(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),name.wc_str(),_(KEY_PORT)),port);
-		m_FileConfig->Write(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),name.wc_str(),_(KEY_BAUD)),baud);
-		m_FileConfig->Write(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),name.wc_str(),_(KEY_RUNNING)),running);
-		m_FileConfig->Write(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),name.wc_str(),_(KEY_DATA)),data);
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),name);
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),port);
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),baud);
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),running);
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DATA)),data);
 	
 	}
 	
@@ -88,7 +89,7 @@ void CMapPlugin::ReadConfig()
 	size_t len = m_FileConfig->GetNumberOfGroups();
 	
 	wxArrayString devices = GetDevicesConfig(_(KEY_DEVICES));
-	wxString port, device, data;
+	wxString name, port, device, data;
 	int baud;
 	bool running;
 	
@@ -96,12 +97,13 @@ void CMapPlugin::ReadConfig()
 	{
 		device = devices[i];
 		
-		m_FileConfig->Read(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),device.wc_str(),_(KEY_PORT)),&port);
-		m_FileConfig->Read(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),device.wc_str(),_(KEY_BAUD)),&baud);
-		m_FileConfig->Read(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),device.wc_str(),_(KEY_RUNNING)),&running);
-		m_FileConfig->Read(wxString::Format(_("%s/%s/%s"),_(KEY_DEVICES),device.wc_str(),_(KEY_DATA)),&data);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),&name);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),&port);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),&baud);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),&running);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DATA)),&data);
 
-		CMySerial *serial = CreateNewDevice(device,port.char_str(),baud,running);
+		CMySerial *serial = CreateNewDevice(name,port.char_str(),baud,running);
 		serial->CreateDataDefinitionTable(data.char_str());
 		
 		AddDevice(serial);
@@ -233,13 +235,12 @@ void CMapPlugin::Kill(void)
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(m_vDevices[i]->GetWorkingFlag())
-		{
-			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
-			m_vDevices[i]->Stop();
-			wxMilliSleep(100);
-		}
-		
+		m_vDevices[i]->Stop();
+		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
+
+		while(m_vDevices[i]->GetWorkingFlag())
+			wxMilliSleep(50);
+				
 		delete m_vDevices[i];
 	}
     
@@ -333,8 +334,6 @@ void CMapPlugin::RenderPosition()
 
 }
 
-
-
 void CMapPlugin::Render()
 {
 	//Scale = m_Broker->GetMapScale();
@@ -411,7 +410,7 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 void CMapPlugin::SetHDG(double val)
 {
 	Hdg = val;
-	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
+//	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
 	//m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
@@ -463,10 +462,10 @@ const NAVIMAPAPI wchar_t *NaviPluginDescription(int LangID)
 const NAVIMAPAPI wchar_t *NaviPluginIntroduce(int LangID)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return TEXT("devmgr");
+    return TEXT("Device Manager");
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
-    return L"devmgr";
+    return L"Device Manager";
 #endif
 }
 

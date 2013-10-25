@@ -20,6 +20,7 @@
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
 
 #define KEY_DEVICES "devices"
+#define KEY_NAME "name"
 #define KEY_PORT "port"
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
