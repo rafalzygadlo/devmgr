@@ -39,9 +39,7 @@
 #define ADD_DEVICE 7				// dodanie urz¹dzenia
 #define REMOVE_DEVICE 8				// usuwanie urzadzenia
 
-
 // jezyki id
-
 #define MSG_DEVICE_NAME				0
 #define MSG_PORT					1
 #define MSG_BAUD					2
@@ -62,6 +60,9 @@
 #define MSG_STOPPING_DEVICE			17
 #define MSG_IS_CONNECTED			18
 #define MSG_IS_RUNNING				19
+
+
+
 
 
 #define MAX_DATA_POSITIONS		10

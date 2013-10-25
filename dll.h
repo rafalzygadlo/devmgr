@@ -37,6 +37,7 @@ class CMapPlugin :public CNaviMapIOApi
 	std::vector <SPoint> vCircle1,vCircle2,vCircle3,vLineV, vLineH;
 	float CircleRadius;
 	double Hdg;
+	bool m_EnableControls;
 	
 	
 	void CreateApiMenu(void);
@@ -51,6 +52,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
 	void BuildGeometry();
 	void SetHDG(double val);
+	void SetDisplaySignal(int type);
 					
 public:
 
@@ -70,6 +72,7 @@ public:
 	
 	int GetDisplaySignalType();
 	int GetDeviceId();
+	bool GetEnableControlsFlag();
 	
 	virtual void Run(void *Params);
 	virtual void Kill(void);

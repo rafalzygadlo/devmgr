@@ -66,6 +66,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxPanel *Panel = new wxPanel(this);
 	Panel->SetSizer(PanelSizer);
 	m_Sizer->Add(Panel,0,wxEXPAND,0);
+	this->Disable();
 	//Panel->SetBackgroundColour(*wxRED);
 	
 	//wxStaticText *LabelConnected = new wxStaticText(Panel,wxID_ANY,_("is connected ?"));
@@ -169,6 +170,7 @@ void CDisplayPlugin::OnStatus(wxCommandEvent &event)
 void CDisplayPlugin::OnStop(wxCommandEvent &event)
 {
 	m_SelectedDevice->Stop();
+	m_Devices->SetItemBold(m_SelectedItemId,false);
 	m_Devices->SetItemImage(m_SelectedItemId,0, wxTreeItemIcon_Normal);
 		
 }
@@ -176,6 +178,7 @@ void CDisplayPlugin::OnStop(wxCommandEvent &event)
 void CDisplayPlugin::OnStart(wxCommandEvent &event)
 {
 	m_SelectedDevice->Start();
+	m_Devices->SetItemBold(m_SelectedItemId,true);
 	m_Devices->SetItemImage(m_SelectedItemId,1, wxTreeItemIcon_Normal);
 }
 
@@ -302,13 +305,15 @@ void CDisplayPlugin::GetSignal()
 void CDisplayPlugin::ClearDisplay()
 {
 	m_FirstTime = true;
-	m_Devices->DeleteChildren(m_Root);
+	//m_Devices->DeleteChildren(m_Root);
+	this->Disable();
 }
 
 void CDisplayPlugin::InitDisplay()
 {
 	if(m_FirstTime)
 	{
+		this->Enable();
 		m_FirstTime = false;
 		SetDevices();
 	}
@@ -321,14 +326,19 @@ void CDisplayPlugin::AddDevice()
 	CMySerial *Serial = m_MapPlugin->GetDevice(count);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
 	int icon_id = 0;
+	bool running = false;
 	
 	if(Serial->IsRunning())
+	{
 		icon_id = 1;
+		running = true;
+	}
 	
 	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
 	CItem *Item = new CItem();
 	Item->SetSerial(Serial);
 	m_Devices->SetItemData(id,Item);
+	m_Devices->SetItemBold(id,running);
 
 }
 
@@ -377,15 +387,21 @@ void CDisplayPlugin::SetDevices()
 		wxString port(Serial->GetPortName(),wxConvUTF8);
 
 		int icon_id = 0;
+		bool running = false;
 		if(Serial->IsRunning())
+		{
 			icon_id = 1;
-
+			running = true;
+		}
+		
 		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
 		//SetDevicesData(Serial,id);
 		CItem *Item = new CItem();
 		Item->SetSerial(Serial);
 		m_Devices->SetItemData(id,Item);
+		m_Devices->SetItemBold(id,running);
 	}
+	
 	m_Devices->ExpandAll();
 
 }

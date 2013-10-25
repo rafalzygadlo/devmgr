@@ -34,7 +34,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
     m_NeedExit = false;
     m_Broker = NaviBroker;
 	m_ConfigPath = GetPluginConfigPath();
-	m_EnableControls = false;
 	//m_MyFrame = NULL;
 
 	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
@@ -157,10 +156,6 @@ void CMapPlugin::RemoveDevice(CMySerial *serial)
 		if(m_vDevices[i] == serial)
 		{
 			m_vDevices[i]->Stop();
-			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
-			while(m_vDevices[i]->GetWorkingFlag())
-				wxMilliSleep(10);
-
 			delete m_vDevices[i];
 			m_vDevices.erase(m_vDevices.begin() + i);
 			SendSignal(REMOVE_DEVICE,0);
@@ -223,30 +218,17 @@ bool CMapPlugin::IsInited()
 	return m_Init;
 }
 
-void CMapPlugin::SetDisplaySignal(int type)
-{
-	m_DisplaySignalType = type;
-}
-
-bool CMapPlugin::GetEnableControlsFlag()
-{
-	return m_EnableControls;
-}
-
 
 void CMapPlugin::Run(void *Params)
 {
 	m_Init = false;
 	ReadConfig();
 	m_Init = true;
-	m_EnableControls = true;
-	//SendSignal(CLEAR_DISPLAY,0);
 	SendSignal(INIT_SIGNAL,0);
 } 
 
 void CMapPlugin::Kill(void)
 {
-	m_EnableControls = false;
 		
 	m_NeedExit = true;
 	WriteConfig();
@@ -255,8 +237,14 @@ void CMapPlugin::Kill(void)
 	{
 		m_vDevices[i]->Stop();
 		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
+<<<<<<< HEAD
+
+		while(m_vDevices[i]->GetWorkingFlag())
+			wxMilliSleep(50);
+=======
 		while(m_vDevices[i]->GetWorkingFlag())
 			wxMilliSleep(10);
+>>>>>>> b395e5aec3e7cf31383dda6dfce2cfe734bfbea7
 				
 		delete m_vDevices[i];
 	}
@@ -264,7 +252,6 @@ void CMapPlugin::Kill(void)
     if(m_FileConfig != NULL)
         delete m_FileConfig;
 	
-	SendSignal(CLEAR_DISPLAY,0);
 	
 	// before myserial delete
 	
