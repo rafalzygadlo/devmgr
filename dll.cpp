@@ -237,9 +237,8 @@ void CMapPlugin::Kill(void)
 	{
 		m_vDevices[i]->Stop();
 		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
-
 		while(m_vDevices[i]->GetWorkingFlag())
-			wxMilliSleep(50);
+			wxMilliSleep(10);
 				
 		delete m_vDevices[i];
 	}

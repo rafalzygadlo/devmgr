@@ -25,7 +25,7 @@ const wxChar *nvLanguage[2][20] =
 		_("Status"),
 		_("Uninstall"),
 		_("Stop The Device"),
-		_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time.\n "),
+		_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time."),
 		_("Is Connected"),
 		_("Is Running")
 	},

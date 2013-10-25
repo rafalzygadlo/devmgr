@@ -19,7 +19,7 @@ CMyInfo::CMyInfo(wxWindow *Parent, wxString text)
 	//MainSizer->Add(Animation,1,wxALL|wxCENTER|wxALIGN_CENTER ,5);
 	
 	Text = new wxStaticText(this,wxID_ANY,text,wxDefaultPosition,wxDefaultSize);
-	MainSizer->Add(Text,1,wxALL|wxALIGN_CENTER_VERTICAL ,20);
+	MainSizer->Add(Text,1,wxALL|wxALIGN_CENTER_VERTICAL ,10);
 	
 	this->SetBackgroundColour(*wxWHITE);
 	//this->SetForegroundColour(*wxWHITE);
