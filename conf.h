@@ -28,6 +28,8 @@
 
 #define DIR_WORKDIR "workdir"
 
+#define ICON_STOP 0
+#define ICON_START 1
 
 // sygna³y do display
 #define SERIAL_SIGNAL_RECONNECT 1	// sygna³ urzadzenia o ponownym polaczeniu

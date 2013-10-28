@@ -42,7 +42,8 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxBoxSizer *m_Sizer;
 	wxScrolledWindow *m_Scroll;
 	wxBoxSizer *m_ScrollSizer;
-	
+	wxPanel *m_InfoPanel;
+
 	wxString GetCaption();
 	void SetDevicesData();
 	void SetDevices();
@@ -52,6 +53,8 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void RemoveDevice();
+	void NewSignal();
+	void SetSignals();
 	
 	void GetSignal();
 	void OnTreeMenu(wxTreeEvent &event);

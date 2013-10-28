@@ -137,7 +137,6 @@ int CMySerial::GetSignalType()
 wxString CMySerial::GetDataDefinitionAsString()
 {
 	return m_DataDefinitionString;
-
 }
 
 void CMySerial::CreateDataDefinitionTable(char *data) 
