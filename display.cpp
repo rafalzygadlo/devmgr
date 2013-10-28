@@ -125,6 +125,7 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 {
 	m_SelectedItemId = event.GetItem();
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
+	m_Devices->SelectItem(event.GetItem());
 
 	if(m_SelectedItem == NULL)
 	{
@@ -308,14 +309,15 @@ void CDisplayPlugin::GetSignal()
 }
 void CDisplayPlugin::NewSignal()
 {
-	if(!m_FirstTime)
+	if(m_FirstTime)
 		return;
 	
 	CMySerial *serial = m_MapPlugin->GetDevice(m_DeviceId);
-	for(size_t i = 0; i < serial->GetSignalCount();i++)
-	{
-		m_Devices->AppendItem(m_SelectedItemId,wxString::Format(_("%s"),serial->GetSignal(i)->name),0);
-	}
+	int id = serial->GetSignalCount() - 1;
+	wxString signal((char*)serial->GetSignal(id)->name,wxConvUTF8);
+	wxString nmea((char*)serial->GetSignal(id)->nmea,wxConvUTF8);
+	m_Devices->AppendItem(m_SelectedItemId,wxString::Format(_("%s-%s"),signal.wc_str(),nmea.wc_str()));
+	
 }
 
 void CDisplayPlugin::ClearDisplay()
@@ -427,14 +429,19 @@ void CDisplayPlugin::SetSignals()
 	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
 	while(id.IsOk())
 	{
-		m_Devices->GetNextChild(id,cookie);
-		m_Devices->GetItemData(
 		
-		for(size_t i = 0; i < Serial->GetSignalCount();i++)
+		CItem *item  = (CItem*)m_Devices->GetItemData(id);
+		CSerial *serial = item->GetSerial();
+		for(size_t i = 0; i < serial->GetSignalCount();i++)
 		{
-			m_Devices->AppendItem(i,wxString::Format(_("%s"),Serial->GetSignal(i)->name),0);
+			m_Devices->AppendItem(id,wxString::Format(_("%s"),serial->GetSignal(i)->name),0);
 		}
+	
+		id = m_Devices->GetNextChild(id,cookie);
+	
 	}
+
+
 }
 
 void CDisplayPlugin::SetDevicesData()
