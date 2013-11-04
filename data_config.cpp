@@ -10,34 +10,37 @@
 
 BEGIN_EVENT_TABLE(CDataConfig,wxDialog)
 	EVT_BUTTON(ID_CLOSE,CDataConfig::OnCloseButton)
+	EVT_COMBOBOX(ID_SIGNAL,CDataConfig::OnComboSignal)
+	EVT_TEXT(ID_NMEA,CDataConfig::OnNMEAText)
 END_EVENT_TABLE()
 
 
 CDataConfig::CDataConfig(CMySerial *serial)
 	:wxDialog(NULL,wxID_ANY, _("New Device"), wxDefaultPosition, wxDefaultSize )
 {
-	
+	Serial = serial;
 	MainSizer = new wxBoxSizer(wxVERTICAL);
 	MainSizer->SetMinSize(300,-1);
 	
 	wxPanel *Panel1 = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
-	Panel1->SetBackgroundColour(*wxWHITE);
 	wxBoxSizer *Panel1Sizer = new wxBoxSizer(wxVERTICAL);
-	
 	Panel1->SetSizer(Panel1Sizer);
 		
-	wxStaticText *DataDefinitionLabel = new wxStaticText(Panel1,wxID_ANY,_("Data definition:"));
-	Panel1Sizer->Add(DataDefinitionLabel,0,wxALL,5);
-	DataDefinition = new wxTextCtrl(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(400,-1),wxTE_MULTILINE);
-	Panel1Sizer->Add(DataDefinition,0,wxALL|wxEXPAND,5);
-
-	for(size_t i = 0; i < serial->GetSignalCount();i++)
+	
+	wxComboBox *Signal = new wxComboBox(Panel1,ID_SIGNAL);
+	Panel1Sizer->Add(Signal,0,wxALL|wxEXPAND,5);
+	
+	for(size_t i = 0; i < serial->GetSignalCount(); i++)
 	{
 		wxString name((char*)serial->GetSignal(i)->name,wxConvUTF8);
-		wxString nmea((char*)serial->GetSignal(i)->nmea,wxConvUTF8);
-		DataDefinition->AppendText(wxString::Format(_("%s : %s"),name.wc_str(),nmea.wc_str()));
+		Signal->Append(name);
 	}
-			
+	
+	NMEA = new wxTextCtrl(Panel1,ID_NMEA,wxEmptyString,wxDefaultPosition,wxSize(400,-1));
+//	NMEA->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CDataConfig::OnTextClick), NULL, this);
+	Panel1Sizer->Add(NMEA,0,wxALL|wxEXPAND,5);
+
+
 	this->SetSizer(MainSizer);
 	
 	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,5);
@@ -65,11 +68,10 @@ bool CDataConfig::Validate()
 	return true;	
 }
 
-wxString CDataConfig::GetDataDefinition()
-{
-	return DataDefinition->GetValue();
-}
-
+//wxString CDataConfig::GetDataDefinition()
+//{
+//	return DataDefinition->GetValue();
+//}
 
 void CDataConfig::ShowWindow(bool show)
 {
@@ -84,4 +86,19 @@ void CDataConfig::OnCloseButton(wxCommandEvent &event)
 void CDataConfig::OnClose(wxCloseEvent &event)
 {
 	Destroy();
+}
+
+void CDataConfig::OnComboSignal(wxCommandEvent &event)
+{
+	wxString nmea((char*)Serial->GetSignal(event.GetSelection())->nmea,wxConvUTF8);
+	NMEA->SetValue(nmea);
+}
+
+void CDataConfig::OnNMEAText(wxCommandEvent &event)
+{
+	int id = event.GetSelection();
+
+	wxCaret *caret =  NMEA->GetCaret();
+
+	//caret
 }

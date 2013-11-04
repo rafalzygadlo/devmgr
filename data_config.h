@@ -11,12 +11,16 @@ class CDataConfig: public wxDialog
 {
 	
 	wxBoxSizer *MainSizer;
-	wxTextCtrl *DataDefinition;
+	wxTextCtrl *NMEA;
+	CMySerial *Serial;
 	
 	
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
+	void OnComboSignal(wxCommandEvent &event);
+	void OnNMEAText(wxCommandEvent &event);
+	//void OnTextClick(wxMouseEvent& event);
 	
 	
 public:
@@ -26,7 +30,7 @@ public:
 	void ShowWindow(bool show);	
 	int GetBaud();
 	wxString GetDeviceName();
-	wxString GetDataDefinition();
+	//wxString GetDataDefinition();
 	wxString GetPort();
 	
 	
@@ -35,7 +39,9 @@ public:
 
 	enum
 	{
-		ID_CLOSE,
+		ID_CLOSE = 7384,
+		ID_SIGNAL,
+		ID_NMEA,
 	};
 
 };

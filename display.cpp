@@ -146,6 +146,7 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	Menu->AppendSeparator();
 	Menu->Append(ID_CONFIGURE_DEVICE,GetMsg(MSG_CONFIGURE_DEVICE));
 	Menu->Append(ID_CONFIGURE_DATA,GetMsg(MSG_CONFIGURE_DEVICE_DATA));
+
 	Menu->AppendSeparator();
 	Menu->Append(ID_STATUS,GetMsg(MSG_STATUS));
 	Menu->Append(ID_UNINSTALL,GetMsg(MSG_UNINSTALL));
@@ -309,14 +310,6 @@ void CDisplayPlugin::GetSignal()
 }
 void CDisplayPlugin::NewSignal()
 {
-	if(m_FirstTime)
-		return;
-	
-	CMySerial *serial = m_MapPlugin->GetDevice(m_DeviceId);
-	int id = serial->GetSignalCount() - 1;
-	wxString signal((char*)serial->GetSignal(id)->name,wxConvUTF8);
-	wxString nmea((char*)serial->GetSignal(id)->nmea,wxConvUTF8);
-	m_Devices->AppendItem(m_SelectedItemId,wxString::Format(_("%s-%s"),signal.wc_str(),nmea.wc_str()));
 	
 }
 

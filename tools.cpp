@@ -2,7 +2,6 @@
 #include "tools.h"
 #include <wx/stdpaths.h>
 
-wxMutex *mutex = new wxMutex;
 int GlobalLanguageID;
 const wxChar *nvLanguage[2][20] = 
 { 
@@ -15,7 +14,7 @@ const wxChar *nvLanguage[2][20] =
 		_("Scan for available ports"),
 		_("Ok"),
 		_("Cancel"),
-		_("Scaning ports. Please wait."), 
+		_("Scaning ports. Please wait."),
 		_("Devices"),
 		_("New Device..."),
 		_("Start"),
@@ -41,12 +40,6 @@ const wxChar *nvLanguage[2][20] =
 wxString GetMsg(int id)
 {
 	return nvLanguage[GlobalLanguageID][id];
-}
-
-
-wxMutex *GetMutex()
-{
-	return mutex;
 }
 
 wxString GetPluginConfigPath()
