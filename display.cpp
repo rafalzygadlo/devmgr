@@ -15,16 +15,17 @@
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
-	EVT_TREE_ITEM_MENU(ID_TREE, OnTreeMenu)
-	EVT_TREE_SEL_CHANGED(ID_TREE, OnTreeSelChanged)
-	EVT_MENU(ID_STOP,OnStop)
-	EVT_MENU(ID_START,OnStart)
-	EVT_MENU(ID_CONFIGURE_DEVICE,OnConfigureDevice)
-	EVT_MENU(ID_CONFIGURE_DATA,OnConfigureData)
-	EVT_MENU(ID_UNINSTALL,OnUninstall)
-	EVT_MENU(ID_ADD,OnAdd)
-	EVT_MENU(ID_STATUS,OnStatus)
-	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,OnSetLogger)
+	EVT_TREE_ITEM_MENU(ID_TREE, CDisplayPlugin::OnTreeMenu)
+	EVT_TREE_SEL_CHANGED(ID_TREE, CDisplayPlugin::OnTreeSelChanged)
+	EVT_MENU(ID_STOP,CDisplayPlugin::OnStop)
+	EVT_MENU(ID_START,CDisplayPlugin::OnStart)
+	EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
+	EVT_MENU(ID_CONFIGURE_DATA,CDisplayPlugin::OnConfigureData)
+	EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
+	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
+	EVT_MENU(ID_NEW_MARKER,CDisplayPlugin::OnNewMarker)
+	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
+	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
 
@@ -87,6 +88,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	m_DeviceConfig = NULL;
+	m_DataMarkers = NULL;
 
 
 };
@@ -130,7 +132,8 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	if(m_SelectedItem == NULL)
 	{
 		wxMenu *Menu = new wxMenu();
-		Menu->Append(ID_ADD,GetMsg(MSG_NEW_DEVICE));
+		Menu->Append(ID_NEW_DEVICE,GetMsg(MSG_NEW_DEVICE));
+		Menu->Append(ID_NEW_MARKER,GetMsg(MSG_NEW_MARKER));
 		PopupMenu(Menu);
 		delete Menu;
 		return;
@@ -229,7 +232,7 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 
 
 
-void CDisplayPlugin::OnAdd(wxCommandEvent &event)
+void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 {
 	if(m_DeviceConfig == NULL)
 		m_DeviceConfig = new CDeviceConfig();
@@ -247,6 +250,17 @@ void CDisplayPlugin::OnAdd(wxCommandEvent &event)
 	
 }
 
+void CDisplayPlugin::OnNewMarker(wxCommandEvent &event)
+{
+	if(m_DataMarkers == NULL)
+		m_DataMarkers = new CDataMarkers(NULL);
+	
+	if(m_DataMarkers->ShowModal() == wxID_OK)
+	{
+	
+	}
+
+}
 
 bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 

@@ -62,6 +62,7 @@
 #define MSG_STOPPING_DEVICE			17
 #define MSG_IS_CONNECTED			18
 #define MSG_IS_RUNNING				19
+#define MSG_NEW_MARKER				20
 
 
 
