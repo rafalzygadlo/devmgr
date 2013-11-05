@@ -15,7 +15,7 @@ END_EVENT_TABLE()
 
 
 CDeviceConfig::CDeviceConfig()
-	:wxDialog(NULL,wxID_ANY, _(PRODUCT_NAME), wxDefaultPosition, wxDefaultSize )
+	:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize )
 {
 	mySerial = new CMySerial();
 

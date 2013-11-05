@@ -1,5 +1,6 @@
 #include <wx/wx.h>
 #include <wx/mstream.h>
+#include <wx/notebook.h>
 #include "conf.h"
 #include "tools.h"
 #include "display.h"
@@ -7,7 +8,6 @@
 #include "device_config.h"
 #include "data_config.h"
 #include "status.h"
-#include "devices.h"
 #include "computer.h"
 #include "stop.h"
 #include "start.h"
@@ -23,7 +23,6 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_CONFIGURE_DATA,CDisplayPlugin::OnConfigureData)
 	EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
-	EVT_MENU(ID_NEW_MARKER,CDisplayPlugin::OnNewMarker)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	//EVT_TOOL(ID_TOOL_STOP,
@@ -40,7 +39,14 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	
 	m_Sizer = new wxBoxSizer(wxVERTICAL);
 			
-	m_Devices = new wxTreeCtrl(this,ID_TREE,wxDefaultPosition,wxDefaultSize);
+	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
+	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,5);
+	wxPanel *Page1 = new wxPanel(Notebook);
+	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Page1->SetSizer(Page1Sizer);
+	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
+
+	m_Devices = new wxTreeCtrl(Page1,ID_TREE,wxDefaultPosition,wxDefaultSize);
 
 	m_ImageListSmall = new wxImageList(16, 16);
 	
@@ -61,37 +67,39 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	
 	m_Root = m_Devices->AddRoot(GetMsg(MSG_DEVICES));
 	m_Devices->SetItemImage(m_Root,2, wxTreeItemIcon_Normal);
-	m_Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
+	Page1Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
 
-	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
-	wxPanel *Panel = new wxPanel(this);
-	Panel->SetSizer(PanelSizer);
-	m_Sizer->Add(Panel,0,wxEXPAND,0);
+	m_InfoPanel = new wxPanel(Page1,wxID_ANY);
+	Page1Sizer->Add(m_InfoPanel,0,wxALL|wxEXPAND,0);
+
+	wxBoxSizer *InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
+	m_InfoPanel->SetSizer(InfoPanelSizer);
+	//m_InfoPanel->Hide();
 	
-	this->Disable();
-	//Panel->SetBackgroundColour(*wxRED);
-	
-	//wxStaticText *LabelConnected = new wxStaticText(Panel,wxID_ANY,_("is connected ?"));
-	//PanelSizer->Add(LabelConnected,0,wxEXPAND|wxALL,2);
+	wxFont font;
+	font.SetPointSize(14);
+		
+	wxStaticText *LabelConnected = new wxStaticText(m_InfoPanel,wxID_ANY,_("is connected ?"));
+	InfoPanelSizer->Add(LabelConnected,0,wxEXPAND|wxALL,2);
 
-	//wxStaticText *LabelRunning = new wxStaticText(Panel,wxID_ANY,_("is running ?"));
-	//PanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
+	wxStaticText *LabelRunning = new wxStaticText(m_InfoPanel,wxID_ANY,_("is running ?"));
+	InfoPanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
 
-	//wxStaticText *LabelHasSignal = new wxStaticText(Panel,wxID_ANY,_("has signal ?"));
-	//PanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
+	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
+	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
+	m_InfoPanel->Hide();
 
 //	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
 //	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
+	this->Disable();
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	m_DeviceConfig = NULL;
-	m_DataMarkers = NULL;
 
-
-};
+}
 
 CDisplayPlugin::~CDisplayPlugin()
 {
@@ -109,7 +117,7 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 //		m_ToolBar->EnableTool(ID_STOP,false);
 		return;
 	}
-
+	ShowInfoPanel(true);
 	if(m_SelectedItem->GetSerial()->IsRunning())
 	{	
 //		m_ToolBar->EnableTool(ID_START,false);
@@ -133,7 +141,6 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	{
 		wxMenu *Menu = new wxMenu();
 		Menu->Append(ID_NEW_DEVICE,GetMsg(MSG_NEW_DEVICE));
-		Menu->Append(ID_NEW_MARKER,GetMsg(MSG_NEW_MARKER));
 		PopupMenu(Menu);
 		delete Menu;
 		return;
@@ -190,7 +197,7 @@ void CDisplayPlugin::OnStart(wxCommandEvent &event)
 
 void CDisplayPlugin::OnUninstall(wxCommandEvent &event)
 {
-	m_SelectedDevice->Stop();
+//	m_SelectedDevice->Stop();
 	m_MapPlugin->RemoveDevice(m_SelectedDevice);
 }
 
@@ -250,18 +257,6 @@ void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 	
 }
 
-void CDisplayPlugin::OnNewMarker(wxCommandEvent &event)
-{
-	if(m_DataMarkers == NULL)
-		m_DataMarkers = new CDataMarkers(NULL);
-	
-	if(m_DataMarkers->ShowModal() == wxID_OK)
-	{
-	
-	}
-
-}
-
 bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 	if(SignalID->GetSignalID() == NDS_BROKER_BROADCAST && m_Broker == NULL)
@@ -285,6 +280,19 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 	}
 	
 	return false;
+}
+
+void CDisplayPlugin::ShowInfoPanel(bool show)
+{
+	if(show)
+	{
+		m_InfoPanel->Show();
+		m_Sizer->Layout();
+	}else{
+		m_InfoPanel->Hide();
+		m_Sizer->Layout();
+	
+	}
 }
 
 void CDisplayPlugin::GetSignal()

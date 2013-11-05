@@ -24,7 +24,7 @@
 #define KEY_PORT "port"
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
-#define KEY_DATA "data"
+#define KEY_MARKER_ID "marker_id"
 
 #define DIR_WORKDIR "workdir"
 
@@ -62,15 +62,12 @@
 #define MSG_STOPPING_DEVICE			17
 #define MSG_IS_CONNECTED			18
 #define MSG_IS_RUNNING				19
-#define MSG_NEW_MARKER				20
-
-
-
-
+#define MSG_NEW						20
+#define MSG_DELETE					21
 
 #define MAX_DATA_POSITIONS		10
-typedef struct TDataDefinition_s {
-
+typedef struct TDataDefinition_s 
+{
 	int	 DataID;							// id definicji danych pobrane ze zdalnego serwera
 	char Name[32 + 1];						// nazwa definicji
 	char Marker[5 + 1];						// nazwa markera NMEA do pobrania danych
@@ -79,22 +76,15 @@ typedef struct TDataDefinition_s {
 
 } TDataDefinition;
 
-typedef struct TData_s {
-
+typedef struct TData_s 
+{
+	int		DataID;
 	char	Marker[5 + 1];	// id definicji danych
 	char	Value[16 + 1];
 	bool	Average;							// czy uœredniaæ dane
 	time_t	DateTime;
 
 } TData;
-
-typedef struct
-{
-	double x;
-	double y;
-
-} SPoint;
-
 
 
 // globalne identyfikatory eventów

@@ -11,7 +11,6 @@
 #include "serial.h"
 #include "item.h"
 #include "device_config.h"
-#include "data_markers.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -26,7 +25,6 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 {
 	
 	CDeviceConfig *m_DeviceConfig;
-	CDataMarkers *m_DataMarkers;
 	CMySerial *m_SelectedDevice;
 	CItem *m_SelectedItem;
 	wxTreeItemId m_SelectedItemId;
@@ -57,6 +55,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveDevice();
 	void NewSignal();
 	void SetSignals();
+	void ShowInfoPanel(bool show);
 	
 	void GetSignal();
 	void OnTreeMenu(wxTreeEvent &event);
@@ -96,7 +95,6 @@ public:
 		ID_CONFIGURE_DEVICE,
 		ID_UNINSTALL,
 		ID_NEW_DEVICE,
-		ID_NEW_MARKER,
 		ID_STATUS,
 		ID_LOGGER,
 	};

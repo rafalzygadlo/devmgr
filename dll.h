@@ -33,10 +33,10 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_DeviceId;
 	CDisplaySignal *m_DisplaySignal;
 	bool m_Init;
-	float Scale;
-	std::vector <SPoint> vCircle1,vCircle2,vCircle3,vLineV, vLineH;
-	float CircleRadius;
-	double Hdg;
+	//float Scale;
+	//std::vector <SPoint> vCircle1,vCircle2,vCircle3,vLineV, vLineH;
+	//float CircleRadius;
+	//double Hdg;
 	bool m_EnableControls;
 	
 	
@@ -46,12 +46,11 @@ class CMapPlugin :public CNaviMapIOApi
 	void SendSignal(int type, int id);
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);
-	wxArrayString GetDevicesConfig(wxString path);
+	wxArrayString GetConfigItems(wxString path);
 	void OnReconnect(CMySerial *Serial);
 	bool IsInited();
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
-	void BuildGeometry();
-	void SetHDG(double val);
+	void SetData(TData *val);
 	void SetDisplaySignal(int type);
 					
 public:

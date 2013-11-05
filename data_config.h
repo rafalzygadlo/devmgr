@@ -5,43 +5,34 @@
 #include "conf.h"
 #include "dll.h"
 #include "tools.h"
-#include <vector>
 
 class CDataConfig: public wxDialog
 {
-	
-	wxBoxSizer *MainSizer;
-	wxTextCtrl *NMEA;
-	CMySerial *Serial;
-	
-	
+			
+	wxCheckListBox *m_Marker;
+	CMySerial *m_Serial;
+
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
-	void OnComboSignal(wxCommandEvent &event);
-	void OnNMEAText(wxCommandEvent &event);
-	//void OnTextClick(wxMouseEvent& event);
-	
-	
+	void OnButtonNew(wxCommandEvent &event);
+	void OnMarkerCheck(wxCommandEvent &event);
+		
 public:
 
 	CDataConfig(CMySerial *serial);
 	~CDataConfig();
 	void ShowWindow(bool show);	
-	int GetBaud();
-	wxString GetDeviceName();
-	//wxString GetDataDefinition();
-	wxString GetPort();
-	
-	
+			
 	DECLARE_EVENT_TABLE();
 
 
 	enum
 	{
 		ID_CLOSE = 7384,
-		ID_SIGNAL,
-		ID_NMEA,
+		ID_NEW,
+		ID_DELETE,
+		ID_MARKER
 	};
 
 };

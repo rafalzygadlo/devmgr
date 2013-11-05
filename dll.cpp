@@ -5,7 +5,7 @@
 #include "serial.h"
 #include "tools.h"
 #include "info.h"
-
+#include "markers.h"
 
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
@@ -41,7 +41,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
-	BuildGeometry();
 	//CreateApiMenu();
 	
 }
@@ -69,13 +68,19 @@ void CMapPlugin::WriteConfig()
 		running = Serial->IsRunning();
 		wxString port(Serial->GetPortName(),wxConvUTF8);
 		baud = Serial->GetBaudRate();
-		wxString data = Serial->GetDataDefinitionAsString();
+		
 		
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),name);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),port);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),baud);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),running);
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DATA)),data);
+
+		// dlugosc tablicy markerow
+		for(size_t j = 0; j < Serial->GetMarkersLength(); j++)
+		{
+			TDataDefinition item = Serial->GetMarker(j);
+			m_FileConfig->Write(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),item.DataID);
+		}
 	
 	}
 	
@@ -89,23 +94,29 @@ void CMapPlugin::ReadConfig()
 	m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	size_t len = m_FileConfig->GetNumberOfGroups();
 	
-	wxArrayString devices = GetDevicesConfig(_(KEY_DEVICES));
-	wxString name, port, device, data;
-	int baud;
+	wxArrayString devices = GetConfigItems(_(KEY_DEVICES));
+	wxString name, port;
+	int baud, marker_id;
 	bool running;
 	
 	for(size_t i = 0; i < devices.size(); i++)
 	{
-		device = devices[i];
-		
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),&name);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),&port);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),&baud);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),&running);
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DATA)),&data);
 
 		CMySerial *serial = CreateNewDevice(name,port.char_str(),baud,running);
-		serial->CreateDataDefinitionTable(data.char_str());
+		
+		wxArrayString markers = GetConfigItems(wxString::Format(_("%s/%d"),_(KEY_DEVICES),i));
+		for(size_t j = 0; j < markers.size(); j++)
+		{	
+			m_FileConfig->Read(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),&marker_id);
+			
+			TDataDefinition_s *item = GetMarker(marker_id);
+			if(item != NULL)
+				serial->AddMarker(*item);
+		}
 		
 		AddDevice(serial);
 	
@@ -196,7 +207,7 @@ void CMapPlugin::DeleteDevice(size_t idx)
 	m_vDevices.erase(m_vDevices.begin() + idx);
 }
 
-wxArrayString CMapPlugin::GetDevicesConfig(wxString path)
+wxArrayString CMapPlugin::GetConfigItems(wxString path)
 {
     
     wxArrayString Names;
@@ -217,6 +228,7 @@ wxArrayString CMapPlugin::GetDevicesConfig(wxString path)
     
 	return Names;
 }
+
 
 bool CMapPlugin::IsInited()
 {
@@ -256,7 +268,7 @@ void CMapPlugin::Kill(void)
 		m_vDevices[i]->Stop();
 		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
 		while(m_vDevices[i]->GetWorkingFlag())
-			wxMilliSleep(10);
+			wxMilliSleep(50);
 				
 		delete m_vDevices[i];
 	}
@@ -271,61 +283,6 @@ void CMapPlugin::Kill(void)
 
 }
 
-void CMapPlugin::BuildGeometry()
-{
-    // first circle
-    SPoint Points;
-    float Radius = 0.2f;
-    
-    for(int i=0; i<360; i+=6)
-    {
-        Points.x = Radius*(float)sin(i*nvPI/180.0);
-        Points.y = Radius*(float)cos(i*nvPI/180.0);
-        vCircle1.push_back(Points);
-    }
-
-    // second circle
-    Radius = 0.08f;
-    for(int i=0; i<360; i+=6)
-    {
-        Points.x = Radius*(float)sin(i*nvPI/180.0);
-        Points.y = Radius*(float)cos(i*nvPI/180.0);
-        vCircle2.push_back(Points);
-    }
-
-	// third circle
-    Radius = 1.0f;
-	CircleRadius = Radius;
-    for(int i=0; i<360; i+=6)
-    {
-        Points.x = Radius*(float)sin(i*nvPI/180.0);
-        Points.y = Radius*(float)cos(i*nvPI/180.0);
-        vCircle3.push_back(Points);
-    }
-
-
-    // line H
-    Points.x = -0.3;	Points.y =	0.0;    vLineH.push_back(Points);
-    Points.x = 0.3;		Points.y =	0.0;    vLineH.push_back(Points);
-    //line V
-    Points.x = 0.0;		Points.y =	0.3;	vLineH.push_back(Points);
-    Points.x = 0.0;		Points.y =	-1.0;   vLineH.push_back(Points);
-	// bok
-	Points.x = 0.0;		Points.y = -1.0;	vLineH.push_back(Points);
-	Points.x = 0.3;		Points.y = 0.0;		vLineH.push_back(Points);
-	// bok
-	Points.x = 0.0;		Points.y = -1.0;	vLineH.push_back(Points);
-	Points.x = -0.3;	Points.y = 0.0;		vLineH.push_back(Points);
-	// end
-    Points.x = -0.3;    Points.y =	0.3;    vLineH.push_back(Points);
-    Points.x = 0.3;		Points.y =	0.3;    vLineH.push_back(Points);
-	// end1
-	Points.x = -0.2;    Points.y =	0.5;    vLineH.push_back(Points);
-    Points.x = 0.2;		Points.y =	0.5;    vLineH.push_back(Points);
-
-
-}
-
 void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -337,18 +294,18 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::RenderPosition()
 {
 		
-	glColor4f(0.0f,0.0f,1.0f,0.5f);
-	glPushMatrix();
-		glLineWidth(2);
-		glTranslated(0.0,0.0,0.0);
-		glScalef(50.0/Scale,50.0/Scale,0.0f);
-		glRotatef(Hdg,0.0f,0.0f,1.0f);
-		RenderGeometry(GL_LINE_LOOP,&vCircle1[0],vCircle1.size());	// circle 0
-		RenderGeometry(GL_LINE_LOOP,&vCircle2[0],vCircle2.size());  // circle 1
-		RenderGeometry(GL_LINE_LOOP,&vCircle3[0],vCircle3.size());  // circle 1
-		RenderGeometry(GL_LINES,&vLineH[0],vLineH.size());			// line H
-		glLineWidth(1);
-    glPopMatrix();
+	//glColor4f(0.0f,0.0f,1.0f,0.5f);
+	//glPushMatrix();
+		//glLineWidth(2);
+		//glTranslated(0.0,0.0,0.0);
+		//glScalef(50.0/Scale,50.0/Scale,0.0f);
+		//glRotatef(Hdg,0.0f,0.0f,1.0f);
+		//RenderGeometry(GL_LINE_LOOP,&vCircle1[0],vCircle1.size());	// circle 0
+		//RenderGeometry(GL_LINE_LOOP,&vCircle2[0],vCircle2.size());  // circle 1
+		//RenderGeometry(GL_LINE_LOOP,&vCircle3[0],vCircle3.size());  // circle 1
+		//RenderGeometry(GL_LINES,&vLineH[0],vLineH.size());			// line H
+		//glLineWidth(1);
+    //glPopMatrix();
 
 }
 
@@ -418,18 +375,22 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
 	TData *Data = (TData*)Params;
 
-	if(strcmp(Data->Marker,"HDG") == 0)
-		ThisPtr->SetHDG(atof(Data->Value));
+	
+	ThisPtr->SetData(Data);
 	
 	return NULL;
 
 }
 
-void CMapPlugin::SetHDG(double val)
+void CMapPlugin::SetData(TData *val)
 {
-	Hdg = val;
+//	Hdg = val;
 //	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
-	//m_Broker->Refresh(m_Broker->GetParentPtr());
+	wchar_t str[1024] = {0}; 
+
+	swprintf(str,L"%d %hs %hs",val->DataID,val->Marker,val->Value);
+	m_Broker->consolef(m_Broker->GetParentPtr(),str);
+	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 int CMapPlugin::GetDisplaySignalType()

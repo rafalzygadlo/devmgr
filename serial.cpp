@@ -109,9 +109,9 @@ void CMySerial::OnBeforeMainLoop()
 {
 }
 
-void CMySerial::OnLine(unsigned char *line)
+void CMySerial::OnLine(unsigned char* buffer,int length)
 {
-	Parse(line);
+	Parse(buffer);
 }
 
 void CMySerial::OnNewSignal()
@@ -134,11 +134,22 @@ int CMySerial::GetSignalType()
 	return m_SignalType;
 }
 
-wxString CMySerial::GetDataDefinitionAsString()
+void CMySerial::AddMarker(TDataDefinition marker)
 {
-	return m_DataDefinitionString;
+	m_DataDefinitionTable.push_back(marker);
 }
 
+int CMySerial::GetMarkersLength()
+{
+	return m_DataDefinitionTable.size();
+}
+
+TDataDefinition CMySerial::GetMarker(int id)
+{
+	return m_DataDefinitionTable[id];
+}
+
+/*
 void CMySerial::CreateDataDefinitionTable(char *data) 
 {
 	wxString str(data,wxConvUTF8);
@@ -202,7 +213,7 @@ void CMySerial::CreateDataDefinitionTable(char *data)
 
 	//DDTProtector->Unlock();
 };
-
+*/
 void CMySerial::Parse(unsigned char *line)
 {
 
@@ -228,6 +239,7 @@ void CMySerial::Parse(unsigned char *line)
 
 			// Obliczanie czasu uniwersalnego
 			//Data.DateTime = GetUTCTimeNow();	// nie brane pod uwagê
+			Data.DataID = DataDefinition->DataID;
 			Data.Average = DataDefinition->Average;
 			// odczyt kolumn na podstawie definicji odczytu
 			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego

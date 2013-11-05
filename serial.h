@@ -36,15 +36,16 @@ public:
 	void SetDataDefinition();
 	size_t GetDeviceId();					
 	int GetSignalType();
-	void CreateDataDefinitionTable(char *data);
 	void Parse(unsigned char *line);
-	//TDataDefinition *GetDataDefinition(const char *NMEALine);
-	wxString GetDataDefinitionAsString();
+	void AddMarker(TDataDefinition marker);
+		
+	int GetMarkersLength();
+	TDataDefinition GetMarker(int id);
 
 	virtual void OnConnect();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);
-	virtual void OnLine(unsigned char* line);
+	virtual void OnLine(unsigned char* buffer,int length);
 	virtual void OnStart();
 	virtual void OnStop();
 	virtual void OnAfterMainLoop();

@@ -3,7 +3,7 @@
 #include <wx/stdpaths.h>
 
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][21] = 
+const wxChar *nvLanguage[2][22] = 
 { 
 	/*EN*/
 	{
@@ -27,7 +27,9 @@ const wxChar *nvLanguage[2][21] =
 		_("Stoping device [%s] and freeing the resources.\nPlease wait this will take some time."),
 		_("Is Connected"),
 		_("Is Running"),
-		_("New Marker ...")
+		_("New"),
+		_("Delete")
+
 	},
 	
 	/*PL*/

@@ -1,4 +1,5 @@
 #include "data_config.cpp"
+#include "data_marker.h"
 #include "device_config.cpp"
 #include "display.cpp"
 #include "dll.cpp"
@@ -7,3 +8,4 @@
 #include "serial.cpp"
 #include "status.cpp"
 #include "tools.cpp"
+#include "markers.cpp"
