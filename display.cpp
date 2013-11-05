@@ -87,8 +87,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
 	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
-	m_InfoPanel->Hide();
-
+	
 //	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
 //	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
