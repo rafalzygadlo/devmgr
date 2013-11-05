@@ -40,8 +40,9 @@ public:
 	void AddMarker(TDataDefinition marker);
 		
 	int GetMarkersLength();
-	TDataDefinition GetMarker(int id);
-
+	TDataDefinition *GetMarker(int marker_id); //wyszukiwanie po id markera
+	TDataDefinition *GetMarkerItem(int id);
+	
 	virtual void OnConnect();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);

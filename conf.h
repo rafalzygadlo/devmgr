@@ -16,7 +16,7 @@
 
 #define PRODUCT_NAME "Device Manager"
 #define PRODUCT_VERSION "0.1"
-#define PRODUCT_COPYRIGHT "Copyright 2010/2011 by NavSim. All rights reserved"
+#define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
 
 #define KEY_DEVICES "devices"

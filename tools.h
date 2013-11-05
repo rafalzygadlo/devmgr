@@ -5,6 +5,8 @@
 #include "NaviBroker.h"
 #include "serial.h"
 
+wxString GetProductInfo();
+wxString GetProductName();
 wxMutex *GetMutex();
 wxString GetPluginConfigPath();								
 wxString GetWorkDir(void);

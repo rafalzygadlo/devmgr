@@ -78,8 +78,8 @@ void CMapPlugin::WriteConfig()
 		// dlugosc tablicy markerow
 		for(size_t j = 0; j < Serial->GetMarkersLength(); j++)
 		{
-			TDataDefinition item = Serial->GetMarker(j);
-			m_FileConfig->Write(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),item.DataID);
+			TDataDefinition *item = Serial->GetMarkerItem(j);
+			m_FileConfig->Write(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),item->DataID);
 		}
 	
 	}

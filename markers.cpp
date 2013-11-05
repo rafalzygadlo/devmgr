@@ -11,6 +11,25 @@ struct TDataDefinition_s MarkerTab[] =
 	{-1,NULL,NULL,NULL,false},
 };
 
+void Sort()
+{
+	int id = 0;
+	for(size_t i = 0; i < GetLen(); i++)
+	{	
+		for(size_t j = 0; j < GetLen() - 1; j++)
+		{
+			if(strcmp(MarkerTab[j].Name,MarkerTab[j + 1].Name) > 0)
+			{
+				TDataDefinition_s tmp;
+				tmp = MarkerTab[j];
+				MarkerTab[j] = MarkerTab[j + 1];
+				MarkerTab[j + 1] = tmp;
+			}
+			
+		}
+	}
+}
+
 size_t GetLen(void) 
 {
 	int id = 0;

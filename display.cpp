@@ -38,18 +38,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Broker = NULL;
 	
 	m_Sizer = new wxBoxSizer(wxVERTICAL);
-			
-	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
-	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,5);
-	wxPanel *Page1 = new wxPanel(Notebook);
-	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
-	Page1->SetSizer(Page1Sizer);
-	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
-
-	m_Devices = new wxTreeCtrl(Page1,ID_TREE,wxDefaultPosition,wxDefaultSize);
-
 	m_ImageListSmall = new wxImageList(16, 16);
-	
 	wxMemoryInputStream in_0((const unsigned char*)stop,stop_size);
     wxImage myImage_0(in_0, wxBITMAP_TYPE_PNG);
     m_ImageListSmall->Add(myImage_0);
@@ -60,7 +49,28 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	
 	wxMemoryInputStream in_2((const unsigned char*)computer,computer_size);
     wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
-    m_ImageListSmall->Add(myImage_2);
+    m_ImageListSmall->Add(myImage_2);	
+
+	m_ToolBar = new wxToolBar(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	//m_ToolBar->set
+	wxBitmap stop(myImage_0);
+	wxBitmap start(myImage_1);
+
+	m_ToolBar->AddTool(ID_START, GetMsg(MSG_START), start, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_START));
+	m_ToolBar->AddTool(ID_STOP, GetMsg(MSG_START), stop, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_STOP));
+	m_ToolBar->Realize();
+	m_Sizer->Add(m_ToolBar,0,wxEXPAND|wxALL,0);
+	
+	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
+	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
+	wxPanel *Page1 = new wxPanel(Notebook);
+	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Page1->SetSizer(Page1Sizer);
+	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
+
+	m_Devices = new wxTreeCtrl(Page1,ID_TREE,wxDefaultPosition,wxDefaultSize);
+	
+	
 	
 
 	m_Devices->AssignImageList(m_ImageListSmall);
@@ -110,24 +120,26 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 {
 	m_SelectedItemId = event.GetItem();
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
+	
 	if(m_SelectedItem == NULL)
 	{
-//		m_ToolBar->EnableTool(ID_START,false);
-//		m_ToolBar->EnableTool(ID_STOP,false);
+		m_ToolBar->EnableTool(ID_START,false);
+		m_ToolBar->EnableTool(ID_STOP,false);
 		return;
 	}
-	ShowInfoPanel(true);
-	if(m_SelectedItem->GetSerial()->IsRunning())
+	
+	m_SelectedDevice = m_SelectedItem->GetSerial();
+	if(m_SelectedDevice->IsRunning())
 	{	
-//		m_ToolBar->EnableTool(ID_START,false);
-//		m_ToolBar->EnableTool(ID_STOP,true);
+		m_ToolBar->EnableTool(ID_START,false);
+		m_ToolBar->EnableTool(ID_STOP,true);
 	
 	}else{
 		
-//		m_ToolBar->EnableTool(ID_START,true);
-//		m_ToolBar->EnableTool(ID_STOP,false);
+		m_ToolBar->EnableTool(ID_START,true);
+		m_ToolBar->EnableTool(ID_STOP,false);
 	}
-
+	ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
@@ -494,11 +506,11 @@ const wchar_t *NaviDisplayIntroduce(int LanguageID)
 	{
 
 		case 0: 
-			return L"Device Manager";
+			return TEXT(PRODUCT_NAME);
 			break;
 
 		default:
-			return L"Device Manager";
+			return TEXT(PRODUCT_NAME);
 	}
 
 }

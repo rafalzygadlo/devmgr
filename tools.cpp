@@ -40,6 +40,16 @@ const wxChar *nvLanguage[2][22] =
 
 };
 
+wxString GetProductInfo()
+{
+	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(PRODUCT_VERSION),_(PRODUCT_COPYRIGHT));
+}
+wxString GetProductName()
+{
+	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(PRODUCT_VERSION));
+}
+
+
 wxString GetMsg(int id)
 {
 	return nvLanguage[GlobalLanguageID][id];

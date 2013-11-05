@@ -8,6 +8,7 @@ BEGIN_EVENT_TABLE(CDataConfig,wxDialog)
 	EVT_BUTTON(ID_CLOSE,CDataConfig::OnCloseButton)
 	EVT_BUTTON(ID_NEW,CDataConfig::OnButtonNew)
 	EVT_CHECKLISTBOX(ID_MARKER,CDataConfig::OnMarkerCheck )
+	EVT_LISTBOX(ID_MARKER,CDataConfig::OnMarkerList)
 END_EVENT_TABLE()
 
 
@@ -19,20 +20,41 @@ CDataConfig::CDataConfig(CMySerial *serial)
 	MainSizer->SetMinSize(400,300);
 
 	wxPanel *Panel1 = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Panel1->SetBackgroundColour(*wxWHITE);
+	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,0);
 	wxBoxSizer *Panel1Sizer = new wxBoxSizer(wxHORIZONTAL);
 	Panel1->SetSizer(Panel1Sizer);
 
-	m_Marker = new wxCheckListBox(Panel1,ID_MARKER);
+	m_Marker = new wxCheckListBox(Panel1,ID_MARKER,wxDefaultPosition,wxDefaultSize,NULL);
 	Panel1Sizer->Add(m_Marker,1,wxALL|wxEXPAND,5);
 		
+	Sort();
 	for(size_t i = 0; i < (size_t)GetLen(); i++)
 	{
 		TDataDefinition_s *item = GetItem(i);
-		wxString marker(item->Marker,wxConvUTF8);
 		wxString name(item->Name,wxConvUTF8);
-		m_Marker->Append(wxString::Format(_("[%s] - %s"),marker.wc_str(),name.wc_str()));
+		int id = m_Marker->Append(wxString::Format(_("%s"),name.wc_str()));
+
+	//	m_Marker->SetClientObject(id, (wxClientData*)item);
+		if(m_Serial->GetMarker(item->DataID) != NULL)
+			m_Marker->Check(id,true);
 	}
 
+	m_InfoPanel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	m_InfoPanel->Hide();
+	MainSizer->Add(m_InfoPanel,0,wxALL|wxEXPAND,5);
+	wxBoxSizer *InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
+	m_InfoPanel->SetSizer(InfoPanelSizer);
+
+	LabelId = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	InfoPanelSizer->Add(LabelId,0,wxALL|wxEXPAND,2);
+	
+	LabelName = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	InfoPanelSizer->Add(LabelName,0,wxALL|wxEXPAND,2);
+	
+	LabelMarker = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	InfoPanelSizer->Add(LabelMarker,0,wxALL|wxEXPAND,2);
+	
 	wxBoxSizer *VSizer = new wxBoxSizer(wxVERTICAL);
 	Panel1Sizer->Add(VSizer,0,wxALL|wxEXPAND,0);
 
@@ -44,9 +66,13 @@ CDataConfig::CDataConfig(CMySerial *serial)
 	
 	this->SetSizer(MainSizer);
 
-	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,5);
+
+	
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
+
+	wxStaticText *LabelProductInfo = new wxStaticText(this,wxID_ANY,GetProductInfo() ,wxDefaultPosition,wxDefaultSize);
+	ButtonSizer->Add(LabelProductInfo,0,wxALL,5);
 	ButtonSizer->AddStretchSpacer(1);
 	wxButton *ButtonOk = new wxButton(this,wxID_OK,GetMsg(MSG_OK),wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(ButtonOk,0,wxALL|wxALIGN_RIGHT,5);
@@ -86,6 +112,22 @@ void CDataConfig::OnMarkerCheck(wxCommandEvent &event)
 
 }
 
+void CDataConfig::OnMarkerList(wxCommandEvent &event)
+{
+	m_InfoPanel->Show();
+	this->Layout();
+
+	TDataDefinition_s *item = GetItem(event.GetSelection());
+
+	wxString id = wxString::Format(_("%d"),item->DataID);
+	wxString name(item->Name,wxConvUTF8);
+	wxString marker(item->Marker,wxConvUTF8);
+
+	LabelId->SetLabel(id);
+	LabelName->SetLabel(name);
+	LabelMarker->SetLabel(marker);
+	GetSizer()->SetSizeHints(this);
+}
 
 void CDataConfig::OnCloseButton(wxCommandEvent &event)
 {	

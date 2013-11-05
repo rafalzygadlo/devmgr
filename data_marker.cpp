@@ -1,6 +1,6 @@
 #include "conf.h"
 #include "dll.h"
-#include "data_markers.h"
+#include "data_marker.h"
 #include <wx/wx.h>
 #include "NaviMapIOApi.h"
 

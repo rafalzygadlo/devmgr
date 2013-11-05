@@ -33,10 +33,10 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxString m_Name;
 	int m_SignalType;
 	int m_DeviceId;
+	wxToolBar *m_ToolBar;
 	wxTreeCtrl *m_Devices;
 	wxTreeItemId m_Root;
 	wxTextCtrl *m_Logger;
-	wxToolBar *m_ToolBar;
 	bool m_FirstTime;
 	wxImageList *m_ImageListSmall;
 	wxBoxSizer *m_Sizer;

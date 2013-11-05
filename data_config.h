@@ -11,13 +11,18 @@ class CDataConfig: public wxDialog
 			
 	wxCheckListBox *m_Marker;
 	CMySerial *m_Serial;
+	wxPanel *m_InfoPanel;
+	wxStaticText *LabelId;
+	wxStaticText *LabelName;
+	wxStaticText *LabelMarker;
 
 	bool Validate();
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
 	void OnButtonNew(wxCommandEvent &event);
 	void OnMarkerCheck(wxCommandEvent &event);
-		
+	void OnMarkerList(wxCommandEvent &event);
+
 public:
 
 	CDataConfig(CMySerial *serial);

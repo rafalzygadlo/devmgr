@@ -2,6 +2,7 @@
 #define __MARKER
 
 size_t GetLen(void);
+void Sort();
 struct TDataDefinition_s *GetItem(int id);
 struct TDataDefinition_s *GetMarker(int marker_id);
 //int GetParamNumber(const char *ParamName);

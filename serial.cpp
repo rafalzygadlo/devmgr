@@ -144,9 +144,20 @@ int CMySerial::GetMarkersLength()
 	return m_DataDefinitionTable.size();
 }
 
-TDataDefinition CMySerial::GetMarker(int id)
+TDataDefinition *CMySerial::GetMarkerItem(int id)
 {
-	return m_DataDefinitionTable[id];
+	return &m_DataDefinitionTable[id];
+}
+
+TDataDefinition *CMySerial::GetMarker(int marker_id)
+{
+	for(size_t i = 0; i < m_DataDefinitionTable.size();i++)
+	{
+		if(marker_id == m_DataDefinitionTable[i].DataID)
+			return &m_DataDefinitionTable[i];
+
+	}	
+	return NULL;
 }
 
 /*
