@@ -1,7 +1,7 @@
 #include "conf.h"
 #include "dll.h"
 #include "data_config.h"
-#include "markers.h"
+#include "devices.h"
 //#include "NaviMapIOApi.h"
 
 BEGIN_EVENT_TABLE(CDataConfig,wxDialog)

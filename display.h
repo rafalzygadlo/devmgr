@@ -97,6 +97,7 @@ public:
 		ID_NEW_DEVICE,
 		ID_STATUS,
 		ID_LOGGER,
+		ID_DEVICE_TYPES,
 	};
 
 

@@ -1,57 +1,69 @@
 ﻿#include "conf.h"
-#include "markers.h"
+#include "devices.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "tools.h"
 
-struct TDataDefinition_s MarkerTab[] = 
+struct TDataDefinition_s MarkersTab[] = 
 {
-	#include "markers.dat"
+	#include "data/markers.dat"
 	{-1,NULL,NULL,NULL,false},
 };
 
-void Sort()
+struct TDevices_s DevicesTab[] =
+{
+	#include "data/devices.dat"
+	{-1,NULL},
+
+};
+
+CDevices::CDevices()
+{
+	
+}
+
+void CDevices::Sort()
 {
 	int id = 0;
 	for(size_t i = 0; i < GetLen(); i++)
 	{	
 		for(size_t j = 0; j < GetLen() - 1; j++)
 		{
-			if(strcmp(MarkerTab[j].Name,MarkerTab[j + 1].Name) > 0)
+			if(strcmp(DevicesTab[j].name,DevicesTab[j + 1].name) > 0)
 			{
-				TDataDefinition_s tmp;
-				tmp = MarkerTab[j];
-				MarkerTab[j] = MarkerTab[j + 1];
-				MarkerTab[j + 1] = tmp;
+				TDevices_s tmp;
+				tmp = DevicesTab[j];
+				DevicesTab[j] = DevicesTab[j + 1];
+				DevicesTab[j + 1] = tmp;
 			}
 			
 		}
 	}
 }
 
-size_t GetLen(void) 
+size_t CDevices::GetLen(void) 
 {
 	int id = 0;
 
-	while( MarkerTab[id].DataID != -1 )
+	while( DevicesTab[id].id != -1 )
 		id++;
 	
 	return id;
 }
 
-struct TDataDefinition_s *GetItem(int id)
+struct TDataDefinition_s *Get(int id)
 {
-	return &MarkerTab[id];
+	return &DevicesTab[id];
 }
 
-struct TDataDefinition_s *GetMarker(int marker_id)
+struct TDataDefinition_s *GetById(int id)
 {
 	int id = 0;
-	while( MarkerTab[id].DataID != -1 )
+	while( DevicesTab[id].id != -1 )
 	{
-		if(MarkerTab[id].DataID == marker_id)
-			return &MarkerTab[id];
+		if(DevicesTab[id].id == id)
+			return &DevicesTab[id];
 		id++;
 		
 	}

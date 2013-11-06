@@ -8,9 +8,12 @@
 #include "device_config.h"
 #include "data_config.h"
 #include "status.h"
-#include "computer.h"
-#include "stop.h"
-#include "start.h"
+//ico
+#include "images/computer.img"
+#include "images/stop.img"
+#include "images/start.img"
+#include "images/types.img"
+
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 
@@ -27,7 +30,6 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
-
 
 
 CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) 
@@ -51,6 +53,9 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
     wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
     m_ImageListSmall->Add(myImage_2);	
 
+	wxMemoryInputStream in_3((const unsigned char*)types,types_size);
+    wxImage myImage_3(in_3, wxBITMAP_TYPE_PNG);
+    m_ImageListSmall->Add(myImage_3);	
 	
 	
 	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
@@ -65,10 +70,14 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxBitmap stop(myImage_0);
 	wxBitmap start(myImage_1);
 	wxBitmap computer(myImage_2);
-
-	m_ToolBar->AddTool(ID_NEW_DEVICE, GetMsg(MSG_NEW_DEVICE), computer, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_NEW_DEVICE));
+	wxBitmap types(myImage_3);
+		
 	m_ToolBar->AddTool(ID_START, GetMsg(MSG_START), start, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_START));
 	m_ToolBar->AddTool(ID_STOP, GetMsg(MSG_START), stop, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_STOP));
+	m_ToolBar->AddSeparator();
+	m_ToolBar->AddTool(ID_NEW_DEVICE, GetMsg(MSG_NEW_DEVICE), computer, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_NEW_DEVICE));
+	m_ToolBar->AddTool(ID_DEVICE_TYPES, GetMsg(MSG_DEVICE_TYPES), types, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_DEVICE_TYPES));
+	
 	m_ToolBar->EnableTool(ID_STOP, false);
 	m_ToolBar->EnableTool(ID_START, false);
 	m_ToolBar->Realize();
@@ -83,12 +92,12 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	Page1Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
 
 	m_InfoPanel = new wxPanel(Page1,wxID_ANY);
+	m_InfoPanel->Hide();
 	Page1Sizer->Add(m_InfoPanel,0,wxALL|wxEXPAND,0);
 
 	wxBoxSizer *InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
 	m_InfoPanel->SetSizer(InfoPanelSizer);
-	//m_InfoPanel->Hide();
-	
+		
 	wxFont font;
 	font.SetPointSize(14);
 		
@@ -142,7 +151,8 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 		m_ToolBar->EnableTool(ID_START,true);
 		m_ToolBar->EnableTool(ID_STOP,false);
 	}
-	ShowInfoPanel(true);
+
+	//ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
@@ -235,7 +245,7 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 		m_SelectedDevice->_SetPort(m_DeviceConfig->GetPort().char_str());
 		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
 		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
-		m_Devices->SetItemText(m_SelectedItemId,m_DeviceConfig->GetDeviceName());
+		m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
 	}	
 			
 }
@@ -438,8 +448,8 @@ void CDisplayPlugin::SetDevices()
 			icon_id = ICON_STOP;
 			running = true;
 		}
-		
-		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
+				
+		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),Serial->GetDeviceName()),icon_id);
 		//SetDevicesData(Serial,id);
 		CItem *Item = new CItem();
 		Item->SetSerial(Serial);

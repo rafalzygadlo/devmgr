@@ -128,7 +128,6 @@ void CMySerial::OnNoSignal()
 	
 }
 
-
 int CMySerial::GetSignalType()
 {
 	return m_SignalType;

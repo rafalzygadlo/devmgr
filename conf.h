@@ -64,6 +64,7 @@
 #define MSG_IS_RUNNING				19
 #define MSG_NEW						20
 #define MSG_DELETE					21
+#define	MSG_DEVICE_TYPES			22
 
 #define MAX_DATA_POSITIONS		10
 typedef struct TDataDefinition_s 
@@ -85,6 +86,40 @@ typedef struct TData_s
 	time_t	DateTime;
 
 } TData;
+
+
+// dane konfiguracyjne 
+struct TDevices_s
+{
+	int id;
+	char name[32 + 1];
+
+}TDevices;
+
+struct TMarker_s
+{
+	int id;
+	int id_marker_names;
+	char name[64 + 1];
+
+}TMarkers;
+
+struct TMarker_names_s
+{
+	int id;
+	char name[3 + 1];
+
+}TMarker_names;
+
+struct TMarker_definition_s
+{
+	int id;
+	int id_marker;
+	int position;
+		//function; // dopiszemy potem
+
+}TNarker_definition;
+
 
 
 // globalne identyfikatory eventów
