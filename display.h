@@ -10,7 +10,7 @@
 #include "dll.h"
 #include "serial.h"
 #include "item.h"
-#include "device_config.h"
+#include "config.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -24,7 +24,7 @@ extern "C" {
 class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi 
 {
 	
-	CDeviceConfig *m_DeviceConfig;
+	CConfig *m_DeviceConfig;
 	CMySerial *m_SelectedDevice;
 	CItem *m_SelectedItem;
 	wxTreeItemId m_SelectedItemId;

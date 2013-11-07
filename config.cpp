@@ -4,18 +4,18 @@
 #include "NaviMapIOApi.h"
 #include "conf.h"
 #include "dll.h"
-#include "device_config.h"
+#include "config.h"
 #include "info.h"
 #include "protocol.h"
 
 
-BEGIN_EVENT_TABLE(CDeviceConfig,wxDialog)
+BEGIN_EVENT_TABLE(CConfig,wxDialog)
 	EVT_BUTTON(ID_CLOSE,OnCloseButton)
 	EVT_HYPERLINK(ID_REFRESH,OnScanPorts)
 END_EVENT_TABLE()
 
 
-CDeviceConfig::CDeviceConfig()
+CConfig::CConfig()
 	:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize )
 {
 	mySerial = new CMySerial();
@@ -95,12 +95,12 @@ CDeviceConfig::CDeviceConfig()
 		
 }	
 
-CDeviceConfig::~CDeviceConfig(void)
+CConfig::~CConfig(void)
 {
 	delete mySerial;
 }
 
-bool CDeviceConfig::Validate()
+bool CConfig::Validate()
 {
 	bool result = true;
 	
@@ -134,7 +134,7 @@ bool CDeviceConfig::Validate()
 	return result;
 }
 
-void CDeviceConfig::OnScanPorts(wxHyperlinkEvent &event)
+void CConfig::OnScanPorts(wxHyperlinkEvent &event)
 {
 	wxWindowDisabler();
 	CMyInfo Info(this,GetMsg(MSG_SCANNING_PORTS));
@@ -151,17 +151,17 @@ void CDeviceConfig::OnScanPorts(wxHyperlinkEvent &event)
 	PortCombo->SetValue(value);
 }
 
-wxString CDeviceConfig::GetDeviceName()
+wxString CConfig::GetDeviceName()
 {
 	return NameText->GetValue();
 }
 
-wxString CDeviceConfig::GetPort()
+wxString CConfig::GetPort()
 {
 	return PortCombo->GetValue();
 }
 
-int CDeviceConfig::GetBaud()
+int CConfig::GetBaud()
 {
 	long val;
 	BaudCombo->GetValue().ToLong(&val);
@@ -169,44 +169,44 @@ int CDeviceConfig::GetBaud()
 	return val;
 }
 
-void CDeviceConfig::SetPort(char *port)
+void CConfig::SetPort(char *port)
 {
 	wxString str(port,wxConvUTF8);
 	PortCombo->SetValue(str);
 }
 
-void CDeviceConfig::SetBaud(int baud)
+void CConfig::SetBaud(int baud)
 {
 	BaudCombo->SetValue(wxString::Format(_("%d"),baud));
 }
 
-void CDeviceConfig::SetDeviceName(wxString name)
+void CConfig::SetDeviceName(wxString name)
 {
 	NameText->SetLabel(name);
 }
 
-int CDeviceConfig::GetDeviceType()
+int CConfig::GetDeviceType()
 {
 	return DeviceTypeCombo->GetSelection();
 }
 
-void CDeviceConfig::SetDeviceType(int type)
+void CConfig::SetDeviceType(int type)
 {
 	DeviceTypeCombo->SetSelection(type);
 }
 
 
-void CDeviceConfig::ShowWindow(bool show)
+void CConfig::ShowWindow(bool show)
 {
 	Show(show);
 }
 
-void CDeviceConfig::OnCloseButton(wxCommandEvent &event)
+void CConfig::OnCloseButton(wxCommandEvent &event)
 {	
 	Hide();
 }
 
-void CDeviceConfig::OnClose(wxCloseEvent &event)
+void CConfig::OnClose(wxCloseEvent &event)
 {
 	Destroy();
 }

@@ -5,7 +5,7 @@
 #include "tools.h"
 #include "display.h"
 #include "item.h"
-#include "device_config.h"
+#include "config.h"
 #include "data_config.h"
 #include "status.h"
 //ico
@@ -234,7 +234,7 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 	}
 	
 	if(m_DeviceConfig == NULL)
-		m_DeviceConfig = new CDeviceConfig();
+		m_DeviceConfig = new CConfig();
 	m_DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
 	m_DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
 	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
@@ -271,7 +271,7 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 {
 	if(m_DeviceConfig == NULL)
-		m_DeviceConfig = new CDeviceConfig();
+		m_DeviceConfig = new CConfig();
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{

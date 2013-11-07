@@ -1,5 +1,5 @@
-#ifndef __DEVICE_CONFIG
-#define __DEVICE_CONFIG
+#ifndef __CONFIG
+#define __CONFIG
 
 #include <wx/wx.h>
 #include <wx/hyperlink.h>
@@ -8,7 +8,7 @@
 #include "tools.h"
 #include <vector>
 
-class CDeviceConfig: public wxDialog
+class CConfig: public wxDialog
 {
 	
 	CMySerial *mySerial;
@@ -27,8 +27,8 @@ class CDeviceConfig: public wxDialog
 	
 public:
 
-	CDeviceConfig();
-	~CDeviceConfig();
+	CConfig();
+	~CConfig();
 	void ShowWindow(bool show);	
 	int GetBaud();
 	wxString GetDeviceName();

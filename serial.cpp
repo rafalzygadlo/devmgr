@@ -4,7 +4,7 @@
 #include "frame.h"
 #include "dll.h"
 #include "tools.h"
-
+#include "protocol.h"
 
 
 CMySerial::CMySerial()
@@ -161,33 +161,51 @@ int CMySerial::GetMarkersLength()
 
 void CMySerial::SetDefinition()
 {
-	SDevices *dev = GetDevice(m_DeviceType);
+	CProtocol *pr = new CProtocol();
+	int ct = 0;
+	
+	SDevices *dev = pr->GetDevice(m_DeviceType);
+	
+	SDefinition *def;
+	pr->GetDefinitionById(dev->id,ct,*&def);
+
+	for(size_t i = 0; i < ct; i++)
+	{
+		int id = def[i].id_signal;
+		char *n = def[i].name;
+	}
+	
+	int aaa = 0;
+	/*
+	
 
 	if(dev == NULL)
 		return;
 
-	CMarkers *Markers = new CMarkers();
-	size_t len = Markers->GetLen();
+	CDeviced *Deviced = new CDeviced();
+	size_t len = Deviced->GetLen();
 
 	for(size_t i = 0; i < len; i++)
 	{
-		SMarkers *marker = Markers->Get(i);
-		if(marker->id == dev->id)
+		SDeviced *deviced = Deviced->Get(i);
+		
+		if(deviced->id == dev->id)
 		{
-			SMarker *sitem = GetMarkerById(dev->id);
-			SSIDS *sid = GetSIDById(marker->id_sids);
+			SMarkerd *markerd = GetMarkerdById(deviced->id_markers);
+			//SMarkers *markers = GetMarkersById(deviced->);
+			SSIDS *sid = GetSIDById(markerd->id_marker);
 			
 			SDataDefinition Data;
-			Data.id = marker->id;
+			Data.id = markerd->id;
 			strcpy(Data.marker,sid->name);
-			strcpy(Data.name,marker->name); 
+			//strcpy(Data.name,marker->name); 
 			m_DataDefinitionTable.push_back(Data);
 
 		}
 	}
 
-	delete Markers;
-	
+	delete Deviced;
+	*/
 }
 
 void CMySerial::Parse(unsigned char *line)

@@ -262,7 +262,7 @@ void CMapPlugin::Kill(void)
     if(m_FileConfig != NULL)
         delete m_FileConfig;
 	
-	FreeProtocol();
+
 	SendSignal(CLEAR_DISPLAY,0);
 	
 	// before myserial delete
