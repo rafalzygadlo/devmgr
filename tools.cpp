@@ -1,9 +1,11 @@
 #include "conf.h"
 #include "tools.h"
 #include <wx/stdpaths.h>
+#include "protocol.h"
+
 
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][23] = 
+const wxChar *nvLanguage[2][24] = 
 { 
 	/*EN*/
 	{
@@ -30,6 +32,7 @@ const wxChar *nvLanguage[2][23] =
 		_("New"),
 		_("Delete"),
 		_("Device Types..."),
+		_("Device Type")
 
 	},
 	
@@ -78,13 +81,15 @@ wxString GetWorkDir(void)
 	return buffer;
 }
 
-CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run)
+CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int type)
 {
 	CMySerial *Serial = new CMySerial();
 	Serial->SetBaud(baud);
 	Serial->_SetPort(port);
 	Serial->SetDeviceName(name);
 	Serial->SetRunOnStart(run);
+	Serial->SetDeviceType(type);
+	Serial->SetDefinition();
 	
 	return Serial;
 
@@ -171,3 +176,4 @@ int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Sea
 
 	return -1;
 };
+

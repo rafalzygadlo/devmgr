@@ -11,6 +11,7 @@ class CMySerial :public CSerial
 {
 	bool m_IsRunning;
 	int m_DeviceId;
+	int m_DeviceType;
 	wxString m_DeviceName;
 	CNaviBroker *m_Broker;
 	unsigned char *m_LineBuffer;
@@ -18,7 +19,7 @@ class CMySerial :public CSerial
 	int m_SignalType;
 	bool m_RunOnStart;
 	CPanel *m_ConfigPanel;
-	std::vector<TDataDefinition> m_DataDefinitionTable;
+	std::vector<SDataDefinition> m_DataDefinitionTable;
 	wxString m_DataDefinitionString;
 		
 		
@@ -33,15 +34,17 @@ public:
 	void SetBroker(CNaviBroker *broker);
 	void SetRunOnStart(bool val);
 	wxString GetDeviceName();
-	void SetDataDefinition();
 	size_t GetDeviceId();					
 	int GetSignalType();
 	void Parse(unsigned char *line);
-	void AddMarker(TDataDefinition marker);
+	void SetDeviceType(int type);
+	int GetDeviceType();
+	void SetDefinition();
+	//void AddMarker(TDataDefinition marker);
 		
 	int GetMarkersLength();
-	TDataDefinition *GetMarker(int marker_id); //wyszukiwanie po id markera
-	TDataDefinition *GetMarkerItem(int id);
+	//TDataDefinition *GetMarker(int marker_id); //wyszukiwanie po id markera
+	//TDataDefinition *GetMarkerItem(int id);
 	
 	virtual void OnConnect();
 	virtual void OnDisconnect();

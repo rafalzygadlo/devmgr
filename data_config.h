@@ -5,10 +5,12 @@
 #include "conf.h"
 #include "dll.h"
 #include "tools.h"
+#include "protocol.h"
 
 class CDataConfig: public wxDialog
 {
 			
+	CDevices *Devices;
 	wxCheckListBox *m_Marker;
 	CMySerial *m_Serial;
 	wxPanel *m_InfoPanel;

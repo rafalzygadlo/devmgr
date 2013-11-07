@@ -6,6 +6,7 @@
 #include "tools.h"
 #include "info.h"
 #include "devices.h"
+#include "protocol.h"
 
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
@@ -55,7 +56,7 @@ void CMapPlugin::WriteConfig()
 {
 	m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	wxString name,port;
-	int baud;
+	int baud, type;
 	bool running;
 	
 	m_FileConfig->DeleteGroup(_(KEY_DEVICES));
@@ -68,19 +69,13 @@ void CMapPlugin::WriteConfig()
 		running = Serial->IsRunning();
 		wxString port(Serial->GetPortName(),wxConvUTF8);
 		baud = Serial->GetBaudRate();
-		
+		type= Serial->GetDeviceType();		
 		
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),name);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),port);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),baud);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),running);
-
-		// dlugosc tablicy markerow
-		for(size_t j = 0; j < Serial->GetMarkersLength(); j++)
-		{
-			TDataDefinition *item = Serial->GetMarkerItem(j);
-			m_FileConfig->Write(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),item->DataID);
-		}
+		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DEVICE_TYPE)),type);
 	
 	}
 	
@@ -96,7 +91,7 @@ void CMapPlugin::ReadConfig()
 	
 	wxArrayString devices = GetConfigItems(_(KEY_DEVICES));
 	wxString name, port;
-	int baud, marker_id;
+	int baud,type;
 	bool running;
 	
 	for(size_t i = 0; i < devices.size(); i++)
@@ -105,19 +100,10 @@ void CMapPlugin::ReadConfig()
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),&port);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),&baud);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),&running);
-
-		CMySerial *serial = CreateNewDevice(name,port.char_str(),baud,running);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DEVICE_TYPE)),&type);
 		
-		wxArrayString markers = GetConfigItems(wxString::Format(_("%s/%d"),_(KEY_DEVICES),i));
-		for(size_t j = 0; j < markers.size(); j++)
-		{	
-			m_FileConfig->Read(wxString::Format(_("%s/%d/%d/%s"),_(KEY_DEVICES),i,j,_(KEY_MARKER_ID)),&marker_id);
-			
-			TDataDefinition_s *item = GetMarker(marker_id);
-			if(item != NULL)
-				serial->AddMarker(*item);
-		}
-		
+		CMySerial *serial = CreateNewDevice(name,port.char_str(),baud,running,type);
+				
 		AddDevice(serial);
 	
 	}
@@ -138,7 +124,7 @@ size_t CMapPlugin::GetDevicesCount()
 	return m_vDevices.size();
 }
 
-CMySerial *CMapPlugin::GetDevice(size_t idx)
+CMySerial *CMapPlugin::GetSerial(size_t idx)
 {
 	if(idx > m_vDevices.size())
 		return NULL;
@@ -276,6 +262,7 @@ void CMapPlugin::Kill(void)
     if(m_FileConfig != NULL)
         delete m_FileConfig;
 	
+	FreeProtocol();
 	SendSignal(CLEAR_DISPLAY,0);
 	
 	// before myserial delete
@@ -373,7 +360,7 @@ void *CMapPlugin::OnDeviceSignal(void *NaviMapIOApiPtr, void *Params)
 void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	TData *Data = (TData*)Params;
+	SData *Data = (SData*)Params;
 
 	
 	ThisPtr->SetData(Data);
@@ -382,13 +369,13 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 
 }
 
-void CMapPlugin::SetData(TData *val)
+void CMapPlugin::SetData(SData *val)
 {
 //	Hdg = val;
 //	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
 	wchar_t str[1024] = {0}; 
 
-	swprintf(str,L"%d %hs %hs",val->DataID,val->Marker,val->Value);
+	swprintf(str,L"%d %hs %hs",val->id,val->marker,val->value);
 	m_Broker->consolef(m_Broker->GetParentPtr(),str);
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }

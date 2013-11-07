@@ -24,7 +24,7 @@
 #define KEY_PORT "port"
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
-#define KEY_MARKER_ID "marker_id"
+#define KEY_DEVICE_TYPE "device_type"
 
 #define DIR_WORKDIR "workdir"
 
@@ -65,69 +65,42 @@
 #define MSG_NEW						20
 #define MSG_DELETE					21
 #define	MSG_DEVICE_TYPES			22
+#define MSG_DEVICE_TYPE				23
 
 #define MAX_DATA_POSITIONS		10
-typedef struct TDataDefinition_s 
+typedef struct SDataDefinition
 {
-	int	 DataID;							// id definicji danych pobrane ze zdalnego serwera
-	char Name[32 + 1];						// nazwa definicji
-	char Marker[5 + 1];						// nazwa markera NMEA do pobrania danych
-	int  Position[MAX_DATA_POSITIONS];		// pozycje w lini NMEA (w formie indeksu), których wartoœci nale¿y wyci¹æ. Maksymalnie 10 pozycji
-	bool Average;							// czy uœredniaæ dane
+	int	id;									// id definicji danych pobrane ze zdalnego serwera
+	char name[64 + 1];						// nazwa definicji
+	char marker[3 + 1];						// nazwa markera NMEA do pobrania danych
+	//int  osition[MAX_DATA_POSITIONS];		// pozycje w lini NMEA (w formie indeksu), których wartoœci nale¿y wyci¹æ. Maksymalnie 10 pozycji
+	//bool Average;							// czy uœredniaæ dane
 
-} TDataDefinition;
+} SDataDefinition;
 
-typedef struct TData_s 
+typedef struct SPositionDefinition
 {
-	int		DataID;
-	char	Marker[5 + 1];	// id definicji danych
-	char	Value[16 + 1];
-	bool	Average;							// czy uœredniaæ dane
-	time_t	DateTime;
-
-} TData;
-
-
-// dane konfiguracyjne 
-struct TDevices_s
-{
-	int id;
-	char name[32 + 1];
-
-}TDevices;
-
-struct TMarker_s
-{
-	int id;
-	int id_marker_names;
-	char name[64 + 1];
-
-}TMarkers;
-
-struct TMarker_names_s
-{
-	int id;
-	char name[3 + 1];
-
-}TMarker_names;
-
-struct TMarker_definition_s
-{
-	int id;
 	int id_marker;
-	int position;
-		//function; // dopiszemy potem
 
-}TNarker_definition;
+} SPositionDefinition;
 
 
+typedef struct SData 
+{
+	int		id;
+	char	marker[5 + 1];	// id definicji danych
+	char	value[16 + 1];
+	//bool	Average;							// czy uœredniaæ dane
+	//time_t	DateTime;
+
+} SData;
 
 // globalne identyfikatory eventów
 enum
 {
-    ID_SET_LOG = 5232,
+	ID_SET_LOG = 5232,
 	ID_SET_PORT,
 	ID_SET_BAUD,
-
 };
+
 #endif

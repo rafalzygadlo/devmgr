@@ -11,6 +11,7 @@ CMySerial::CMySerial()
 	:CSerial()
 {
 	m_DeviceId = -1;
+	m_DeviceType = -1;
     m_RunOnStart = false;
 	m_IsRunning = false;
 	m_LineBufLen = 0;
@@ -57,6 +58,16 @@ void CMySerial::SetDeviceName(wxString name)
 wxString CMySerial::GetDeviceName()
 {
 	return m_DeviceName;
+}
+
+void CMySerial::SetDeviceType(int type)
+{
+	m_DeviceType = type;
+}
+
+int CMySerial::GetDeviceType()
+{
+	return m_DeviceType;
 }
 
 bool CMySerial::IsRunning()
@@ -133,111 +144,66 @@ int CMySerial::GetSignalType()
 	return m_SignalType;
 }
 
-void CMySerial::AddMarker(TDataDefinition marker)
-{
-	m_DataDefinitionTable.push_back(marker);
-}
+//void CMySerial::AddMarker(S marker)
+//{
+	//m_DataDefinitionTable.push_back(marker);
+//}
 
 int CMySerial::GetMarkersLength()
 {
 	return m_DataDefinitionTable.size();
 }
 
-TDataDefinition *CMySerial::GetMarkerItem(int id)
+//TDataDefinition *CMySerial::GetMarkerItem(int id)
+//{
+	//return &m_DataDefinitionTable[id];
+//}
+
+void CMySerial::SetDefinition()
 {
-	return &m_DataDefinitionTable[id];
-}
+	SDevices *dev = GetDevice(m_DeviceType);
 
-TDataDefinition *CMySerial::GetMarker(int marker_id)
-{
-	for(size_t i = 0; i < m_DataDefinitionTable.size();i++)
-	{
-		if(marker_id == m_DataDefinitionTable[i].DataID)
-			return &m_DataDefinitionTable[i];
-
-	}	
-	return NULL;
-}
-
-/*
-void CMySerial::CreateDataDefinitionTable(char *data) 
-{
-	wxString str(data,wxConvUTF8);
-	m_DataDefinitionString = str;
-	
-	int ListSize;
-	char **DataDefinitionList = ExplodeStr(data, ";", &ListSize );
-	
-	if( ListSize % 5 ) {
-
-		FreeStrList( DataDefinitionList, ListSize );
-		//if( !SilentMode )
-			//wxMessageBox(MSG_008, MSG_007, wxICON_ERROR );
+	if(dev == NULL)
 		return;
-	};
 
-	//if( DDTProtector->Lock() != wxMUTEX_NO_ERROR ) {
+	CMarkers *Markers = new CMarkers();
+	size_t len = Markers->GetLen();
 
-		//FreeStrList( DataDefinitionList, ListSize );
-		//return;
-	//};
+	for(size_t i = 0; i < len; i++)
+	{
+		SMarkers *marker = Markers->Get(i);
+		if(marker->id == dev->id)
+		{
+			SMarker *sitem = GetMarkerById(dev->id);
+			SSIDS *sid = GetSIDById(marker->id_sids);
+			
+			SDataDefinition Data;
+			Data.id = marker->id;
+			strcpy(Data.marker,sid->name);
+			strcpy(Data.name,marker->name); 
+			m_DataDefinitionTable.push_back(Data);
 
-	m_DataDefinitionTable.clear();
-	TDataDefinition DefBuf;
-	for(int i = 0; i < ListSize; i+=5 ) {
+		}
+	}
 
-		memset( &DefBuf, 0, sizeof(TDataDefinition) );
-		memset( &DefBuf.Position, -1, MAX_DATA_POSITIONS * sizeof(int) );	// wszystkie pozycje do wycinania na pocz¹tku -1
+	delete Markers;
+	
+}
 
-		DefBuf.DataID = atoi( DataDefinitionList[ i + 0] );
-		strcpy( DefBuf.Name, DataDefinitionList[ i + 1] );		// oczyt nazwy parametru oraz markera sentencji NMEA
-		strcpy( DefBuf.Marker, DataDefinitionList[ i + 2] );
-
-		if( DataDefinitionList[ i + 3] != NULL ) {	// odczyt listy pozycji do wyciêcia z sentencji NMEA. Zazwyczaj jedna pozycja. Maksymalna iloœæ pozycji zawarta w MAX_DATA_POSITIONS
-
-			int PositionsSize;
-			char **Positions = ExplodeStr( DataDefinitionList[ i + 3], ",", &PositionsSize);
-
-			if( (PositionsSize > 0) && (PositionsSize < MAX_DATA_POSITIONS) ) {
-
-				for( int p = 0; p < PositionsSize; p++ ) {
-
-					
-					DefBuf.Position[p] = atoi( Positions[p] );
-				};
-			};
-			FreeStrList( Positions, PositionsSize );
-		};
-		DefBuf.Average = (bool)(atoi( DataDefinitionList[ i + 4] ) != 0 );
-
-		m_DataDefinitionTable.push_back( DefBuf );
-	};
-	FreeStrList( DataDefinitionList, ListSize );
-
-	if( m_DataDefinitionTable.size() == 0 ) {
-
-		//if( !SilentMode )
-			//wxMessageBox(MSG_008, MSG_007, wxICON_ERROR );
-
-	};
-
-	//DDTProtector->Unlock();
-};
-*/
 void CMySerial::Parse(unsigned char *line)
 {
 
 	//sygna³ nowej lini
-			
+/*			
 	TDataDefinition *DataDefinition;
 	for( size_t d = 0; d < m_DataDefinitionTable.size() ; d++ ) 
 	{
 
 		DataDefinition = &m_DataDefinitionTable[d];
 
-		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition->Marker, (int)strlen( DataDefinition->Marker ), 0 ) != -1 ) ) {	// linia zawiera dane, które nale¿y wyci¹æ
+		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition->marker, (int)strlen( DataDefinition->marker ), 0 ) != -1 ) ) {	// linia zawiera dane, które nale¿y wyci¹æ
 
-			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition->Marker );	
+			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition->marker );	
 			int Size;
 			char **StrList = ExplodeStr(ValidLine, ",", &Size);
 			free( ValidLine );
@@ -245,17 +211,18 @@ void CMySerial::Parse(unsigned char *line)
 
 			TData Data;
 			memset( &Data, 0, sizeof(TData) );
-			strcpy(Data.Marker, DataDefinition->Marker);
+			strcpy(Data.marker, DataDefinition->marker);
 
 			// Obliczanie czasu uniwersalnego
 			//Data.DateTime = GetUTCTimeNow();	// nie brane pod uwagê
-			Data.DataID = DataDefinition->DataID;
-			Data.Average = DataDefinition->Average;
+			Data.id = DataDefinition->id;
+			//Data.Average = DataDefinition->Average;
 			// odczyt kolumn na podstawie definicji odczytu
 			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego
 
 			bool ValidData = true;	// flaga wa¿noœci danych 
-			for(size_t i = 0; i < MAX_DATA_POSITIONS; i++ ) {
+			for(size_t i = 0; i < MAX_DATA_POSITIONS; i++ ) 
+			{
 
 				if( DataDefinition->Position[i] == -1 )	// pozycja niezdefiniowana, przerywamy 
 					break;
@@ -286,7 +253,8 @@ void CMySerial::Parse(unsigned char *line)
 		};
 
 	};
-
+	
+	*/
 }
 
 

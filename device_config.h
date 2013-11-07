@@ -15,6 +15,7 @@ class CDeviceConfig: public wxDialog
 	wxBoxSizer *MainSizer;
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
+	wxComboBox *DeviceTypeCombo;
 	wxTextCtrl *NameText;
 	wxTextCtrl *DataDefinition;
 		
@@ -33,10 +34,13 @@ public:
 	wxString GetDeviceName();
 	wxString GetDataDefinition();
 	wxString GetPort();
+	int GetDeviceType();
+
 
 	void SetDeviceName(wxString name);
 	void SetPort(char *port);
 	void SetBaud(int baud);
+	void SetDeviceType(int type);
 	
 	
 	DECLARE_EVENT_TABLE();

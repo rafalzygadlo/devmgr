@@ -238,6 +238,9 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 	m_DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
 	m_DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
 	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
+
+	//SDevices *item = GetDevice(m_SelectedDevice->GetDeviceType());
+	m_DeviceConfig->SetDeviceType(m_SelectedDevice->GetDeviceType());
 	
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
@@ -245,6 +248,8 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 		m_SelectedDevice->_SetPort(m_DeviceConfig->GetPort().char_str());
 		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
 		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
+		m_SelectedDevice->SetDeviceType(m_DeviceConfig->GetDeviceType());
+		m_SelectedDevice->SetDefinition();
 		m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
 	}	
 			
@@ -252,13 +257,13 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 
 void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 {
-	CDataConfig *Config = new CDataConfig(m_SelectedDevice);
+	//CDataConfig *Config = new CDataConfig(m_SelectedDevice);
 	
-	if(Config->ShowModal() == wxID_OK)
-	{
+	//if(Config->ShowModal() == wxID_OK)
+	//{
 	
-	}
-	delete Config;
+//	}
+	//delete Config;
 }
 
 
@@ -273,7 +278,7 @@ void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 		int count = m_MapPlugin->GetDevicesCount(); 
 		wxString name = wxString::Format(_("%s"),m_DeviceConfig->GetDeviceName().wc_str());
 		
-		CMySerial *serial = CreateNewDevice(name, m_DeviceConfig->GetPort().char_str(),	m_DeviceConfig->GetBaud(),true);
+		CMySerial *serial = CreateNewDevice(name, m_DeviceConfig->GetPort().char_str(),	m_DeviceConfig->GetBaud(),true, m_DeviceConfig->GetDeviceType());
 				
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
 	}	
@@ -381,7 +386,7 @@ void CDisplayPlugin::InitDisplay()
 void CDisplayPlugin::AddDevice()
 {
 	int count =	m_MapPlugin->GetDevicesCount() - 1;
-	CMySerial *Serial = m_MapPlugin->GetDevice(count);
+	CMySerial *Serial = m_MapPlugin->GetSerial(count);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
 	int icon_id = ICON_START;
 	bool running = false;
@@ -392,7 +397,7 @@ void CDisplayPlugin::AddDevice()
 		running = true;
 	}
 	
-	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("%s"),Serial->GetDeviceName()),icon_id);
+	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),Serial->GetDeviceName().wc_str()),icon_id);
 	CItem *Item = new CItem();
 	Item->SetSerial(Serial);
 	m_Devices->SetItemData(id,Item);
@@ -418,7 +423,7 @@ void CDisplayPlugin::SetLoggerEvent()
 	evt.SetString(wxString::Format(_("[%d]: %d\n"),m_DeviceId,m_SignalType));
 	if(m_SignalType == SERIAL_SIGNAL_ONDATA)
 	{
-		CMySerial *serial = m_MapPlugin->GetDevice(m_DeviceId);
+		CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
 		wxString buf((char*)serial->GetBuffer(),wxConvUTF8);
 		evt.SetString(buf);
 	}
@@ -438,7 +443,7 @@ void CDisplayPlugin::SetDevices()
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
 	{
-		CMySerial *Serial = m_MapPlugin->GetDevice(i);
+		CMySerial *Serial = m_MapPlugin->GetSerial(i);
 		wxString port(Serial->GetPortName(),wxConvUTF8);
 
 		int icon_id = ICON_START;

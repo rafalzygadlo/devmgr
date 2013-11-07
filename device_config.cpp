@@ -6,6 +6,7 @@
 #include "dll.h"
 #include "device_config.h"
 #include "info.h"
+#include "protocol.h"
 
 
 BEGIN_EVENT_TABLE(CDeviceConfig,wxDialog)
@@ -57,7 +58,26 @@ CDeviceConfig::CDeviceConfig()
 	for(size_t i = 0; i < mySerial->GetBaudInfoLength(); i++)
 		BaudCombo->Append(wxString::Format(_("%d"),mySerial->GetBaudInfo(i)));
 
-					
+
+	wxStaticText *DeviceType = new wxStaticText(Panel1,wxID_ANY,GetMsg(MSG_DEVICE_TYPE));
+	FlexGrid1Sizer->Add(DeviceType,0,wxALL,5);
+	DeviceTypeCombo = new wxComboBox(Panel1,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,wxCB_READONLY);
+	FlexGrid1Sizer->Add(DeviceTypeCombo,0,wxALL,5);
+
+	CDevices *Devices = new CDevices();
+	//Devices->Sort();
+	
+	size_t len = Devices->GetLen();
+	for(size_t i = 0; i < len; i++)
+	{
+		SDevices * device = Devices->Get(i);
+		wxString name(device->name,wxConvUTF8);
+		DeviceTypeCombo->SetClientData(device);
+		DeviceTypeCombo->Append(name);
+	}				
+	
+	delete Devices;
+	
 	this->SetSizer(MainSizer);
 	
 	MainSizer->Add(Panel1,1,wxALL|wxEXPAND,0);
@@ -164,6 +184,17 @@ void CDeviceConfig::SetDeviceName(wxString name)
 {
 	NameText->SetLabel(name);
 }
+
+int CDeviceConfig::GetDeviceType()
+{
+	return DeviceTypeCombo->GetSelection();
+}
+
+void CDeviceConfig::SetDeviceType(int type)
+{
+	DeviceTypeCombo->SetSelection(type);
+}
+
 
 void CDeviceConfig::ShowWindow(bool show)
 {

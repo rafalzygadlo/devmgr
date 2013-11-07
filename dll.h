@@ -50,7 +50,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void OnReconnect(CMySerial *Serial);
 	bool IsInited();
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
-	void SetData(TData *val);
+	void SetData(SData *val);
 	void SetDisplaySignal(int type);
 					
 public:
@@ -61,7 +61,7 @@ public:
 	bool GetNeedExit(void);
 	CNaviBroker *GetBroker();
 	size_t GetDevicesCount();
-	CMySerial *GetDevice(size_t idx);
+	CMySerial *GetSerial(size_t idx);
 	void DeleteDevice(size_t idx);
 	void AddDevice(CMySerial *serial);
 	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny

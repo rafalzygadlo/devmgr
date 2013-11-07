@@ -1,8 +1,7 @@
 #include "conf.h"
 #include "dll.h"
 #include "data_config.h"
-#include "devices.h"
-//#include "NaviMapIOApi.h"
+
 
 BEGIN_EVENT_TABLE(CDataConfig,wxDialog)
 	EVT_BUTTON(ID_CLOSE,CDataConfig::OnCloseButton)
@@ -28,15 +27,17 @@ CDataConfig::CDataConfig(CMySerial *serial)
 	m_Marker = new wxCheckListBox(Panel1,ID_MARKER,wxDefaultPosition,wxDefaultSize,NULL);
 	Panel1Sizer->Add(m_Marker,1,wxALL|wxEXPAND,5);
 		
-	Sort();
-	for(size_t i = 0; i < (size_t)GetLen(); i++)
+	Markers = new CDevices();
+	size_t len = Devices->GetLen();
+
+	for(size_t i = 0; i < len; i++)
 	{
-		TDataDefinition_s *item = GetItem(i);
-		wxString name(item->Name,wxConvUTF8);
+		SDevices *item = Devices->Get(i);
+		wxString name(item->name,wxConvUTF8);
 		int id = m_Marker->Append(wxString::Format(_("%s"),name.wc_str()));
 
 	//	m_Marker->SetClientObject(id, (wxClientData*)item);
-		if(m_Serial->GetMarker(item->DataID) != NULL)
+		if(m_Serial->GetMarker(item->id) != NULL)
 			m_Marker->Check(id,true);
 	}
 
@@ -87,7 +88,7 @@ CDataConfig::CDataConfig(CMySerial *serial)
 
 CDataConfig::~CDataConfig(void)
 {
-
+	delete Devices;
 }
 
 bool CDataConfig::Validate()
@@ -107,7 +108,7 @@ void CDataConfig::OnButtonNew(wxCommandEvent &event)
 
 void CDataConfig::OnMarkerCheck(wxCommandEvent &event)
 {
-	TDataDefinition_s *item = GetItem(event.GetSelection());
+	SDevices *item = Devices->Get(event.GetSelection());
 	m_Serial->AddMarker(*item);
 
 }
@@ -117,15 +118,15 @@ void CDataConfig::OnMarkerList(wxCommandEvent &event)
 	m_InfoPanel->Show();
 	this->Layout();
 
-	TDataDefinition_s *item = GetItem(event.GetSelection());
+	SDevices *item = Devices->Get(event.GetSelection());
 
-	wxString id = wxString::Format(_("%d"),item->DataID);
-	wxString name(item->Name,wxConvUTF8);
-	wxString marker(item->Marker,wxConvUTF8);
+	wxString id = wxString::Format(_("%d"),item->id);
+	wxString name(item->name,wxConvUTF8);
+	//wxString marker(item->Marker,wxConvUTF8);
 
 	LabelId->SetLabel(id);
 	LabelName->SetLabel(name);
-	LabelMarker->SetLabel(marker);
+	//LabelMarker->SetLabel(marker);
 	GetSizer()->SetSizeHints(this);
 }
 
