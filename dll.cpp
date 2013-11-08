@@ -255,7 +255,7 @@ void CMapPlugin::Kill(void)
 		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
 		while(m_vDevices[i]->GetWorkingFlag())
 			wxMilliSleep(50);
-				
+			
 		delete m_vDevices[i];
 	}
     
@@ -418,20 +418,20 @@ void NAVIMAPAPI *CreateNaviClassInstance(CNaviBroker *NaviBroker)
 const NAVIMAPAPI wchar_t *NaviPluginDescription(int LangID)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return TEXT("Device Manager.");
+    return TEXT(PRODUCT_NAME);
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
-    return L"Device Manager.";
+    return LPRODUCT_NAME;
 #endif
 }
 
 const NAVIMAPAPI wchar_t *NaviPluginIntroduce(int LangID)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return TEXT("Device Manager");
+    return TEXT(PRODUCT_NAME);
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
-    return L"Device Manager";
+    return LPRODUCT_NAME;
 #endif
 }
 

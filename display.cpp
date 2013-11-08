@@ -353,8 +353,11 @@ void CDisplayPlugin::GetSignal()
 		
 		case SERIAL_SIGNAL_RECONNECT: 
 		case SERIAL_SIGNAL_ONDATA: 	
-		case SERIAL_SIGNAL_NO_SIGNAL:
 			SetLoggerEvent();									
+		break;
+		
+		case SERIAL_SIGNAL_NO_SIGNAL:
+			NoSignal();									
 		break;
 	}
 	
@@ -362,6 +365,28 @@ void CDisplayPlugin::GetSignal()
 void CDisplayPlugin::NewSignal()
 {
 	
+}
+
+void CDisplayPlugin::NoSignal()
+{
+	wxTreeItemIdValue cookie;
+	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);
+	CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
+	
+	while(id.IsOk())
+	{
+		
+		CItem *item  = (CItem*)m_Devices->GetItemData(id);
+		CSerial *_serial = item->GetSerial();
+
+		if(serial == _serial)
+		{
+			m_Devices->SetItemBackgroundColour(id,*wxRED);
+		}
+		
+		id = m_Devices->GetNextChild(id,cookie);
+	
+	}
 }
 
 void CDisplayPlugin::ClearDisplay()
@@ -378,7 +403,7 @@ void CDisplayPlugin::InitDisplay()
 		m_FirstTime = false;
 		this->Enable();
 		SetDevices();
-		SetSignals();
+		//SetSignals();
 	}
 
 }

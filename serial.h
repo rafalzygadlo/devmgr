@@ -5,6 +5,7 @@
 #include <wx/wx.h>
 #include "conf.h"
 #include "NaviMapIOApi.h"
+#include "protocol.h"
 
 class CPanel;
 class CMySerial :public CSerial
@@ -19,7 +20,8 @@ class CMySerial :public CSerial
 	int m_SignalType;
 	bool m_RunOnStart;
 	CPanel *m_ConfigPanel;
-	std::vector<SDataDefinition> m_DataDefinitionTable;
+	std::vector<SDefinition> m_DataDefinition;
+	std::vector<SPosition> m_PositionDefinition;
 	wxString m_DataDefinitionString;
 		
 		
@@ -49,7 +51,7 @@ public:
 	virtual void OnConnect();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);
-	virtual void OnLine(unsigned char* buffer,int length);
+	virtual void OnLine(unsigned char *buffer, int length, int valid_nmea);
 	virtual void OnStart();
 	virtual void OnStop();
 	virtual void OnAfterMainLoop();

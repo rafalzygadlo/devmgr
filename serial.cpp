@@ -120,9 +120,12 @@ void CMySerial::OnBeforeMainLoop()
 {
 }
 
-void CMySerial::OnLine(unsigned char* buffer,int length)
+void CMySerial::OnLine(unsigned char *buffer, int length, int valid_nmea)
 {
-	Parse(buffer);
+	if(valid_nmea == 0)
+		Parse(buffer);
+	else
+		int a = valid_nmea;
 }
 
 void CMySerial::OnNewSignal()
@@ -151,7 +154,7 @@ int CMySerial::GetSignalType()
 
 int CMySerial::GetMarkersLength()
 {
-	return m_DataDefinitionTable.size();
+	return m_DataDefinition.size();
 }
 
 //TDataDefinition *CMySerial::GetMarkerItem(int id)
@@ -161,21 +164,37 @@ int CMySerial::GetMarkersLength()
 
 void CMySerial::SetDefinition()
 {
-	CProtocol *pr = new CProtocol();
-	int ct = 0;
 	
-	SDevices *dev = pr->GetDevice(m_DeviceType);
+	m_DataDefinition.clear();
+	m_PositionDefinition.clear();
 	
-	SDefinition *def;
-	pr->GetDefinitionById(dev->id,ct,*&def);
+	CProtocol Protocol;
+	int counter = 0;
+	
+	SDevices *device = Protocol.GetDevice(m_DeviceType);
+	
+	SDefinition *Definition;
+	Protocol.GetDefinitionById(device->id,counter,*&Definition);
 
-	for(size_t i = 0; i < ct; i++)
+	for(size_t i = 0; i < counter; i++)
 	{
-		int id = def[i].id_signal;
-		char *n = def[i].name;
+		m_DataDefinition.push_back(Definition[i]);
+
+		int len;
+		SPosition *Position;
+		Protocol.GetPositionsById(Definition[i].id_signal,len,*&Position);
+
+		for(size_t j = 0; j < len; j++)
+		{
+			m_PositionDefinition.push_back(Position[j]);			
+		}
+		
+		delete Position;
+
 	}
-	
-	int aaa = 0;
+		
+	delete Definition;
+		
 	/*
 	
 
@@ -210,58 +229,60 @@ void CMySerial::SetDefinition()
 
 void CMySerial::Parse(unsigned char *line)
 {
-
+	
 	//sygna³ nowej lini
-/*			
-	TDataDefinition *DataDefinition;
-	for( size_t d = 0; d < m_DataDefinitionTable.size() ; d++ ) 
+			
+	SDefinition DataDefinition;
+	for( size_t d = 0; d < m_DataDefinition.size() ; d++ ) 
 	{
 
-		DataDefinition = &m_DataDefinitionTable[d];
+		DataDefinition = m_DataDefinition[d];
 
-		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition->marker, (int)strlen( DataDefinition->marker ), 0 ) != -1 ) ) {	// linia zawiera dane, które nale¿y wyci¹æ
+		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition.marker, (int)strlen( DataDefinition.marker ), 0 ) != -1 ) ) 
+		{	// linia zawiera dane, które nale¿y wyci¹æ
 
-			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition->marker );	
+			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition.marker );	
 			int Size;
 			char **StrList = ExplodeStr(ValidLine, ",", &Size);
 			free( ValidLine );
-
-
-			TData Data;
-			memset( &Data, 0, sizeof(TData) );
-			strcpy(Data.marker, DataDefinition->marker);
-
-			// Obliczanie czasu uniwersalnego
-			//Data.DateTime = GetUTCTimeNow();	// nie brane pod uwagê
-			Data.id = DataDefinition->id;
+			
+			SData Data;
+			memset( &Data, 0, sizeof(SData) );
+			strcpy(Data.marker, DataDefinition.marker);
+			Data.id = DataDefinition.id_signal;
 			//Data.Average = DataDefinition->Average;
 			// odczyt kolumn na podstawie definicji odczytu
 			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego
-
-			bool ValidData = true;	// flaga wa¿noœci danych 
-			for(size_t i = 0; i < MAX_DATA_POSITIONS; i++ ) 
+			bool ValidData = true;	// flaga wa¿noœci danych
+			SPosition PositionDefinition;
+			
+			for(size_t i = 0; i < m_PositionDefinition.size(); i++ ) 
 			{
+				PositionDefinition = m_PositionDefinition[i];
+				//if( DataDefinition->Position[i] == -1 )	// pozycja niezdefiniowana, przerywamy 
+				//	break;
 
-				if( DataDefinition->Position[i] == -1 )	// pozycja niezdefiniowana, przerywamy 
-					break;
-
-				if( DataDefinition->Position[i] < Size ) {
-
-					char *MarkerValue = StrList[ DataDefinition->Position[i] ];
-					if( MarkerValue != NULL ) {
+				//if( DataDefinition->Position[i] < Size ) {
+				if(m_DataDefinition[d].id_signal == m_PositionDefinition[i].id_signal)
+				{
+					char *MarkerValue = StrList[ PositionDefinition.position ];
+					if( MarkerValue != NULL ) 
+					{
 	
 						size_t MarkerValueSize = strlen( MarkerValue );
-						memcpy( Data.Value + WriteStrPor, MarkerValue, MarkerValueSize );
+						memcpy( Data.value + WriteStrPor, MarkerValue, MarkerValueSize );
 						WriteStrPor += MarkerValueSize;
-					};
+				//}
 
-				} else {
+				//} else {
 
-					ValidData = false;	// próba odczytu parametru poza zakresem
-					break;
-				};
-			};
-
+					//ValidData = false;	// próba odczytu parametru poza zakresem
+					//break;
+				//};
+					}
+				}
+			}
+			
 			if( ValidData )
 			{
 				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&Data);
@@ -272,7 +293,7 @@ void CMySerial::Parse(unsigned char *line)
 
 	};
 	
-	*/
+	
 }
 
 

@@ -68,22 +68,6 @@
 #define MSG_DEVICE_TYPE				23
 
 #define MAX_DATA_POSITIONS		10
-typedef struct SDataDefinition
-{
-	int	id;									// id definicji danych pobrane ze zdalnego serwera
-	char name[64 + 1];						// nazwa definicji
-	char marker[3 + 1];						// nazwa markera NMEA do pobrania danych
-	//int  osition[MAX_DATA_POSITIONS];		// pozycje w lini NMEA (w formie indeksu), których wartoœci nale¿y wyci¹æ. Maksymalnie 10 pozycji
-	//bool Average;							// czy uœredniaæ dane
-
-} SDataDefinition;
-
-typedef struct SPositionDefinition
-{
-	int id_marker;
-
-} SPositionDefinition;
-
 
 typedef struct SData 
 {

@@ -1,5 +1,5 @@
-#include "data_marker.h"
-#include "device_config.cpp"
+#include "config.cpp"
+#include "data_marker.cpp"
 #include "display.cpp"
 #include "dll.cpp"
 #include "info.cpp"

@@ -54,6 +54,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void RemoveDevice();
 	void NewSignal();
+	void NoSignal();
 	void SetSignals();
 	void ShowInfoPanel(bool show);
 	
