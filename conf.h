@@ -73,7 +73,7 @@ typedef struct SData
 {
 	int		id;
 	char	marker[5 + 1];	// id definicji danych
-	char	value[16 + 1];
+	char	value[64 + 1];
 	//bool	Average;							// czy uœredniaæ dane
 	//time_t	DateTime;
 

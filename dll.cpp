@@ -248,18 +248,27 @@ void CMapPlugin::Kill(void)
 		
 	m_NeedExit = true;
 	WriteConfig();
+	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[0]->GetDeviceName().wc_str()));
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
 		m_vDevices[i]->Stop();
-		CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
-		while(m_vDevices[i]->GetWorkingFlag())
-			wxMilliSleep(50);
-			
 		delete m_vDevices[i];
 	}
+	//for(size_t i = 0; i < m_vDevices.size(); i++)
+	//{
+
+		//while(m_vDevices[i]->GetWorkingFlag())
+		//{
+			//i = 0;
+			//wxMilliSleep(50);
+		//}
+	//}
     
-    if(m_FileConfig != NULL)
+	//for(size_t i = 0; i < m_vDevices.size(); i++)
+		//delete m_vDevices[i];
+
+	if(m_FileConfig != NULL)
         delete m_FileConfig;
 	
 
@@ -373,11 +382,12 @@ void CMapPlugin::SetData(SData *val)
 {
 //	Hdg = val;
 //	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
-	wchar_t str[1024] = {0}; 
+	//wchar_t str[1024] = {0}; 
 
-	swprintf(str,L"%d %hs %hs",val->id,val->marker,val->value);
-	m_Broker->consolef(m_Broker->GetParentPtr(),str);
-	m_Broker->Refresh(m_Broker->GetParentPtr());
+	//swprintf(str,L"%d %hs %hs",val->id,val->marker,val->value);
+	fprintf(stdout,"%d %hs %hs",val->id,val->marker,val->value);
+	//m_Broker->consolef(m_Broker->GetParentPtr(),str);
+	//m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 int CMapPlugin::GetDisplaySignalType()

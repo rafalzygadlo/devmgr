@@ -8,6 +8,7 @@
 #include "config.h"
 #include "data_config.h"
 #include "status.h"
+#include "info.h"
 //ico
 #include "images/computer.img"
 #include "images/stop.img"
@@ -110,8 +111,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
 	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 	
-//	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
-//	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
+	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
+	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
 	this->Disable();
@@ -207,6 +208,11 @@ void CDisplayPlugin::OnStatus(wxCommandEvent &event)
 void CDisplayPlugin::OnStop(wxCommandEvent &event)
 {
 	m_SelectedDevice->Stop();
+
+	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_SelectedDevice->GetDeviceName().wc_str()));
+	while(m_SelectedDevice->GetWorkingFlag())
+		wxMilliSleep(150);
+	
 	m_Devices->SetItemBold(m_SelectedItemId,false);
 	m_Devices->SetItemImage(m_SelectedItemId,ICON_START, wxTreeItemIcon_Normal);
 		
@@ -369,6 +375,7 @@ void CDisplayPlugin::NewSignal()
 
 void CDisplayPlugin::NoSignal()
 {
+	return;
 	wxTreeItemIdValue cookie;
 	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);
 	CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
@@ -437,9 +444,9 @@ void CDisplayPlugin::RemoveDevice()
 
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
-	//GetMutex()->Lock();
-	//SetLogger(event.GetString());
-	//GetMutex()->Unlock();
+	GetMutex()->Lock();
+	SetLogger(event.GetString());
+	GetMutex()->Unlock();
 }
 
 void CDisplayPlugin::SetLoggerEvent()
