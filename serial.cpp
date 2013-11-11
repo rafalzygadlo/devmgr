@@ -105,12 +105,6 @@ void CMySerial::OnStop()
 	m_IsRunning = false;
 }
 
-void CMySerial::OnReconnect()
-{
-	m_SignalType = SERIAL_SIGNAL_RECONNECT;
-	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
-}
-
 void CMySerial::OnAfterMainLoop()
 {
 	bool flag = true;
@@ -126,6 +120,11 @@ void CMySerial::OnLine(unsigned char *buffer, int length, int valid_nmea)
 		Parse(buffer);
 	else
 		int a = valid_nmea;
+}
+void CMySerial::OnReconnect()
+{
+	m_SignalType = SERIAL_SIGNAL_RECONNECT;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
 void CMySerial::OnNewSignal()
@@ -250,35 +249,23 @@ void CMySerial::Parse(unsigned char *line)
 			memset( &Data, 0, sizeof(SData) );
 			strcpy(Data.marker, DataDefinition.marker);
 			Data.id = DataDefinition.id_signal;
-			//Data.Average = DataDefinition->Average;
-			// odczyt kolumn na podstawie definicji odczytu
 			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego
-			bool ValidData = true;	// flaga wa¿noœci danych
+			bool ValidData = false;	// flaga wa¿noœci danych
 			SPosition PositionDefinition;
 			
 			for(size_t i = 0; i < m_PositionDefinition.size(); i++ ) 
 			{
 				PositionDefinition = m_PositionDefinition[i];
-				//if( DataDefinition->Position[i] == -1 )	// pozycja niezdefiniowana, przerywamy 
-				//	break;
 
-				//if( DataDefinition->Position[i] < Size ) {
 				if(m_DataDefinition[d].id_signal == m_PositionDefinition[i].id_signal)
 				{
 					char *MarkerValue = StrList[ PositionDefinition.position ];
 					if( MarkerValue != NULL ) 
 					{
-	
 						size_t MarkerValueSize = strlen( MarkerValue );
 						memcpy( Data.value + WriteStrPor, MarkerValue, MarkerValueSize );
 						WriteStrPor += MarkerValueSize;
-				//}
-
-				//} else {
-
-					//ValidData = false;	// próba odczytu parametru poza zakresem
-					//break;
-				//};
+						ValidData = true;
 					}
 				}
 			}
@@ -289,9 +276,9 @@ void CMySerial::Parse(unsigned char *line)
 				// sygna³ danych
 			}	
 			FreeStrList( StrList, Size );
-		};
+		}
 
-	};
+	}
 	
 	
 }

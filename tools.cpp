@@ -3,7 +3,7 @@
 #include <wx/stdpaths.h>
 #include "protocol.h"
 
-
+wxMutex *mutex = NULL;
 int GlobalLanguageID;
 const wxChar *nvLanguage[2][24] = 
 { 
@@ -177,3 +177,16 @@ int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Sea
 	return -1;
 };
 
+void FreeMutex()
+{
+	if(mutex)
+		delete mutex;
+}
+
+wxMutex *GetMutex()
+{
+	if(mutex == NULL)
+		mutex = new wxMutex();
+	return mutex;
+
+}
