@@ -128,7 +128,16 @@ bool CConfig::Validate()
 		BaudCombo->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	}
 	
-	
+	if(DeviceTypeCombo->GetValue().empty())
+	{
+		DeviceTypeCombo->SetBackgroundColour(*wxRED);
+		result = false;
+	}else{
+		DeviceTypeCombo->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	}
+
+
+
 	Refresh();
 	
 	return result;

@@ -1,15 +1,16 @@
 #ifndef __SERIAL
 #define __SERIAL
 
-#include "serial_port.h"
 #include <wx/wx.h>
+#include "serial_port.h"
 #include "conf.h"
 #include "NaviMapIOApi.h"
 #include "protocol.h"
+#include "parser.h"
 
-class CPanel;
 class CMySerial :public CSerial
 {
+	CParser *m_Parser;
 	bool m_IsRunning;
 	int m_DeviceId;
 	int m_DeviceType;
@@ -19,11 +20,7 @@ class CMySerial :public CSerial
 	int m_LineBufLen;
 	int m_SignalType;
 	bool m_RunOnStart;
-	CPanel *m_ConfigPanel;
-	std::vector<SDefinition> m_DataDefinition;
-	std::vector<SPosition> m_PositionDefinition;
-	wxString m_DataDefinitionString;
-		
+			
 		
 public:
 	CMySerial();
@@ -42,11 +39,7 @@ public:
 	void SetDeviceType(int type);
 	int GetDeviceType();
 	void SetDefinition();
-	//void AddMarker(TDataDefinition marker);
-		
 	int GetMarkersLength();
-	//TDataDefinition *GetMarker(int marker_id); //wyszukiwanie po id markera
-	//TDataDefinition *GetMarkerItem(int id);
 	
 	virtual void OnConnect();
 	virtual void OnDisconnect();
@@ -63,59 +56,6 @@ public:
 
 };
 
-// config panel
-class CPanel: public wxPanel
-{
-	int PortSelection;
-	wxString ConfigPath;
-	wxTextCtrl *m_LogText;
-	wxStaticText *m_ConfigPathText;
-	wxComboBox *m_PortComboBox,*m_BaudComboBox;
-	wxButton *m_StartButton;
-	wxButton *m_StopButton;
-	wxCheckBox *m_CheckLogBox,*m_CheckBoxHint;
-	CMySerial *m_Serial;
-
-	void OnStartButton(wxCommandEvent &event);			// start button click
-	void OnStopButton(wxCommandEvent &event);			// stop button click
-	void OnCloseButton(wxCommandEvent &event);			// close click
-	void OnPortComboChange(wxCommandEvent &event);		// combo box changed
-	void OnCheckLog(wxCommandEvent &event);				// check box log
-	
-	void OnComboBox(wxCommandEvent &event);
-	// custom events to send text from thread
-	void OnSetLog(wxCommandEvent &event);
-	void OnSetPort(wxCommandEvent &event);
-	void OnSetBaud(wxCommandEvent &event);
-
-	
-public:
-	CPanel(wxWindow *Parent,CMySerial *Serial);
-	~CPanel();
-	void _SetInfoText(wxString text);
-	void _SetStatusText(wxString text);
-	void _SetConfigPathText(wxString text);
-	void _SetPort();
-	void SetLogEvent(wxString str);	
-	void SetPortEvent(wxString str);
-	void SetBaudEvent(wxString str);
-
-	DECLARE_EVENT_TABLE();
-
-	enum
-	{
-		ID_START = 12345,
-		ID_STOP,
-		ID_CLOSE,
-		ID_PORTS,
-		ID_TRANSPARENT,
-		ID_CHECK_LOG,
-		ID_CHECK_HINT,
-		ID_REFRESH,
-		ID_SPIN,
-	};
-
-};
 
 
 #endif

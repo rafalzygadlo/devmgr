@@ -24,7 +24,6 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_STOP,CDisplayPlugin::OnStop)
 	EVT_MENU(ID_START,CDisplayPlugin::OnStart)
 	EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
-	EVT_MENU(ID_CONFIGURE_DATA,CDisplayPlugin::OnConfigureData)
 	EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
@@ -111,7 +110,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
 	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 	
-	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE);
+	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
 	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
@@ -127,6 +126,8 @@ CDisplayPlugin::~CDisplayPlugin()
 {
 	if(m_DeviceConfig != NULL)
 		delete m_DeviceConfig;
+	
+	FreeMutex();
 }
 
 void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
@@ -180,15 +181,12 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 	Menu->Append(ID_STOP,GetMsg(MSG_STOP));
 	Menu->AppendSeparator();
 	Menu->Append(ID_CONFIGURE_DEVICE,GetMsg(MSG_CONFIGURE_DEVICE));
-	Menu->Append(ID_CONFIGURE_DATA,GetMsg(MSG_CONFIGURE_DEVICE_DATA));
-
 	Menu->AppendSeparator();
 	Menu->Append(ID_STATUS,GetMsg(MSG_STATUS));
 	Menu->Append(ID_UNINSTALL,GetMsg(MSG_UNINSTALL));
 
 	bool running = m_SelectedDevice->IsRunning();
 	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
-	Menu->Enable(ID_CONFIGURE_DATA,!running);
 	Menu->Enable(ID_STOP,running);
 	Menu->Enable(ID_START,!running);
 	PopupMenu(Menu);
@@ -444,9 +442,7 @@ void CDisplayPlugin::RemoveDevice()
 
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
-	GetMutex()->Lock();
 	SetLogger(event.GetString());
-	GetMutex()->Unlock();
 }
 
 void CDisplayPlugin::SetLoggerEvent()
@@ -466,7 +462,9 @@ void CDisplayPlugin::SetLoggerEvent()
 }
 void CDisplayPlugin::SetLogger(wxString txt)
 {
+	GetMutex()->Lock();
 	m_Logger->AppendText(txt);
+	GetMutex()->Unlock();
 }
 
 void CDisplayPlugin::SetDevices() 

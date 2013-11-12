@@ -1,5 +1,4 @@
 #include "config.cpp"
-#include "data_marker.cpp"
 #include "display.cpp"
 #include "dll.cpp"
 #include "info.cpp"
@@ -7,3 +6,4 @@
 #include "serial.cpp"
 #include "status.cpp"
 #include "tools.cpp"
+#include "parser.cpp"

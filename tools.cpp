@@ -181,6 +181,7 @@ void FreeMutex()
 {
 	if(mutex)
 		delete mutex;
+	mutex = NULL;
 }
 
 wxMutex *GetMutex()

@@ -43,12 +43,14 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	//CreateApiMenu();
+	GetMutex();
 	
 }
 
 CMapPlugin::~CMapPlugin()
 {
 	delete m_DisplaySignal;
+	FreeMutex();
 }
 
 
@@ -238,7 +240,6 @@ void CMapPlugin::Run(void *Params)
 	ReadConfig();
 	m_Init = true;
 	m_EnableControls = true;
-	//SendSignal(CLEAR_DISPLAY,0);
 	SendSignal(INIT_SIGNAL,0);
 } 
 
@@ -255,27 +256,12 @@ void CMapPlugin::Kill(void)
 		m_vDevices[i]->Stop();
 		delete m_vDevices[i];
 	}
-	//for(size_t i = 0; i < m_vDevices.size(); i++)
-	//{
-
-		//while(m_vDevices[i]->GetWorkingFlag())
-		//{
-			//i = 0;
-			//wxMilliSleep(50);
-		//}
-	//}
-    
-	//for(size_t i = 0; i < m_vDevices.size(); i++)
-		//delete m_vDevices[i];
-
+	
 	if(m_FileConfig != NULL)
         delete m_FileConfig;
-	
 
 	SendSignal(CLEAR_DISPLAY,0);
-	
 	// before myserial delete
-	
 
 }
 
@@ -310,7 +296,6 @@ void CMapPlugin::Render()
 	//Scale = m_Broker->GetMapScale();
 	//RenderPosition();
 }
-
 
 bool CMapPlugin::GetNeedExit(void)
 {
@@ -383,7 +368,21 @@ void CMapPlugin::SetData(SData *val)
 //	Hdg = val;
 //	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
 	//wchar_t str[1024] = {0}; 
+	/*
+	switch(val->id)
+	{
+		case SIGNAL_GGA_LAT:
+		case SIGNAL_GLL_LAT:
+			Lat()	
+		break;
 
+		case SIGNAL_GGA_LON:
+		case SIGNAL_GLL_LON:
+			Lon();
+		break;
+
+		case SIGNAL_HDG
+	*/
 	//swprintf(str,L"%d %hs %hs",val->id,val->marker,val->value);
 	fprintf(stdout,"%d %hs %hs",val->id,val->marker,val->value);
 	//m_Broker->consolef(m_Broker->GetParentPtr(),str);

@@ -22,8 +22,7 @@ CDataMarkers::CDataMarkers(CMySerial *serial)
 	wxBoxSizer *Panel1Sizer = new wxBoxSizer(wxVERTICAL);
 	Panel1->SetSizer(Panel1Sizer);
 		
-	
-	wxComboBox *Signal = new wxComboBox(Panel1,ID_SIGNAL);
+		wxComboBox *Signal = new wxComboBox(Panel1,ID_SIGNAL);
 	Panel1Sizer->Add(Signal,0,wxALL|wxEXPAND,5);
 	
 	//for(size_t i = 0; i < serial->GetSignalCount(); i++)
