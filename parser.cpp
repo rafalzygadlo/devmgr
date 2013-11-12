@@ -48,7 +48,7 @@ void CParser::SetDefinition(int device_type)
 		
 }
 
-SData *CParser::Parse(unsigned char *line)
+void CParser::Parse(unsigned char *line)
 {
 	
 	//sygna³ nowej lini
@@ -93,16 +93,20 @@ SData *CParser::Parse(unsigned char *line)
 			}
 							
 			FreeStrList( StrList, Size );
-			
-			// trzeba zmieniæ nie zwraca wszystkiego
 			if( ValidData )
-				return &Data;
-			//......................................
+				SetValidData();
+			
 		}
 
 	}
 	
-	return NULL;
+
+}
+
+void CParser::SetValidData()
+{
+	
+
 }
 
 char *CParser::ConvertStr(char *str)
@@ -128,7 +132,7 @@ char CParser::ConvertChar(char data)
 		case 'W': data = '-'; break;
 		case 'S': data = '-'; break;
 		case 'N': data = ' '; break;
-		case 
+		case 'E' :data = ' '; break;
 
 		default: data = data;
 	}

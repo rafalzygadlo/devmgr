@@ -154,12 +154,12 @@ void CMySerial::SetDefinition()
 void CMySerial::Parse(unsigned char *line)
 {
 
-	SData *data = m_Parser->Parse(line);
-	if(data)
-	{
-		wchar_t str[1024] = {0}; 
-		swprintf(str,L"[%d][%d][%hs]",m_DeviceId, data->id, data->value);
-		m_Broker->consolef(m_Broker->GetParentPtr(),str);
-	}
+	 m_Parser->Parse(line);
+	//if(data)
+	//{
+		//wchar_t str[1024] = {0}; 
+		//swprintf(str,L"[%d][%d][%hs]",m_DeviceId, data->id, data->value);
+		//m_Broker->consolef(m_Broker->GetParentPtr(),str);
+	//}
 }
 

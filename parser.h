@@ -14,14 +14,13 @@ class CParser
 	void Prepare(SData data);
 	char ConvertChar(char data);
 	char *ConvertStr(char *str);
-
-		
+	void SetValidData();
 		
 public:
 	CParser();
 	~CParser();
 		
-	SData  *Parse(unsigned char *line);
+	void Parse(unsigned char *line);
 	void SetDefinition(int device_type);
 		
 };
