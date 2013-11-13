@@ -74,10 +74,17 @@ typedef struct SData
 	int		id;
 	char	marker[5 + 1];	// id definicji danych
 	char	value[64 + 1];
-	//bool	Average;							// czy uœredniaæ dane
-	//time_t	DateTime;
 
 } SData;
+
+typedef struct SFunctionData 
+{
+	int		id_function;
+	double	*values;
+
+} SFunctionData;
+
+
 
 // globalne identyfikatory eventów
 enum

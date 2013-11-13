@@ -42,6 +42,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
+	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
+	
 	//CreateApiMenu();
 	GetMutex();
 	
@@ -276,10 +278,10 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::RenderPosition()
 {
 		
-	//glColor4f(0.0f,0.0f,1.0f,0.5f);
-	//glPushMatrix();
-		//glLineWidth(2);
-		//glTranslated(0.0,0.0,0.0);
+	glColor4f(0.0f,0.0f,1.0f,0.5f);
+	glPushMatrix();
+		glLineWidth(2);
+		glTranslated(0.0,0.0,0.0);
 		//glScalef(50.0/Scale,50.0/Scale,0.0f);
 		//glRotatef(Hdg,0.0f,0.0f,1.0f);
 		//RenderGeometry(GL_LINE_LOOP,&vCircle1[0],vCircle1.size());	// circle 0
@@ -293,8 +295,8 @@ void CMapPlugin::RenderPosition()
 
 void CMapPlugin::Render()
 {
-	//Scale = m_Broker->GetMapScale();
-	//RenderPosition();
+	m_Scale = m_Broker->GetMapScale();
+	RenderPosition();
 }
 
 bool CMapPlugin::GetNeedExit(void)
@@ -332,13 +334,8 @@ void *CMapPlugin::GetParentPtr(void *NaviMapIOApiPtr, void *Params)
 	while(!ThisPtr->IsInited())
 	{
 		wxMilliSleep(200);
-		fprintf(stderr,"waiting for event\n");
 	}
 	
-	
-//	ThisPtr->SendAllInsertSignal();
-//	ThisPtr->SendQueueInsertSignal();
-//	ThisPtr->SendInstalledInsertSignal();
 	return ThisPtr;
 }
 
@@ -365,29 +362,27 @@ void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 
 void CMapPlugin::SetData(SData *val)
 {
-//	Hdg = val;
-//	m_Broker->SetMapAngle(m_Broker->GetParentPtr(), val);
-	//wchar_t str[1024] = {0}; 
-	/*
-	switch(val->id)
-	{
-		case SIGNAL_GGA_LAT:
-		case SIGNAL_GLL_LAT:
-			Lat()	
-		break;
-
-		case SIGNAL_GGA_LON:
-		case SIGNAL_GLL_LON:
-			Lon();
-		break;
-
-		case SIGNAL_HDG
-	*/
-	//swprintf(str,L"%d %hs %hs",val->id,val->marker,val->value);
-	fprintf(stdout,"%d %hs %hs",val->id,val->marker,val->value);
-	//m_Broker->consolef(m_Broker->GetParentPtr(),str);
-	//m_Broker->Refresh(m_Broker->GetParentPtr());
+	
 }
+
+void *CMapPlugin::OnFunctionData(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	SFunctionData *Data = (SFunctionData*)Params;
+	
+	ThisPtr->SetFunctionData(Data);
+	
+	return NULL;
+}
+
+void CMapPlugin::SetFunctionData(SFunctionData *data)
+{
+	switch(data->id_function)
+	{
+		//case 1: m_Broker->SetShip(m_Broker->GetParentPtr(),(float*)data->values);	break;
+	}
+}
+
 
 int CMapPlugin::GetDisplaySignalType()
 {

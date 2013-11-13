@@ -38,6 +38,7 @@ bool CMySerial::RunOnStart()
 void CMySerial::SetBroker(CNaviBroker *broker)
 {
 	m_Broker = broker;
+	m_Parser->SetBroker(broker);
 }
 
 void CMySerial::SetDeviceId(size_t id)
@@ -83,12 +84,6 @@ void CMySerial::OnConnect()
 void CMySerial::OnDisconnect()
 {
    
-}
-
-void CMySerial::OnData(unsigned char *buffer, int length)
-{
-	m_SignalType = SERIAL_SIGNAL_ONDATA;
-    m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
 void CMySerial::OnExit()
@@ -141,6 +136,12 @@ void CMySerial::OnNoSignal()
 	
 }
 
+void CMySerial::OnData(unsigned char *buffer, int length)
+{
+	m_SignalType = SERIAL_SIGNAL_ONDATA;
+    m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+}
+
 int CMySerial::GetSignalType()
 {
 	return m_SignalType;
@@ -153,13 +154,6 @@ void CMySerial::SetDefinition()
 
 void CMySerial::Parse(unsigned char *line)
 {
-
 	 m_Parser->Parse(line);
-	//if(data)
-	//{
-		//wchar_t str[1024] = {0}; 
-		//swprintf(str,L"[%d][%d][%hs]",m_DeviceId, data->id, data->value);
-		//m_Broker->consolef(m_Broker->GetParentPtr(),str);
-	//}
 }
 

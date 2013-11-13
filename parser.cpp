@@ -2,15 +2,21 @@
 #include "protocol.h"
 #include "tools.h"
 
+
 CParser::CParser()
 {
-	
+	m_Broker = NULL;
 }
 
 CParser::~CParser()
 {
 	m_DataDefinition.clear();
 	m_PositionDefinition.clear();
+}
+
+void CParser::SetBroker(CNaviBroker *broker)
+{
+	m_Broker = broker;
 }
 
 void CParser::SetDefinition(int device_type)
@@ -67,9 +73,9 @@ void CParser::Parse(unsigned char *line)
 			char **StrList = ExplodeStr(ValidLine, ",", &Size);
 			free( ValidLine );
 			
-			memset( &Data, 0, sizeof(SData) );
-			strcpy(Data.marker, DataDefinition.marker);
-			Data.id = DataDefinition.id_signal;
+			memset( &m_Data, 0, sizeof(SData) );
+			strcpy(m_Data.marker, DataDefinition.marker);
+			m_Data.id = DataDefinition.id_signal;
 			size_t WriteStrPor = 0;	// pozycja sk³adania ³añcucha wynikowego
 			bool ValidData = false;	// flaga wa¿noœci danych
 			SPosition PositionDefinition;
@@ -85,7 +91,7 @@ void CParser::Parse(unsigned char *line)
 					if( MarkerValue != NULL ) 
 					{
 						size_t MarkerValueSize = strlen( MarkerValue );
-						memcpy( Data.value + WriteStrPor, MarkerValue, MarkerValueSize );
+						memcpy(m_Data.value + WriteStrPor, MarkerValue, MarkerValueSize );
 						WriteStrPor += MarkerValueSize;
 						ValidData = true;
 					}
@@ -99,14 +105,6 @@ void CParser::Parse(unsigned char *line)
 		}
 
 	}
-	
-
-}
-
-void CParser::SetValidData()
-{
-	
-
 }
 
 char *CParser::ConvertStr(char *str)
@@ -139,3 +137,47 @@ char CParser::ConvertChar(char data)
 
 	return data;
 }
+
+void CParser::SetValidData()
+{
+
+	CFunctions Functions;
+	CFunctiond Functiond;
+	size_t len = Functions.GetLen();
+	
+	int id_signal = m_Data.id;
+	int params_count = 0;
+	
+	for(size_t i  = 0; i < len; i++)
+	{
+		SFunctions *funcs = Functions.Get(i);
+		size_t count = Functiond.GetLen();
+		
+		for(size_t j  = 0; j < count; j++)
+		{
+			SFunctiond *funcd = Functiond.Get(j);
+
+			if(funcd->id_signal == id_signal)
+			{
+				funcs->values[funcd->index] = atof(m_Data.value);
+				SetFunction(funcd->id,funcs->values);
+			}
+
+		}
+	
+	}
+
+}
+
+void CParser::SetFunction(int id_function, double *values)
+{
+	SFunctionData Function;
+
+	Function.id_function = id_function;
+	Function.values = values;
+	
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
+	
+}
+
+

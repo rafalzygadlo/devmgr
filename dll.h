@@ -33,9 +33,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_DeviceId;
 	CDisplaySignal *m_DisplaySignal;
 	bool m_Init;
-	//float Scale;
-	//std::vector <SPoint> vCircle1,vCircle2,vCircle3,vLineV, vLineH;
-	//float CircleRadius;
+	float m_Scale;
 	//double Hdg;
 	bool m_EnableControls;
 	
@@ -52,6 +50,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
 	void SetData(SData *val);
 	void SetDisplaySignal(int type);
+	void SetFunctionData(SFunctionData *data);
+
 					
 public:
 
@@ -85,6 +85,7 @@ public:
 	static void *OnDeviceData(void *NaviMapIOApiPtr, void *Params);		// dane które by³y w definicji s¹ dostêpne
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
+	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
 	
 };	
 
