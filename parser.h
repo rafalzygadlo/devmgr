@@ -5,7 +5,7 @@
 #include <vector>
 #include "conf.h"
 #include "protocol.h"
-
+#include "NaviMapIOApi.h"
 class CParser
 {
 	SData m_Data;

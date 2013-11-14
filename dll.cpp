@@ -251,7 +251,7 @@ void CMapPlugin::Kill(void)
 		
 	m_NeedExit = true;
 	WriteConfig();
-	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[0]->GetDeviceName().wc_str()));
+	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE)));
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
