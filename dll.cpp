@@ -278,10 +278,10 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::RenderPosition()
 {
 		
-	glColor4f(0.0f,0.0f,1.0f,0.5f);
-	glPushMatrix();
-		glLineWidth(2);
-		glTranslated(0.0,0.0,0.0);
+	//glColor4f(0.0f,0.0f,1.0f,0.5f);
+	//glPushMatrix();
+		//glLineWidth(2);
+		//glTranslated(0.0,0.0,0.0);
 		//glScalef(50.0/Scale,50.0/Scale,0.0f);
 		//glRotatef(Hdg,0.0f,0.0f,1.0f);
 		//RenderGeometry(GL_LINE_LOOP,&vCircle1[0],vCircle1.size());	// circle 0
