@@ -109,13 +109,16 @@ void CMySerial::OnBeforeMainLoop()
 {
 }
 
-void CMySerial::OnLine(unsigned char *buffer, int length, int valid_nmea)
+void CMySerial::OnLine(unsigned char *buffer, int length)
 {
-	if(valid_nmea == 0)
-		Parse(buffer);
-	else
-		int a = valid_nmea;
+	
 }
+
+void CMySerial::OnNMEALine(unsigned char *buffer, int length)
+{
+	Parse(buffer);
+}
+
 void CMySerial::OnReconnect()
 {
 	m_SignalType = SERIAL_SIGNAL_RECONNECT;

@@ -90,6 +90,7 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int ty
 	Serial->SetRunOnStart(run);
 	Serial->SetDeviceType(type);
 	Serial->SetDefinition();
+	Serial->SetParseLine(true);
 	
 	return Serial;
 

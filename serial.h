@@ -44,7 +44,8 @@ public:
 	virtual void OnConnect();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);
-	virtual void OnLine(unsigned char *buffer, int length, int valid_nmea);
+	virtual void OnLine(unsigned char *buffer, int length);
+	virtual void OnNMEALine(unsigned char *buffer, int length);
 	virtual void OnStart();
 	virtual void OnStop();
 	virtual void OnAfterMainLoop();
