@@ -53,17 +53,20 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void RemoveDevice();
-	void NewSignal();
-	void NoSignal();
+	
 	void SetSignals();
 	void ShowInfoPanel(bool show);
-	
+	void AddTreeItem(int item_id);
+	void SetIconEvent(int icon_id);
 	void GetSignal();
+
+	void OnNMEALine();
+	void OnData();
+	void OnReconnect();
+	void OnNewSignal();
+	void OnNoSignal();
 	void OnTreeMenu(wxTreeEvent &event);
 	void OnTreeSelChanged(wxTreeEvent &event);
-	//void DrawData(wxGCDC &dc, wxString caption,wxString text);
-	//void DrawBackground(wxGCDC &dc);
-	//void OnMouseWheel(wxMouseEvent & event);
 	void OnMouse(wxMouseEvent & event);
 	void OnStop(wxCommandEvent &event);
 	void OnStart(wxCommandEvent &event);
@@ -74,7 +77,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnNewMarker(wxCommandEvent &event);
 	void OnSetLogger(wxCommandEvent &event);
 	void OnStatus(wxCommandEvent &event);
-	
+	void OnSetIcon(wxCommandEvent &event);
 
 public:
 	
@@ -98,6 +101,7 @@ public:
 		ID_STATUS,
 		ID_LOGGER,
 		ID_DEVICE_TYPES,
+		ID_ICON,
 	};
 
 

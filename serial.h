@@ -7,6 +7,7 @@
 #include "NaviMapIOApi.h"
 #include "protocol.h"
 #include "parser.h"
+#include <wx/treectrl.h>
 
 class CMySerial :public CSerial
 {
@@ -20,7 +21,8 @@ class CMySerial :public CSerial
 	int m_LineBufLen;
 	int m_SignalType;
 	bool m_RunOnStart;
-			
+	wxTreeItemId TreeItemId;
+	wxTreeCtrl *TreeCtrl;
 		
 public:
 	CMySerial();
@@ -40,8 +42,12 @@ public:
 	int GetDeviceType();
 	void SetDefinition();
 	int GetMarkersLength();
+	void SetTreeItemId(wxTreeItemId id);
+	void SetTreeCtrl(wxTreeCtrl *tree);
+	wxTreeItemId GetTreeItemId();
 	
 	virtual void OnConnect();
+	virtual void OnConnected();
 	virtual void OnDisconnect();
 	virtual void OnData(unsigned char *buffer, int length);
 	virtual void OnLine(unsigned char *buffer, int length);

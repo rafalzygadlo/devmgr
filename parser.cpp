@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "protocol.h"
 #include "tools.h"
-
+#include "GeometryTools.h"
 
 CParser::CParser()
 {
@@ -138,6 +138,37 @@ char CParser::ConvertChar(char data)
 	return data;
 }
 
+double CParser::DD( float DM ) 
+{
+
+	int ddeg = ( int )(DM / 100);
+	double min =  ( double )( DM / 100 - ddeg);
+	double x = double ( min / 60 ) * 100;
+	double a = ( double ) ddeg + x;
+
+	return a;
+
+}
+
+double CParser::ConvertValue(int signal_id,double data)
+{
+	double value = data;
+	switch(signal_id)
+	{
+		case SIGNAL_GGA_LAT:
+		case SIGNAL_GLL_LAT:
+		case SIGNAL_RMC_LAT:
+		case SIGNAL_GGA_LON:
+		case SIGNAL_GLL_LON:
+		case SIGNAL_RMC_LON:
+			value = DD(data);
+		break;
+
+	}
+
+	return value;
+}
+
 void CParser::SetValidData()
 {
 
@@ -159,7 +190,8 @@ void CParser::SetValidData()
 
 			if(funcd->id_signal == id_signal)
 			{
-				funcs->values[funcd->index] = atof(m_Data.value);
+				//Reset(funcs->values);
+				funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
 				SetFunction(funcd->id,funcs->values);
 			}
 
@@ -169,15 +201,24 @@ void CParser::SetValidData()
 
 }
 
-void CParser::SetFunction(int id_function, double *values)
+void CParser::Reset(float *tab)
+{
+	tab[0] = NAVI_UNDEFINED;
+	tab[1] = NAVI_UNDEFINED;
+	tab[2] = NAVI_UNDEFINED;
+	tab[3] = NAVI_UNDEFINED;
+	tab[4] = NAVI_UNDEFINED;
+	tab[5] = NAVI_UNDEFINED;
+				
+}
+void CParser::SetFunction(int id_function, float *values)
 {
 	SFunctionData Function;
-
+		
 	Function.id_function = id_function;
-	Function.values = values;
+	memcpy(Function.values,values,sizeof(float) * MAX_VALUES_LEN);
 	
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 	
+	
 }
-
-

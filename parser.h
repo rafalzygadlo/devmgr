@@ -15,8 +15,11 @@ class CParser
 	
 	char ConvertChar(char data);
 	char *ConvertStr(char *str);
+	double ConvertValue(int signal_id,double data);
 	void SetValidData();
-	void SetFunction(int id_function, double *values);
+	void SetFunction(int id_function, float *values);
+	void Reset(float *tab);
+	double CParser::DD( float DM );
 		
 public:
 	CParser();

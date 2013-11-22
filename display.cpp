@@ -17,6 +17,7 @@
 
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
+DEFINE_EVENT_TYPE(EVT_SET_ICON)
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_TREE_ITEM_MENU(ID_TREE, CDisplayPlugin::OnTreeMenu)
@@ -28,6 +29,7 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
+	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
 	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
 
@@ -211,15 +213,13 @@ void CDisplayPlugin::OnStop(wxCommandEvent &event)
 	while(m_SelectedDevice->GetWorkingFlag())
 		wxMilliSleep(150);
 	
-	m_Devices->SetItemBold(m_SelectedItemId,false);
 	m_Devices->SetItemImage(m_SelectedItemId,ICON_START, wxTreeItemIcon_Normal);
-		
+			
 }
 
 void CDisplayPlugin::OnStart(wxCommandEvent &event)
 {
 	m_SelectedDevice->Start();
-	m_Devices->SetItemBold(m_SelectedItemId,true);
 	m_Devices->SetItemImage(m_SelectedItemId,ICON_STOP, wxTreeItemIcon_Normal);
 }
 
@@ -334,65 +334,43 @@ void CDisplayPlugin::GetSignal()
 	
 	switch(m_SignalType)
 	{
-		case CLEAR_DISPLAY: 
-			ClearDisplay(); 
-		break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
-		
-		case INIT_SIGNAL:	
-			InitDisplay();	
-		break;		// inicjuje listê urzadzeñ
-		
-		case ADD_DEVICE:	
-			AddDevice();	
-		break;		// dodano nowe urzadzenie
-
-		case REMOVE_DEVICE:
-			RemoveDevice();
-		break;
-		
-		
-		case SERIAL_SIGNAL_NEW_SIGNAL:
-			NewSignal();
-		break;
-		
-		case SERIAL_SIGNAL_RECONNECT: 
-		case SERIAL_SIGNAL_ONDATA: 	
-			SetLoggerEvent();									
-		break;
-		
-		case SERIAL_SIGNAL_NO_SIGNAL:
-			NoSignal();									
-		break;
+		case CLEAR_DISPLAY: 			ClearDisplay(); 	break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
+		case INIT_SIGNAL:				InitDisplay();		break;		// inicjuje listê urzadzeñ
+		case ADD_DEVICE:				AddDevice();		break;		// dodano nowe urzadzenie
+		case REMOVE_DEVICE:				RemoveDevice();		break;
+		case SERIAL_SIGNAL_NEW_SIGNAL:	OnNewSignal();		break;
+		case SERIAL_SIGNAL_RECONNECT: 	OnReconnect();		break;
+		case SERIAL_SIGNAL_ONDATA: 		OnData();			break;
+		case SERIAL_SIGNAL_NO_SIGNAL:	OnNoSignal();		break;
+		case SERIAL_SIGNAL_NMEA_LINE:	OnNMEALine();		break;
 	}
 	
 }
-void CDisplayPlugin::NewSignal()
+void CDisplayPlugin::OnNMEALine()
+{
+	SetIconEvent(0);
+}
+
+void CDisplayPlugin::OnNewSignal()
 {
 	
 }
 
-void CDisplayPlugin::NoSignal()
+void CDisplayPlugin::OnNoSignal()
 {
-	return;
-	wxTreeItemIdValue cookie;
-	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);
-	CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
-	
-	while(id.IsOk())
-	{
-		
-		CItem *item  = (CItem*)m_Devices->GetItemData(id);
-		CSerial *_serial = item->GetSerial();
-
-		if(serial == _serial)
-		{
-			m_Devices->SetItemBackgroundColour(id,*wxRED);
-		}
-		
-		id = m_Devices->GetNextChild(id,cookie);
-	
-	}
+	SetIconEvent(1);
 }
+
+void CDisplayPlugin::OnData()
+{
+	
+}
+
+void CDisplayPlugin::OnReconnect()
+{
+	SetIconEvent(1);
+}
+
 
 void CDisplayPlugin::ClearDisplay()
 {
@@ -413,10 +391,10 @@ void CDisplayPlugin::InitDisplay()
 
 }
 
-void CDisplayPlugin::AddDevice()
+void CDisplayPlugin::AddTreeItem(int item_id)
 {
-	int count =	m_MapPlugin->GetDevicesCount() - 1;
-	CMySerial *Serial = m_MapPlugin->GetSerial(count);
+
+	CMySerial *Serial = m_MapPlugin->GetSerial(item_id);
 	wxString port(Serial->GetPortName(),wxConvUTF8);
 	int icon_id = ICON_START;
 	bool running = false;
@@ -429,16 +407,44 @@ void CDisplayPlugin::AddDevice()
 	
 	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),Serial->GetDeviceName().wc_str()),icon_id);
 	CItem *Item = new CItem();
+	Serial->SetTreeCtrl(m_Devices);
+	Serial->SetTreeItemId(id);
 	Item->SetSerial(Serial);
 	m_Devices->SetItemData(id,Item);
-	m_Devices->SetItemBold(id,running);
 
+}
+
+void CDisplayPlugin::AddDevice()
+{
+	int id = m_MapPlugin->GetDevicesCount() - 1;
+	AddTreeItem(id);	
 }
 
 void CDisplayPlugin::RemoveDevice()
 {
 	SetDevices();
 }
+
+void CDisplayPlugin::OnSetIcon(wxCommandEvent &event)
+{
+	CMySerial *serial = (CMySerial*)event.GetClientData();
+	
+	//if(event.GetInt())
+		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),*wxRED);
+	//else
+		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),wxSYS_COLOUR_WINDOWTEXT);
+	
+}
+
+void CDisplayPlugin::SetIconEvent(int icon_id)
+{
+	wxCommandEvent evt(EVT_SET_ICON,ID_ICON);
+	CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
+	evt.SetClientData(serial);
+	evt.SetInt(icon_id);
+	wxPostEvent(this,evt);
+}
+
 
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
@@ -472,26 +478,7 @@ void CDisplayPlugin::SetDevices()
 	m_Devices->DeleteChildren(m_Root);
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
-	{
-		CMySerial *Serial = m_MapPlugin->GetSerial(i);
-		wxString port(Serial->GetPortName(),wxConvUTF8);
-
-		int icon_id = ICON_START;
-		bool running = false;
-		if(Serial->IsRunning())
-		{
-			icon_id = ICON_STOP;
-			running = true;
-		}
-				
-		wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),Serial->GetDeviceName()),icon_id);
-		//SetDevicesData(Serial,id);
-		CItem *Item = new CItem();
-		Item->SetSerial(Serial);
-		m_Devices->SetItemData(id,Item);
-		m_Devices->SetItemBold(id,running);
-	
-	}
+		AddTreeItem(i);
 	
 	m_Devices->ExpandAll();
 

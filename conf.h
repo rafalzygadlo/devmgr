@@ -32,14 +32,15 @@
 #define ICON_START 1
 
 // sygna³y do display
-#define SERIAL_SIGNAL_RECONNECT 1	// sygna³ urzadzenia o ponownym polaczeniu
-#define SERIAL_SIGNAL_ONDATA 2		// sygna³ z portu o danych
-#define SERIAL_SIGNAL_NEW_SIGNAL 3	// linia nowego typu dostêpna
-#define SERIAL_SIGNAL_NO_SIGNAL 4	// polaczony ale brak sygnalu
-#define CLEAR_DISPLAY 5				// wyczyszczenie kontrolek nie u¿ywamy narazie
-#define INIT_SIGNAL 6				// zainicjowanie kontrolek
-#define ADD_DEVICE 7				// dodanie urz¹dzenia
-#define REMOVE_DEVICE 8				// usuwanie urzadzenia
+#define SERIAL_SIGNAL_RECONNECT		1	// sygna³ urzadzenia o ponownym polaczeniu
+#define SERIAL_SIGNAL_ONDATA		2	// sygna³ z portu o danych
+#define SERIAL_SIGNAL_NEW_SIGNAL	3	// linia nowego typu dostêpna
+#define SERIAL_SIGNAL_NO_SIGNAL		4	// polaczony ale brak sygnalu
+#define SERIAL_SIGNAL_NMEA_LINE		5	// nmea line
+#define CLEAR_DISPLAY				6	// wyczyszczenie kontrolek nie u¿ywamy narazie
+#define INIT_SIGNAL					7	// zainicjowanie kontrolek
+#define ADD_DEVICE					8	// dodanie urz¹dzenia
+#define REMOVE_DEVICE				9	// usuwanie urzadzenia
 
 // jezyki id
 #define MSG_DEVICE_NAME				0
@@ -69,6 +70,7 @@
 
 #define MAX_DATA_POSITIONS		10
 
+
 typedef struct SData 
 {
 	int		id;
@@ -80,7 +82,7 @@ typedef struct SData
 typedef struct SFunctionData 
 {
 	int		id_function;
-	double	*values;
+	float	values[6];
 
 } SFunctionData;
 
