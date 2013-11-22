@@ -239,6 +239,7 @@ bool CMapPlugin::GetEnableControlsFlag()
 void CMapPlugin::Run(void *Params)
 {
 	m_Init = false;
+	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	ReadConfig();
 	m_Init = true;
 	m_EnableControls = true;
@@ -379,7 +380,7 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 {
 	switch(data->id_function)
 	{
-		//case 1: m_Broker->SetShip(m_Broker->GetParentPtr(),(float*)data->values);	break;
+		case 1: m_Broker->SetShip(m_Broker->GetParentPtr(),data->values);	break;
 	}
 }
 
