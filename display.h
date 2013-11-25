@@ -30,6 +30,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxTreeItemId m_SelectedItemId;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
+	wxBoxSizer *Page1Sizer;
 	wxString m_Name;
 	int m_SignalType;
 	int m_DeviceId;
@@ -60,6 +61,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetIconEvent(int icon_id);
 	void GetSignal();
 
+	void OnConnected();
 	void OnNMEALine();
 	void OnData();
 	void OnReconnect();

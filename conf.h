@@ -37,10 +37,12 @@
 #define SERIAL_SIGNAL_NEW_SIGNAL	3	// linia nowego typu dostêpna
 #define SERIAL_SIGNAL_NO_SIGNAL		4	// polaczony ale brak sygnalu
 #define SERIAL_SIGNAL_NMEA_LINE		5	// nmea line
-#define CLEAR_DISPLAY				6	// wyczyszczenie kontrolek nie u¿ywamy narazie
-#define INIT_SIGNAL					7	// zainicjowanie kontrolek
-#define ADD_DEVICE					8	// dodanie urz¹dzenia
-#define REMOVE_DEVICE				9	// usuwanie urzadzenia
+#define SERIAL_SIGNAL_CONNECTED		6
+#define CLEAR_DISPLAY				7	// wyczyszczenie kontrolek nie u¿ywamy narazie
+#define INIT_SIGNAL					8	// zainicjowanie kontrolek
+#define ADD_DEVICE					9	// dodanie urz¹dzenia
+#define REMOVE_DEVICE				10	// usuwanie urzadzenia
+
 
 // jezyki id
 #define MSG_DEVICE_NAME				0

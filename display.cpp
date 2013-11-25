@@ -63,7 +63,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
 	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
 	wxPanel *Page1 = new wxPanel(Notebook);
-	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(Page1Sizer);
 	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
 
@@ -112,8 +112,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
 	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 	
-	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
-	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
+	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
+	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
 	this->Disable();
@@ -141,6 +141,7 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 	{
 		m_ToolBar->EnableTool(ID_START,false);
 		m_ToolBar->EnableTool(ID_STOP,false);
+		ShowInfoPanel(false);
 		return;
 	}
 	
@@ -156,7 +157,7 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 		m_ToolBar->EnableTool(ID_STOP,false);
 	}
 
-	//ShowInfoPanel(true);
+	ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
@@ -317,15 +318,10 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 void CDisplayPlugin::ShowInfoPanel(bool show)
 {
-	if(show)
-	{
-		m_InfoPanel->Show();
-		m_Sizer->Layout();
-	}else{
-		m_InfoPanel->Hide();
-		m_Sizer->Layout();
 	
-	}
+	m_InfoPanel->Show(show);
+	Page1Sizer->Layout();
+
 }
 
 void CDisplayPlugin::GetSignal()
@@ -343,12 +339,19 @@ void CDisplayPlugin::GetSignal()
 		case SERIAL_SIGNAL_ONDATA: 		OnData();			break;
 		case SERIAL_SIGNAL_NO_SIGNAL:	OnNoSignal();		break;
 		case SERIAL_SIGNAL_NMEA_LINE:	OnNMEALine();		break;
+		case SERIAL_SIGNAL_CONNECTED:	OnConnected();		break;
 	}
 	
 }
-void CDisplayPlugin::OnNMEALine()
+
+void CDisplayPlugin::OnConnected()
 {
 	SetIconEvent(0);
+}
+
+void CDisplayPlugin::OnNMEALine()
+{
+
 }
 
 void CDisplayPlugin::OnNewSignal()
@@ -427,12 +430,14 @@ void CDisplayPlugin::RemoveDevice()
 
 void CDisplayPlugin::OnSetIcon(wxCommandEvent &event)
 {
+	
+
 	CMySerial *serial = (CMySerial*)event.GetClientData();
 	
-	//if(event.GetInt())
-		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),*wxRED);
-	//else
-		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),wxSYS_COLOUR_WINDOWTEXT);
+	if(event.GetInt())
+		m_Devices->SetItemTextColour(serial->GetTreeItemId(),*wxRED);
+	else
+		m_Devices->SetItemTextColour(serial->GetTreeItemId(),wxSYS_COLOUR_WINDOWTEXT);
 	
 }
 
