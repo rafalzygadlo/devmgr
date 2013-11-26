@@ -42,7 +42,11 @@
 #define INIT_SIGNAL					8	// zainicjowanie kontrolek
 #define ADD_DEVICE					9	// dodanie urz¹dzenia
 #define REMOVE_DEVICE				10	// usuwanie urzadzenia
+#define START_DEVICE				11  // sygnal startu urzadzenia
+#define STOP_DEVICE					12	// sygnal zatrzymania urzadzenia
 
+#define TEXT_OK		0 // kolory tekstow w kontrolce
+#define TEXT_ERROR	1 // kolory tekstow w kontrolce
 
 // jezyki id
 #define MSG_DEVICE_NAME				0

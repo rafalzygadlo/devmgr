@@ -153,9 +153,6 @@ void CMySerial::OnLine(unsigned char *buffer, int length)
 
 void CMySerial::OnNMEALine(unsigned char *buffer, int length)
 {
-	m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
-	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
-
 	Parse(buffer);
 }
 
@@ -167,9 +164,7 @@ void CMySerial::OnReconnect()
 
 void CMySerial::OnNewSignal()
 {
-	m_SignalType = SERIAL_SIGNAL_NEW_SIGNAL;
-	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
-	
+		
 }
 
 void CMySerial::OnNoSignal()
@@ -180,8 +175,6 @@ void CMySerial::OnNoSignal()
 
 void CMySerial::OnData(unsigned char *buffer, int length)
 {
-	m_SignalType = SERIAL_SIGNAL_ONDATA;
-    m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
 

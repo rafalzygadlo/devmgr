@@ -59,13 +59,13 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void ShowInfoPanel(bool show);
 	void AddTreeItem(int item_id);
 	void SetIconEvent(int icon_id);
+	void SetTextEvent(int icon_id);
 	void GetSignal();
+	void StartDevice();
+	void StopDevice();
 
 	void OnConnected();
-	void OnNMEALine();
-	void OnData();
 	void OnReconnect();
-	void OnNewSignal();
 	void OnNoSignal();
 	void OnTreeMenu(wxTreeEvent &event);
 	void OnTreeSelChanged(wxTreeEvent &event);
@@ -80,6 +80,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnSetLogger(wxCommandEvent &event);
 	void OnStatus(wxCommandEvent &event);
 	void OnSetIcon(wxCommandEvent &event);
+	void OnSetText(wxCommandEvent &event);
 
 public:
 	
@@ -104,6 +105,7 @@ public:
 		ID_LOGGER,
 		ID_DEVICE_TYPES,
 		ID_ICON,
+		ID_TEXT,
 	};
 
 
