@@ -151,6 +151,16 @@ void CMapPlugin::AddDeviceFunc(CMySerial *serial)
 	SendSignal(ADD_DEVICE,0);
 }
 
+void CMapPlugin::StartDevice(CMySerial *serial)
+{
+	SendSignal(START_DEVICE,serial->GetDeviceId());
+}
+
+void CMapPlugin::StopDevice(CMySerial *serial)
+{
+	SendSignal(STOP_DEVICE,serial->GetDeviceId());
+}
+
 void CMapPlugin::RemoveDevice(CMySerial *serial)
 {
 	for(size_t i = 0; i < m_vDevices.size(); i++)

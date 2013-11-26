@@ -34,10 +34,8 @@ class CMapPlugin :public CNaviMapIOApi
 	CDisplaySignal *m_DisplaySignal;
 	bool m_Init;
 	float m_Scale;
-	//double Hdg;
 	bool m_EnableControls;
-	
-	
+		
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
@@ -66,6 +64,8 @@ public:
 	void AddDevice(CMySerial *serial);
 	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
 	void RemoveDevice(CMySerial *serial);
+	void StartDevice(CMySerial *serial);
+	void StopDevice(CMySerial *serial);
 	void ReindexDevics();
 	void RenderPosition();
 	

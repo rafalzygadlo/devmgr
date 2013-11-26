@@ -18,6 +18,7 @@
 
 DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 DEFINE_EVENT_TYPE(EVT_SET_ICON)
+DEFINE_EVENT_TYPE(EVT_SET_TEXT)
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_TREE_ITEM_MENU(ID_TREE, CDisplayPlugin::OnTreeMenu)
@@ -30,6 +31,7 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
+	EVT_COMMAND(ID_TEXT,EVT_SET_TEXT,CDisplayPlugin::OnSetText)
 	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
 
@@ -63,7 +65,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
 	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
 	wxPanel *Page1 = new wxPanel(Notebook);
-	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(Page1Sizer);
 	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
 
@@ -112,8 +114,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
 	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 	
-	m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
-	m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
+	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
+	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
 		
 	
 	this->Disable();
@@ -141,6 +143,7 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 	{
 		m_ToolBar->EnableTool(ID_START,false);
 		m_ToolBar->EnableTool(ID_STOP,false);
+		ShowInfoPanel(false);
 		return;
 	}
 	
@@ -156,7 +159,7 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 		m_ToolBar->EnableTool(ID_STOP,false);
 	}
 
-	//ShowInfoPanel(true);
+	ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
@@ -212,20 +215,19 @@ void CDisplayPlugin::OnStop(wxCommandEvent &event)
 	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_SelectedDevice->GetDeviceName().wc_str()));
 	while(m_SelectedDevice->GetWorkingFlag())
 		wxMilliSleep(150);
-	
-	m_Devices->SetItemImage(m_SelectedItemId,ICON_START, wxTreeItemIcon_Normal);
+		
+	m_MapPlugin->StopDevice(m_SelectedDevice);
 			
 }
 
 void CDisplayPlugin::OnStart(wxCommandEvent &event)
 {
 	m_SelectedDevice->Start();
-	m_Devices->SetItemImage(m_SelectedItemId,ICON_STOP, wxTreeItemIcon_Normal);
+	m_MapPlugin->StartDevice(m_SelectedDevice);
 }
 
 void CDisplayPlugin::OnUninstall(wxCommandEvent &event)
 {
-//	m_SelectedDevice->Stop();
 	m_MapPlugin->RemoveDevice(m_SelectedDevice);
 }
 
@@ -303,12 +305,16 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 	if(SignalID->GetSignalID() == NDS_DEVICE_MANAGER)
 	{
+		if(GetMutex()->TryLock())
+			return false;
+		
 		m_MapPlugin = (CMapPlugin*)SignalID->GetData();
 		m_SignalType = m_MapPlugin->GetDisplaySignalType();
 		m_DeviceId = m_MapPlugin->GetDeviceId();
 		InitDisplay();
 		GetSignal();    // kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
 		
+		GetMutex()->Unlock();
 		return false;
 	}
 	
@@ -317,15 +323,10 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 void CDisplayPlugin::ShowInfoPanel(bool show)
 {
-	if(show)
-	{
-		m_InfoPanel->Show();
-		m_Sizer->Layout();
-	}else{
-		m_InfoPanel->Hide();
-		m_Sizer->Layout();
 	
-	}
+	m_InfoPanel->Show(show);
+	Page1Sizer->Layout();
+
 }
 
 void CDisplayPlugin::GetSignal()
@@ -338,39 +339,39 @@ void CDisplayPlugin::GetSignal()
 		case INIT_SIGNAL:				InitDisplay();		break;		// inicjuje listê urzadzeñ
 		case ADD_DEVICE:				AddDevice();		break;		// dodano nowe urzadzenie
 		case REMOVE_DEVICE:				RemoveDevice();		break;
-		case SERIAL_SIGNAL_NEW_SIGNAL:	OnNewSignal();		break;
+		case START_DEVICE:				StartDevice();		break;
+		case STOP_DEVICE:				StopDevice();		break;
 		case SERIAL_SIGNAL_RECONNECT: 	OnReconnect();		break;
-		case SERIAL_SIGNAL_ONDATA: 		OnData();			break;
 		case SERIAL_SIGNAL_NO_SIGNAL:	OnNoSignal();		break;
-		case SERIAL_SIGNAL_NMEA_LINE:	OnNMEALine();		break;
+		case SERIAL_SIGNAL_CONNECTED:	OnConnected();		break;
 	}
 	
 }
-void CDisplayPlugin::OnNMEALine()
+
+void CDisplayPlugin::StartDevice()
 {
-	SetIconEvent(0);
+	SetIconEvent(ICON_STOP);
 }
 
-void CDisplayPlugin::OnNewSignal()
+void CDisplayPlugin::StopDevice()
 {
-	
+	SetIconEvent(ICON_START);
+}
+
+void CDisplayPlugin::OnConnected()
+{
+	SetTextEvent(TEXT_OK);
 }
 
 void CDisplayPlugin::OnNoSignal()
 {
-	SetIconEvent(1);
-}
-
-void CDisplayPlugin::OnData()
-{
-	
+	SetTextEvent(TEXT_ERROR);
 }
 
 void CDisplayPlugin::OnReconnect()
 {
-	SetIconEvent(1);
+	SetTextEvent(TEXT_ERROR);
 }
-
 
 void CDisplayPlugin::ClearDisplay()
 {
@@ -427,12 +428,23 @@ void CDisplayPlugin::RemoveDevice()
 
 void CDisplayPlugin::OnSetIcon(wxCommandEvent &event)
 {
-	CMySerial *serial = (CMySerial*)event.GetClientData();
+
+	CMySerial *myserial = (CMySerial*)event.GetClientData();
+	wxTreeItemIdValue cookie;
 	
-	//if(event.GetInt())
-		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),*wxRED);
-	//else
-		//m_Devices->SetItemTextColour(serial->GetTreeItemId(),wxSYS_COLOUR_WINDOWTEXT);
+	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
+	
+	while(id.IsOk())
+	{
+		
+		CItem *item  = (CItem*)m_Devices->GetItemData(id);
+		CSerial *serial = item->GetSerial();
+		if(serial == myserial)
+			m_Devices->SetItemImage(id,event.GetInt(), wxTreeItemIcon_Normal);
+				
+		id = m_Devices->GetNextChild(id,cookie);
+
+	}
 	
 }
 
@@ -445,6 +457,41 @@ void CDisplayPlugin::SetIconEvent(int icon_id)
 	wxPostEvent(this,evt);
 }
 
+void CDisplayPlugin::OnSetText(wxCommandEvent &event)
+{
+
+	CMySerial *myserial = (CMySerial*)event.GetClientData();
+	wxTreeItemIdValue cookie;
+	
+	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
+	
+	while(id.IsOk())
+	{
+		
+		CItem *item  = (CItem*)m_Devices->GetItemData(id);
+		CSerial *serial = item->GetSerial();
+		if(serial == myserial)
+		{
+			if(event.GetInt())
+				m_Devices->SetItemTextColour(id,*wxRED);
+			else
+				m_Devices->SetItemTextColour(id,wxSYS_COLOUR_WINDOWTEXT);
+		}
+		
+		id = m_Devices->GetNextChild(id,cookie);
+
+	}
+	
+}
+
+void CDisplayPlugin::SetTextEvent(int icon_id)
+{
+	wxCommandEvent evt(EVT_SET_TEXT,ID_TEXT);
+	CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
+	evt.SetClientData(serial);
+	evt.SetInt(icon_id);
+	wxPostEvent(this,evt);
+}
 
 void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
 {
@@ -455,6 +502,7 @@ void CDisplayPlugin::SetLoggerEvent()
 {
 	wxCommandEvent evt(EVT_SET_LOGGER,ID_LOGGER);
 	evt.SetString(wxString::Format(_("[%d]: %d\n"),m_DeviceId,m_SignalType));
+	
 	if(m_SignalType == SERIAL_SIGNAL_ONDATA)
 	{
 		CMySerial *serial = m_MapPlugin->GetSerial(m_DeviceId);
@@ -462,7 +510,7 @@ void CDisplayPlugin::SetLoggerEvent()
 		evt.SetString(buf);
 	}
 	
-	//evt.SetId(m_DeviceId);
+	evt.SetId(m_DeviceId);
     wxPostEvent(this,evt);
 	
 }
