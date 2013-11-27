@@ -88,7 +88,7 @@ typedef struct SData
 typedef struct SFunctionData 
 {
 	int		id_function;
-	float	values[6];
+	double	values[6];
 
 } SFunctionData;
 

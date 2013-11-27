@@ -211,12 +211,12 @@ void CParser::Reset(float *tab)
 	tab[5] = NAVI_UNDEFINED;
 				
 }
-void CParser::SetFunction(int id_function, float *values)
+void CParser::SetFunction(int id_function, double *values)
 {
 	SFunctionData Function;
 		
 	Function.id_function = id_function;
-	memcpy(Function.values,values,sizeof(float) * MAX_VALUES_LEN);
+	memcpy(Function.values,values,sizeof(double) * MAX_VALUES_LEN);
 	
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 	
