@@ -32,8 +32,8 @@ CStatus::CStatus(CMySerial *serial)
 	wxString port(serial->GetPortName(),wxConvUTF8);
 	Status->AppendText(wxString::Format(_("%s: %s\n"),GetMsg(MSG_PORT).wc_str(),port.wc_str()));
 	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_BAUD).wc_str(),serial->GetBaudRate()));
-	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_CONNECTED),serial->IsConnected()));
-	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_RUNNING),serial->IsRunning()));
+//	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_CONNECTED),serial->IsConnected()));
+//	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_RUNNING),serial->IsRunning()));
 		
 
 	for(size_t i = 0; i < serial->GetSignalCount();i++)

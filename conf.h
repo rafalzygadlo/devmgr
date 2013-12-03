@@ -67,12 +67,13 @@
 #define MSG_UNINSTALL				15
 #define MSG_STOP_THE_DEVICE			16
 #define MSG_STOPPING_DEVICE			17
-#define MSG_IS_CONNECTED			18
-#define MSG_IS_RUNNING				19
+#define MSG_CONNECTED				18
+#define MSG_RUNNING					19
 #define MSG_NEW						20
 #define MSG_DELETE					21
 #define	MSG_DEVICE_TYPES			22
 #define MSG_DEVICE_TYPE				23
+#define MSG_DISCONNECTED			24
 
 #define MAX_DATA_POSITIONS		10
 

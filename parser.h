@@ -6,6 +6,7 @@
 #include "conf.h"
 #include "protocol.h"
 #include "NaviMapIOApi.h"
+
 class CParser
 {
 	SData m_Data;
@@ -19,7 +20,7 @@ class CParser
 	void SetValidData();
 	void SetFunction(int id_function, double *values);
 	void Reset(float *tab);
-	double CParser::DD( float DM );
+	double DD( float DM );
 		
 public:
 	CParser();
