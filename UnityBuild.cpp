@@ -7,3 +7,4 @@
 #include "status.cpp"
 #include "tools.cpp"
 #include "parser.cpp"
+#include "wizard.cpp"

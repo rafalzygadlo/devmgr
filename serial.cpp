@@ -164,7 +164,7 @@ void CMySerial::OnReconnect()
 
 void CMySerial::OnNewSignal()
 {
-		
+	
 }
 
 void CMySerial::OnNoSignal()

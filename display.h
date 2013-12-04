@@ -67,10 +67,11 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void GetSignal();
 	void StartDevice();
 	void StopDevice();
-
+		
 	void OnConnected();
 	void OnReconnect();
 	void OnNoSignal();
+	void OnDeviceWizard(wxCommandEvent &event);
 	void OnTreeMenu(wxTreeEvent &event);
 	void OnTreeSelChanged(wxTreeEvent &event);
 	void OnMouse(wxMouseEvent & event);
@@ -110,6 +111,7 @@ public:
 		ID_DEVICE_TYPES,
 		ID_ICON,
 		ID_TEXT,
+		ID_DEVICE_WIZARD,
 	};
 
 

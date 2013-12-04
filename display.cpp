@@ -6,10 +6,10 @@
 #include "display.h"
 #include "item.h"
 #include "config.h"
-#include "data_config.h"
 #include "status.h"
 #include "info.h"
-//ico
+#include "wizard.h"
+
 #include "images/computer.img"
 #include "images/stop.img"
 #include "images/start.img"
@@ -28,6 +28,7 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
 	EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
+	EVT_MENU(ID_DEVICE_WIZARD,CDisplayPlugin::OnDeviceWizard)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
@@ -82,7 +83,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_ToolBar->AddSeparator();
 	m_ToolBar->AddTool(ID_NEW_DEVICE, GetMsg(MSG_NEW_DEVICE), computer, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_NEW_DEVICE));
 	m_ToolBar->AddTool(ID_DEVICE_TYPES, GetMsg(MSG_DEVICE_TYPES), types, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_DEVICE_TYPES));
-	
+	m_ToolBar->AddTool(ID_DEVICE_WIZARD, GetMsg(MSG_DEVICE_WIZARD), types, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_DEVICE_WIZARD));
+
 	m_ToolBar->EnableTool(ID_STOP, false);
 	m_ToolBar->EnableTool(ID_START, false);
 	m_ToolBar->Realize();
@@ -281,6 +283,14 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 }
 
 
+void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
+{
+	CWizard *Wizard = new CWizard();
+	
+	
+	Wizard->RunWizard(Wizard->GetFirstPage());
+	
+}
 
 void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 {
