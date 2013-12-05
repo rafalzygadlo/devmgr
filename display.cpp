@@ -6,10 +6,10 @@
 #include "display.h"
 #include "item.h"
 #include "config.h"
-#include "data_config.h"
 #include "status.h"
 #include "info.h"
-//ico
+#include "wizard.h"
+
 #include "images/computer.img"
 #include "images/stop.img"
 #include "images/start.img"
@@ -28,6 +28,7 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
 	EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
+	EVT_MENU(ID_DEVICE_WIZARD,CDisplayPlugin::OnDeviceWizard)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
@@ -42,7 +43,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SelectedDevice = NULL;
 	SetDisplayID(NDS_DEVICE_MANAGER);
 	m_Broker = NULL;
-	
+	m_SignalsPanel = NULL;
+
 	m_Sizer = new wxBoxSizer(wxVERTICAL);
 	m_ImageListSmall = new wxImageList(16, 16);
 	wxMemoryInputStream in_0((const unsigned char*)stop,stop_size);
@@ -81,7 +83,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_ToolBar->AddSeparator();
 	m_ToolBar->AddTool(ID_NEW_DEVICE, GetMsg(MSG_NEW_DEVICE), computer, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_NEW_DEVICE));
 	m_ToolBar->AddTool(ID_DEVICE_TYPES, GetMsg(MSG_DEVICE_TYPES), types, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_DEVICE_TYPES));
-	
+	m_ToolBar->AddTool(ID_DEVICE_WIZARD, GetMsg(MSG_DEVICE_WIZARD), types, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_DEVICE_WIZARD));
+
 	m_ToolBar->EnableTool(ID_STOP, false);
 	m_ToolBar->EnableTool(ID_START, false);
 	m_ToolBar->Realize();
@@ -99,20 +102,27 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_InfoPanel->Hide();
 	Page1Sizer->Add(m_InfoPanel,0,wxALL|wxEXPAND,0);
 
-	wxBoxSizer *InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
-	m_InfoPanel->SetSizer(InfoPanelSizer);
+	m_InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
+	m_InfoPanel->SetSizer(m_InfoPanelSizer);
 		
 	wxFont font;
 	font.SetPointSize(14);
 		
-	wxStaticText *LabelConnected = new wxStaticText(m_InfoPanel,wxID_ANY,_("is connected ?"));
-	InfoPanelSizer->Add(LabelConnected,0,wxEXPAND|wxALL,2);
+	m_LabelName = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	m_LabelName->SetFont(font);
+	m_InfoPanelSizer->Add(m_LabelName,0,wxEXPAND|wxALL,2);
+
+	m_LabelPort = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	m_InfoPanelSizer->Add(m_LabelPort,0,wxEXPAND|wxALL,2);
+
+	m_LabelConnected = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
+	m_InfoPanelSizer->Add(m_LabelConnected,0,wxEXPAND|wxALL,2);
 
 	wxStaticText *LabelRunning = new wxStaticText(m_InfoPanel,wxID_ANY,_("is running ?"));
-	InfoPanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
+	m_InfoPanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
 
 	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
-	InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
+	m_InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
 	
 	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
 	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
@@ -273,6 +283,14 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 }
 
 
+void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
+{
+	CWizard *Wizard = new CWizard();
+	
+	
+	Wizard->RunWizard(Wizard->GetFirstPage());
+	
+}
 
 void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 {
@@ -323,11 +341,62 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 void CDisplayPlugin::ShowInfoPanel(bool show)
 {
+	if(show)
+	{
+		CItem *item  = (CItem*)m_Devices->GetItemData(m_SelectedItemId);
+		CMySerial *serial = item->GetSerial();
+
+		m_LabelName->SetLabel(serial->GetDeviceName());
+		wxString port(serial->GetPortName(),wxConvUTF8);
+		m_LabelPort->SetLabel(port);
+
+		if(serial->IsConnected())
+			m_LabelConnected->SetLabel(GetMsg(MSG_CONNECTED));
+		else
+			m_LabelConnected->SetLabel(GetMsg(MSG_DISCONNECTED));
 	
+		if(m_SignalsPanel != NULL)
+		{
+			m_InfoPanelSizer->Remove(m_SignalsPanel);
+			delete m_SignalsPanel;
+		}
+
+		m_SignalsPanel = GetSignalsPanel(serial);
+		m_InfoPanelSizer->Add(m_SignalsPanel,0,wxALL|wxEXPAND|wxCENTER,0);
+	}
+	
+	m_InfoPanelSizer->Layout();
 	m_InfoPanel->Show(show);
 	Page1Sizer->Layout();
 
 }
+
+wxPanel *CDisplayPlugin::GetSignalsPanel(CMySerial *serial)
+{
+
+	int cols = this->GetSize().GetWidth()/30;
+
+	wxPanel *Panel = new wxPanel(m_InfoPanel,wxID_ANY);
+	wxFlexGridSizer *grid = new wxFlexGridSizer(cols,0);
+	
+	Panel->SetSizer(grid);
+	wxFont font;
+	font.SetPointSize(10);
+	
+	size_t len = serial->GetSignalCount();
+	for(size_t i = 0; i < len; i++)
+	{
+		wxString str((char*)serial->GetSignal(i)->name,wxConvUTF8);
+		wxHyperlinkCtrl *signal = new wxHyperlinkCtrl(Panel,wxID_ANY,str,wxEmptyString);
+		signal->SetFont(font);
+		grid->Add(signal,1,wxALL|wxEXPAND,2);
+		
+	}
+	
+	return Panel;
+
+}
+
 
 void CDisplayPlugin::GetSignal()
 {

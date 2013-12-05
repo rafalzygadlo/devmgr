@@ -5,7 +5,7 @@
 
 wxMutex *mutex = NULL;
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][24] = 
+const wxChar *nvLanguage[2][26] = 
 { 
 	/*EN*/
 	{
@@ -27,12 +27,14 @@ const wxChar *nvLanguage[2][24] =
 		_("Uninstall"),
 		_("Stop The Device"),
 		_("Stoping devices and freeing the resources.\nPlease wait this will take some time."),
-		_("Is Connected"),
-		_("Is Running"),
+		_("Connected"),
+		_("Running"),
 		_("New"),
 		_("Delete"),
 		_("Device Types..."),
-		_("Device Type")
+		_("Device Type"),
+		_("Disconected"),
+		_("Device Wizard"),
 
 	},
 	

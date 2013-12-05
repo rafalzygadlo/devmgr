@@ -44,6 +44,9 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxScrolledWindow *m_Scroll;
 	wxBoxSizer *m_ScrollSizer;
 	wxPanel *m_InfoPanel;
+	wxStaticText *m_LabelName,*m_LabelPort,*m_LabelConnected;
+	wxPanel *m_SignalsPanel;
+	wxBoxSizer *m_InfoPanelSizer;
 
 	wxString GetCaption();
 	void SetDevicesData();
@@ -54,6 +57,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void RemoveDevice();
+	wxPanel *GetSignalsPanel(CMySerial *serial);
 	
 	void SetSignals();
 	void ShowInfoPanel(bool show);
@@ -63,10 +67,11 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void GetSignal();
 	void StartDevice();
 	void StopDevice();
-
+		
 	void OnConnected();
 	void OnReconnect();
 	void OnNoSignal();
+	void OnDeviceWizard(wxCommandEvent &event);
 	void OnTreeMenu(wxTreeEvent &event);
 	void OnTreeSelChanged(wxTreeEvent &event);
 	void OnMouse(wxMouseEvent & event);
@@ -106,6 +111,7 @@ public:
 		ID_DEVICE_TYPES,
 		ID_ICON,
 		ID_TEXT,
+		ID_DEVICE_WIZARD,
 	};
 
 
