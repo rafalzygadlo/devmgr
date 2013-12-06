@@ -75,6 +75,7 @@
 #define MSG_DEVICE_TYPE				23
 #define MSG_DISCONNECTED			24
 #define MSG_DEVICE_WIZARD			25
+#define MSG_MONITOR					26
 
 #define MAX_DATA_POSITIONS		10
 

@@ -5,7 +5,7 @@
 
 wxMutex *mutex = NULL;
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][26] = 
+const wxChar *nvLanguage[2][27] = 
 { 
 	/*EN*/
 	{
@@ -35,6 +35,7 @@ const wxChar *nvLanguage[2][26] =
 		_("Device Type"),
 		_("Disconected"),
 		_("Device Wizard"),
+		_("Monitor"),
 
 	},
 	
