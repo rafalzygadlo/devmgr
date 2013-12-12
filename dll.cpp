@@ -8,6 +8,7 @@
 #include "devices.h"
 #include "protocol.h"
 
+
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
 0x23,0x64,0x4,0x6d,0x21,0xf1,0x8c,0x5c,0x2f,0x7,0xd4,0xb0,0x6c,0x5f,0x26,0x24,0xf2,0xb6,0xd3,0xd4,0xb2,0x8,0x90,0x67,0x3f,0xee,0x7,0xae,0x45,0x69,0xf8,0x1e,0xf3,0xd3,
@@ -36,14 +37,15 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
     m_Broker = NaviBroker;
 	m_ConfigPath = GetPluginConfigPath();
 	m_EnableControls = false;
-	//m_MyFrame = NULL;
-
+	
 	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	
+	//m_SearchThread = new CNotifier();
+	//m_SearchThread->Start();
 	//CreateApiMenu();
 	GetMutex();
 	
@@ -249,7 +251,7 @@ bool CMapPlugin::GetEnableControlsFlag()
 void CMapPlugin::Run(void *Params)
 {
 	m_Init = false;
-	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 	ReadConfig();
 	m_Init = true;
 	m_EnableControls = true;
@@ -263,6 +265,9 @@ void CMapPlugin::Kill(void)
 	m_NeedExit = true;
 	WriteConfig();
 	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE)));
+	
+	//m_SearchThread->Stop();
+	//delete m_SearchThread;
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
@@ -470,4 +475,3 @@ void NAVIMAPAPI FreeNaviClassInstance(void *ptr)
 {
 	delete (CMapPlugin*)ptr;
 }
-

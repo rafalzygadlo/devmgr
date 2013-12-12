@@ -22,6 +22,7 @@ extern "C" {
 
 
 class CMyFrame;
+class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
 	std::vector<CMySerial*> m_vDevices;
@@ -35,6 +36,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_Init;
 	float m_Scale;
 	bool m_EnableControls;
+	CNotifier *m_SearchThread;
 		
 	void CreateApiMenu(void);
 	void WriteConfig();

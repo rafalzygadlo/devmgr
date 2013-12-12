@@ -8,3 +8,4 @@
 #include "tools.cpp"
 #include "parser.cpp"
 #include "wizard.cpp"
+#include "notifier.cpp"

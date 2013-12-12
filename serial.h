@@ -17,7 +17,7 @@ class CMySerial :public CSerial
 	int m_DeviceType;
 	wxString m_DeviceName;
 	CNaviBroker *m_Broker;
-	unsigned char *m_LineBuffer;
+	char *m_LineBuffer;
 	int m_LineBufLen;
 	int m_SignalType;
 	bool m_RunOnStart;
@@ -37,7 +37,7 @@ public:
 	wxString GetDeviceName();
 	size_t GetDeviceId();					
 	int GetSignalType();
-	void Parse(unsigned char *line);
+	void Parse( char *line);
 	void SetDeviceType(int type);
 	int GetDeviceType();
 	void SetDefinition();
@@ -49,9 +49,9 @@ public:
 	virtual void OnConnect();
 	virtual void OnConnected();
 	virtual void OnDisconnect();
-	virtual void OnData(unsigned char *buffer, int length);
-	virtual void OnLine(unsigned char *buffer, int length);
-	virtual void OnNMEALine(unsigned char *buffer, int length);
+	virtual void OnData( char *buffer, int length);
+	virtual void OnLine( char *buffer, int length);
+	virtual void OnNMEALine( char *buffer, int length);
 	virtual void OnStart();
 	virtual void OnStop();
 	virtual void OnAfterMainLoop();

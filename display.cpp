@@ -329,10 +329,8 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
 {
 	CWizard *Wizard = new CWizard();
-	
-	
-	Wizard->RunWizard(Wizard->GetFirstPage());
-	
+	Wizard->ShowModal();
+	delete Wizard;
 }
 
 void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
