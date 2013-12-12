@@ -54,7 +54,7 @@ void CParser::SetDefinition(int device_type)
 		
 }
 
-void CParser::Parse(unsigned char *line)
+void CParser::Parse( char *line)
 {
 	
 	//sygna³ nowej lini
@@ -192,11 +192,12 @@ void CParser::SetValidData()
 			{
 				//Reset(funcs->values);
 				funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
-				SetFunction(funcd->id,funcs->values);
+				if(SetGlobalPrioryty(funcd->id_signal))
+					SetFunction(funcd->id,funcs->values);
 			}
 
 		}
-	
+
 	}
 
 }
@@ -211,6 +212,17 @@ void CParser::Reset(float *tab)
 	tab[5] = NAVI_UNDEFINED;
 				
 }
+//bool CParser::SetPrioryty(int id_function)
+//{
+	//switch(id_function)
+	//{
+		//case 
+	//}
+	
+	//if(m_HDG_Exists)
+		//return true;
+//}
+
 void CParser::SetFunction(int id_function, double *values)
 {
 	SFunctionData Function;

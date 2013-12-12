@@ -47,6 +47,9 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxStaticText *m_LabelName,*m_LabelPort,*m_LabelConnected;
 	wxPanel *m_SignalsPanel;
 	wxBoxSizer *m_InfoPanelSizer;
+	wxHyperlinkCtrl *m_StartButton;
+	wxHyperlinkCtrl *m_ConfigureButton;
+	wxHyperlinkCtrl *m_Monitor;
 
 	wxString GetCaption();
 	void SetDevicesData();
@@ -59,6 +62,9 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveDevice();
 	wxPanel *GetSignalsPanel(CMySerial *serial);
 	
+	void Stop();
+	void Start();
+	void ConfigureDevice();
 	void SetSignals();
 	void ShowInfoPanel(bool show);
 	void AddTreeItem(int item_id);
@@ -76,9 +82,14 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnTreeSelChanged(wxTreeEvent &event);
 	void OnMouse(wxMouseEvent & event);
 	void OnStop(wxCommandEvent &event);
+	void OnStop(wxHyperlinkEvent &event);
 	void OnStart(wxCommandEvent &event);
+	void OnStart(wxHyperlinkEvent &event);
+
 	void OnUninstall(wxCommandEvent &event);
 	void OnConfigureDevice(wxCommandEvent &event);
+	void OnConfigureDevice(wxHyperlinkEvent &event);
+
 	void OnConfigureData(wxCommandEvent &event);
 	void OnNewDevice(wxCommandEvent &event);
 	void OnNewMarker(wxCommandEvent &event);

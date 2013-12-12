@@ -4,6 +4,8 @@
 
 #define COMMENT
 
+#define DEBUG
+
 #ifdef _WIN32
 	#define DIR_SEPARATOR "\\"
 #endif
@@ -30,6 +32,9 @@
 
 #define ICON_STOP 0
 #define ICON_START 1
+
+#define MAX_BAD_CRC					2
+#define MAX_INVALID_NMEA			2
 
 // sygna³y do display
 #define SERIAL_SIGNAL_RECONNECT		1	// sygna³ urzadzenia o ponownym polaczeniu
@@ -75,8 +80,14 @@
 #define MSG_DEVICE_TYPE				23
 #define MSG_DISCONNECTED			24
 #define MSG_DEVICE_WIZARD			25
+#define MSG_MONITOR					26
+#define MSG_CLOSE					27
+#define MSG_NEXT					28
 
 #define MAX_DATA_POSITIONS		10
+
+
+#define WORK_WIZARD 0
 
 
 typedef struct SData 

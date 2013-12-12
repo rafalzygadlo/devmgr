@@ -102,7 +102,7 @@ void CMySerial::SetDefinition()
 	m_Parser->SetDefinition(m_DeviceType);
 }
 
-void CMySerial::Parse(unsigned char *line)
+void CMySerial::Parse( char *line)
 {
 	 m_Parser->Parse(line);
 }
@@ -146,12 +146,12 @@ void CMySerial::OnBeforeMainLoop()
 {
 }
 
-void CMySerial::OnLine(unsigned char *buffer, int length)
+void CMySerial::OnLine( char *buffer, int length)
 {
 	
 }
 
-void CMySerial::OnNMEALine(unsigned char *buffer, int length)
+void CMySerial::OnNMEALine( char *buffer, int length)
 {
 	Parse(buffer);
 }
@@ -173,8 +173,6 @@ void CMySerial::OnNoSignal()
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
-void CMySerial::OnData(unsigned char *buffer, int length)
+void CMySerial::OnData( char *buffer, int length)
 {
 }
-
-

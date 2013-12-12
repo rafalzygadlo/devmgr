@@ -5,7 +5,10 @@
 
 wxMutex *mutex = NULL;
 int GlobalLanguageID;
-const wxChar *nvLanguage[2][26] = 
+bool m_HDT_Exists = false;
+int m_HDT_Counter = 0;
+
+const wxChar *nvLanguage[2][29] = 
 { 
 	/*EN*/
 	{
@@ -35,6 +38,9 @@ const wxChar *nvLanguage[2][26] =
 		_("Device Type"),
 		_("Disconected"),
 		_("Device Wizard"),
+		_("Monitor"),
+		_("Close"),
+		_("Next >"),
 
 	},
 	
@@ -50,11 +56,11 @@ wxString GetProductInfo()
 {
 	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(PRODUCT_VERSION),_(PRODUCT_COPYRIGHT));
 }
+
 wxString GetProductName()
 {
 	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(PRODUCT_VERSION));
 }
-
 
 wxString GetMsg(int id)
 {
@@ -98,7 +104,8 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int ty
 
 }
 
-char **ExplodeStr(const char *str, const char *separator, int *size) {
+char **ExplodeStr(const char *str, const char *separator, int *size) 
+{
 
 	size_t seplen = strlen(separator);	// d³ugoœæ separatora
 	size_t start = 0;
@@ -146,7 +153,8 @@ char **ExplodeStr(const char *str, const char *separator, int *size) {
 
 };
 
-void FreeStrList(char **list, int length) {
+void FreeStrList(char **list, int length) 
+{
 
 	for( int i = 0; i < length; i++ )
 		free( list[i] );
@@ -154,7 +162,8 @@ void FreeStrList(char **list, int length) {
 	free(list);
 };
 
-char *GetSentenceFromLine(const char *line, const char *identyfier) {
+char *GetSentenceFromLine(const char *line, const char *identyfier) 
+{
 
 	int IdentSuplement = 5 - (int)strlen(identyfier);	// uzupe³nienie wycinania w przypadku gdy nie podano identyfikatora w ca³oœci (5 znaków)
 	int ValidSentenceLen = (int)strlen(line) - ((int)strlen(identyfier) + 2) - 3 - IdentSuplement;
@@ -167,7 +176,8 @@ char *GetSentenceFromLine(const char *line, const char *identyfier) {
 
 };
 
-int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Search, int SearchSize, int StartAt ) {
+int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Search, int SearchSize, int StartAt ) 
+{
 
 	int Len = MemorySize - SearchSize;
 	for( int i = StartAt; i < Len + 1; i++ ) {
@@ -193,4 +203,59 @@ wxMutex *GetMutex()
 		mutex = new wxMutex();
 	return mutex;
 
+}
+
+bool SetGlobalPrioryty(int fid)
+{
+	switch(fid)
+	{
+		case SIGNAL_HDT:
+			m_HDT_Exists = true; 
+			m_HDT_Counter = 10;
+			return true;
+		break;
+		
+		case SIGNAL_RMC_COG:
+			return Set_RMC_COG();
+		break;
+		
+		case SIGNAL_VTG_COG:
+			return Set_VTG_COG();
+		break;
+	}
+	
+	return true;
+}
+
+bool Check_HDT()
+{
+	m_HDT_Counter--;
+
+	if(m_HDT_Counter < 0)
+	{
+		m_HDT_Exists = false;
+		return false;
+	}else{
+		return true;
+	}
+}
+
+bool Set_VTG_COG()
+{
+	Check_HDT();
+	
+	if(m_HDT_Exists)
+		return false;
+	else
+		return true;
+}
+
+bool Set_RMC_COG()
+{
+	Check_HDT();
+
+	if(m_HDT_Exists)
+		return false;
+	else
+		return true;
 }

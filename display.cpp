@@ -30,6 +30,13 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
 	EVT_MENU(ID_DEVICE_WIZARD,CDisplayPlugin::OnDeviceWizard)
 	EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
+	EVT_MENU(ID_START,CDisplayPlugin::OnStart)
+	EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
+
+	EVT_HYPERLINK(ID_STOP,CDisplayPlugin::OnStop)
+	EVT_HYPERLINK(ID_START,CDisplayPlugin::OnStart)
+	EVT_HYPERLINK(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
+	
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
 	EVT_COMMAND(ID_TEXT,EVT_SET_TEXT,CDisplayPlugin::OnSetText)
@@ -98,31 +105,39 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Devices->SetItemImage(m_Root,2, wxTreeItemIcon_Normal);
 	Page1Sizer->Add(m_Devices,1,wxALL|wxEXPAND);
 
+	// info panel
 	m_InfoPanel = new wxPanel(Page1,wxID_ANY);
 	m_InfoPanel->Hide();
 	Page1Sizer->Add(m_InfoPanel,0,wxALL|wxEXPAND,0);
 
 	m_InfoPanelSizer = new wxBoxSizer(wxVERTICAL);
 	m_InfoPanel->SetSizer(m_InfoPanelSizer);
-		
+	
 	wxFont font;
 	font.SetPointSize(14);
 		
 	m_LabelName = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
 	m_LabelName->SetFont(font);
-	m_InfoPanelSizer->Add(m_LabelName,0,wxEXPAND|wxALL,2);
+	m_InfoPanelSizer->Add(m_LabelName,0,wxALL,1);
 
 	m_LabelPort = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
-	m_InfoPanelSizer->Add(m_LabelPort,0,wxEXPAND|wxALL,2);
+	m_InfoPanelSizer->Add(m_LabelPort,0,wxALL,1);
 
 	m_LabelConnected = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
-	m_InfoPanelSizer->Add(m_LabelConnected,0,wxEXPAND|wxALL,2);
+	m_InfoPanelSizer->Add(m_LabelConnected,0,wxALL,1);
 
-	wxStaticText *LabelRunning = new wxStaticText(m_InfoPanel,wxID_ANY,_("is running ?"));
-	m_InfoPanelSizer->Add(LabelRunning,0,wxEXPAND|wxALL,2);
+	font.SetPointSize(8);
+	m_StartButton = new wxHyperlinkCtrl(m_InfoPanel,ID_START,GetMsg(MSG_START),wxEmptyString);
+	m_StartButton->SetFont(font);
+	m_InfoPanelSizer->Add(m_StartButton,0,wxALL,1);
+		
+	m_Monitor = new wxHyperlinkCtrl(m_InfoPanel,wxID_ANY,GetMsg(MSG_MONITOR),wxEmptyString);
+	m_Monitor->SetFont(font);
+	m_InfoPanelSizer->Add(m_Monitor,0,wxALL,1);
 
-	wxStaticText *LabelHasSignal = new wxStaticText(m_InfoPanel,wxID_ANY,_("has signal ?"));
-	m_InfoPanelSizer->Add(LabelHasSignal,0,wxEXPAND|wxALL,2);
+	m_ConfigureButton = new wxHyperlinkCtrl(m_InfoPanel,ID_CONFIGURE_DEVICE,GetMsg(MSG_CONFIGURE_DEVICE),wxEmptyString);
+	m_ConfigureButton->SetFont(font);
+	m_InfoPanelSizer->Add(m_ConfigureButton,0,wxALL,1);
 	
 	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
 	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
@@ -220,6 +235,16 @@ void CDisplayPlugin::OnStatus(wxCommandEvent &event)
 
 void CDisplayPlugin::OnStop(wxCommandEvent &event)
 {
+	Stop();
+}
+
+void CDisplayPlugin::OnStop(wxHyperlinkEvent &event)
+{
+	Stop();
+}
+
+void CDisplayPlugin::Stop()
+{
 	m_SelectedDevice->Stop();
 
 	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_SelectedDevice->GetDeviceName().wc_str()));
@@ -227,10 +252,19 @@ void CDisplayPlugin::OnStop(wxCommandEvent &event)
 		wxMilliSleep(150);
 		
 	m_MapPlugin->StopDevice(m_SelectedDevice);
-			
 }
 
 void CDisplayPlugin::OnStart(wxCommandEvent &event)
+{
+	Start();
+}
+
+void CDisplayPlugin::OnStart(wxHyperlinkEvent &event)
+{
+	Start();
+}
+
+void CDisplayPlugin::Start()
 {
 	m_SelectedDevice->Start();
 	m_MapPlugin->StartDevice(m_SelectedDevice);
@@ -242,6 +276,16 @@ void CDisplayPlugin::OnUninstall(wxCommandEvent &event)
 }
 
 void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
+{
+	ConfigureDevice();
+}
+
+void CDisplayPlugin::OnConfigureDevice(wxHyperlinkEvent &event)
+{
+	ConfigureDevice();
+}
+
+void CDisplayPlugin::ConfigureDevice()
 {
 	if(m_SelectedDevice->IsRunning())
 	{
@@ -268,7 +312,6 @@ void CDisplayPlugin::OnConfigureDevice(wxCommandEvent &event)
 		m_SelectedDevice->SetDefinition();
 		m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
 	}	
-			
 }
 
 void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
@@ -286,10 +329,8 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
 {
 	CWizard *Wizard = new CWizard();
-	
-	
-	Wizard->RunWizard(Wizard->GetFirstPage());
-	
+	Wizard->ShowModal();
+	delete Wizard;
 }
 
 void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
@@ -348,7 +389,21 @@ void CDisplayPlugin::ShowInfoPanel(bool show)
 
 		m_LabelName->SetLabel(serial->GetDeviceName());
 		wxString port(serial->GetPortName(),wxConvUTF8);
-		m_LabelPort->SetLabel(port);
+		m_LabelPort->SetLabel(wxString::Format(_("%s %d"),port.wc_str(),serial->GetBaudRate()));
+		
+		if(serial->IsRunning())
+		{
+			m_StartButton->SetLabel(GetMsg(MSG_STOP));
+			m_StartButton->SetId(ID_STOP);
+			m_ConfigureButton->Hide();
+					
+		}else{
+			
+			m_StartButton->SetLabel(GetMsg(MSG_START));
+			m_StartButton->SetId(ID_START);
+			m_ConfigureButton->Show();
+			
+		}
 
 		if(serial->IsConnected())
 			m_LabelConnected->SetLabel(GetMsg(MSG_CONNECTED));
@@ -357,7 +412,7 @@ void CDisplayPlugin::ShowInfoPanel(bool show)
 	
 		if(m_SignalsPanel != NULL)
 		{
-			m_InfoPanelSizer->Remove(m_SignalsPanel);
+			m_InfoPanelSizer->Detach(m_SignalsPanel);
 			delete m_SignalsPanel;
 		}
 
@@ -389,7 +444,7 @@ wxPanel *CDisplayPlugin::GetSignalsPanel(CMySerial *serial)
 		wxString str((char*)serial->GetSignal(i)->name,wxConvUTF8);
 		wxHyperlinkCtrl *signal = new wxHyperlinkCtrl(Panel,wxID_ANY,str,wxEmptyString);
 		signal->SetFont(font);
-		grid->Add(signal,1,wxALL|wxEXPAND,2);
+		grid->Add(signal,1,wxALL|wxEXPAND,1);
 		
 	}
 	
@@ -420,11 +475,13 @@ void CDisplayPlugin::GetSignal()
 void CDisplayPlugin::StartDevice()
 {
 	SetIconEvent(ICON_STOP);
+	ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::StopDevice()
 {
 	SetIconEvent(ICON_START);
+	ShowInfoPanel(true);
 }
 
 void CDisplayPlugin::OnConnected()

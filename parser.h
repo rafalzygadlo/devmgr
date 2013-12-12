@@ -26,7 +26,7 @@ public:
 	CParser();
 	~CParser();
 		
-	void Parse(unsigned char *line);
+	void Parse( char *line);
 	void SetDefinition(int device_type);
 	void SetBroker(CNaviBroker *broker);
 		
