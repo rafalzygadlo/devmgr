@@ -7,53 +7,93 @@
 
 
 BEGIN_EVENT_TABLE(CWizard,wxDialog)
-	EVT_BUTTON(ID_START,CWizard::OnButtonStart)
+	EVT_BUTTON(ID_1_NEXT,CWizard::OnButton1Next)
+	EVT_BUTTON(ID_2_PREV,CWizard::OnButton2Prev)
+	EVT_BUTTON(ID_2_NEXT,CWizard::OnButton2Next)
 END_EVENT_TABLE()
 
 
 CWizard::CWizard()
-	:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION)
+:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(500,400), wxCAPTION)
 {
 	SetGui();
 }	
-
-void CWizard::SetGui()
-{
-	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
-	wxStaticText *Text = new wxStaticText(this,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
-	MainSizer->Add(Text,0,wxALL,10);
-	
-	wxBoxSizer *HSizer = new wxBoxSizer(wxHORIZONTAL);
-	MainSizer->Add(HSizer,0,wxALL|wxEXPAND,5);
-	
-	m_ListBox = new wxListBox(this,wxID_ANY,wxDefaultPosition,wxSize(200,250));
-	HSizer->Add(m_ListBox,0,wxALL|wxEXPAND,5);
-	m_ButtonStart = new wxButton(this,ID_START,GetMsg(MSG_START));
-	HSizer->Add(m_ButtonStart,0,wxALL|wxALIGN_RIGHT,10);
-	
-	m_LogBox = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(-1,120),wxTE_MULTILINE);
-	MainSizer->Add(m_LogBox,0,wxALL|wxEXPAND,5);
-
-	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
-	MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
-	ButtonSizer->AddStretchSpacer(1);
-	wxButton *ButtonOk = new wxButton(this,wxID_OK,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
-	ButtonSizer->Add(ButtonOk,0,wxALL|wxALIGN_RIGHT,5);
-
-
-	this->SetSizer(MainSizer);
-	MainSizer->SetSizeHints(this);
-	Center();
-}
 
 CWizard::~CWizard()
 {
 
 }
 
+void CWizard::SetGui()
+{
+	m_MainSizer = new wxBoxSizer(wxVERTICAL);
+	
+	m_Page1 = Page1();
+	m_MainSizer->Add(m_Page1,0,wxALL|wxEXPAND,5);
+	m_Page2 = Page2();
+	m_MainSizer->Add(m_Page2,0,wxALL|wxEXPAND,5);
+	
+	m_Page2->Hide();
+	
+	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
+	ButtonSizer->AddStretchSpacer(1);
+	
+	wxButton *ButtonClose = new wxButton(this,wxID_OK,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
+	ButtonSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
+	
+	this->SetSizer(m_MainSizer);
+	m_MainSizer->SetSizeHints(this);
+	Center();
+}
+
+wxPanel *CWizard::Page1()
+{
+	wxPanel *Panel = new wxPanel(this);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(PanelSizer);
+	
+	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
+	PanelSizer->Add(Text,0,wxALL,10);
+		
+	m_LogBox = new wxTextCtrl(Panel,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(300,200),wxTE_MULTILINE);
+	PanelSizer->Add(m_LogBox,0,wxALL|wxEXPAND,5);
+
+	m_ButtonP1Next = new wxButton(Panel,ID_1_NEXT,GetMsg(MSG_NEXT));
+	PanelSizer->Add(m_ButtonP1Next,0,wxALL|wxALIGN_RIGHT,5);
+
+	return Panel;
+}
+
+wxPanel *CWizard::Page2()
+{
+	wxPanel *Panel = new wxPanel(this);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(PanelSizer);
+
+	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
+	PanelSizer->Add(Text,0,wxALL,10);
+
+	m_ListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),NULL,wxLB_MULTIPLE);
+	PanelSizer->Add(m_ListBox,0,wxALL|wxEXPAND,5);
+	
+	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+	PanelSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,0);
+	ButtonSizer->AddStretchSpacer(1);
+	
+	m_ButtonP2Prev = new wxButton(Panel,ID_2_PREV,GetMsg(MSG_PREV));
+	ButtonSizer->Add(m_ButtonP2Prev,0,wxALL|wxALIGN_RIGHT,5);
+
+	m_ButtonP2Next = new wxButton(Panel,ID_2_NEXT,GetMsg(MSG_NEXT));
+	ButtonSizer->Add(m_ButtonP2Next,0,wxALL|wxALIGN_RIGHT,5);
+
+	return Panel;
+}
+
 void CWizard::Start()
 {
-	m_ButtonStart->Disable();
+	m_ButtonP1Next->Disable();
+	
 	m_ListBox->Clear();
 	CSerial *Serial = new CSerial();
     Serial->ScanPorts();
@@ -84,8 +124,14 @@ void CWizard::Start()
 		
     }
 
-	m_ButtonStart->Enable();
+	m_ButtonP1Next->Enable();
 	delete Serial;
+
+	m_Page1->Hide();
+	m_Page2->Show();
+	
+	m_MainSizer->SetSizeHints(this);
+	this->Layout();
 }
 
 void CWizard::SetDeviceType()
@@ -94,27 +140,48 @@ void CWizard::SetDeviceType()
 	
 	int count = m_Searcher->GetTalkerCount();
 	STalkers *Talker = NULL;
+	
 	for(size_t i = 0; i < count; i++)
 	{
 		Talker = Talkers.GetByIdTalker(m_Searcher->GetTalker(i));
 		if(Talker)
 		{
-			wxString port(m_Searcher->GetPortName(),wxConvUTF8);
-			wxString talker(Talker->name,wxConvUTF8);
-			m_ListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),m_Searcher->GetBaudRate(),talker.wc_str()));
+			if(Talker->id_device > -1)
+			{
+				CMySerial *Serial = new CMySerial();
+				Serial->_SetPort(m_Searcher->GetPortName());
+				Serial->SetBaud(m_Searcher->GetBaudRate());
+				Serial->SetDeviceType(Talker->id_device);
+				vDevices.push_back(Serial);
+				wxString port(m_Searcher->GetPortName(),wxConvUTF8);
+				wxString talker(Talker->name,wxConvUTF8);
+				m_ListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),m_Searcher->GetBaudRate(),talker.wc_str()));
+			}
+			
 		}
 
 	}
-	
-	
-	//{
-		//		wxString port(Searcher->GetPortName(),wxConvUTF8);
-			//	m_ListBox->Append(wxString::Format(_("%s %d"),port.wc_str(),Searcher->GetBaudRate()));
-			//}
+
 }
 
 
-void CWizard::OnButtonStart(wxCommandEvent &event)
+void CWizard::OnButton2Next(wxCommandEvent &event)
+{
+	for(size_t i = 0; i < m_ListBox->GetCount(); i++)
+	{
+		m_ListBox->GetSelection();
+	}
+}
+
+void CWizard::OnButton2Prev(wxCommandEvent &event)
+{
+	m_Page1->Show();
+	m_Page2->Hide();
+	m_MainSizer->SetSizeHints(this);
+	this->Layout();
+}
+
+void CWizard::OnButton1Next(wxCommandEvent &event)
 {
 	CThread *Thread = new CThread(this);
 	Thread->SetWorkId(WORK_WIZARD);

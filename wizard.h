@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include "conf.h"
 #include "searcher.h"
+#include "serial.h"
 
 class CSearcher;
 class CWizard: public wxDialog
@@ -12,14 +13,22 @@ class CWizard: public wxDialog
 	int m_Count;
 	int m_BaudCount;
 	wxListBox *m_ListBox;
-	wxButton *m_ButtonStart;
+	wxButton *m_ButtonP1Next, *m_ButtonP2Next, *m_ButtonP2Prev;
 	wxTextCtrl *m_LogBox;
 	CSearcher *m_Searcher;
+	wxPanel *m_Page1, *m_Page2;
+	wxBoxSizer *m_MainSizer;
+	std::vector <CMySerial*> vDevices;
 
 	void Start();
 	void SetGui();
 	void SetDeviceType();
-	void OnButtonStart(wxCommandEvent &event);
+	void OnButton1Next(wxCommandEvent &event);
+	void OnButton2Next(wxCommandEvent &event);
+	void OnButton2Prev(wxCommandEvent &event);
+	
+	wxPanel *Page1();
+	wxPanel *Page2();
 
 public:
 
@@ -33,7 +42,9 @@ public:
 	enum
 	{
 		ID_CLOSE = 7384,
-		ID_START
+		ID_1_NEXT,
+		ID_2_NEXT,
+		ID_2_PREV,
 		
 	};
 
