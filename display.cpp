@@ -329,7 +329,18 @@ void CDisplayPlugin::OnConfigureData(wxCommandEvent &event)
 void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
 {
 	CWizard *Wizard = new CWizard();
-	Wizard->ShowModal();
+	
+	if(Wizard->ShowModal() == wxID_OK)
+	{
+		size_t count = Wizard->GetCount();
+		for(size_t i = 0; i < count; i++)
+		{
+			CMySerial *newserial = Wizard->GetDevice(i);
+			CMySerial *serial = CreateNewDevice(newserial->GetDeviceName(), (char*)newserial->GetPortName(),	newserial->GetBaudRate(),true, newserial->GetDeviceType());
+			m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
+		}
+	}
+	
 	delete Wizard;
 }
 
@@ -342,9 +353,7 @@ void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 	{
 		int count = m_MapPlugin->GetDevicesCount(); 
 		wxString name = wxString::Format(_("%s"),m_DeviceConfig->GetDeviceName().wc_str());
-		
 		CMySerial *serial = CreateNewDevice(name, m_DeviceConfig->GetPort().char_str(),	m_DeviceConfig->GetBaud(),true, m_DeviceConfig->GetDeviceType());
-				
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
 	}	
 	

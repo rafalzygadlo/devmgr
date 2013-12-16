@@ -212,16 +212,6 @@ void CParser::Reset(float *tab)
 	tab[5] = NAVI_UNDEFINED;
 				
 }
-//bool CParser::SetPrioryty(int id_function)
-//{
-	//switch(id_function)
-	//{
-		//case 
-	//}
-	
-	//if(m_HDG_Exists)
-		//return true;
-//}
 
 void CParser::SetFunction(int id_function, double *values)
 {

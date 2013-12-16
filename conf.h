@@ -84,6 +84,7 @@
 #define MSG_CLOSE					27
 #define MSG_NEXT					28
 #define MSG_PREV					29
+#define MSG_FINISH					30
 
 #define MAX_DATA_POSITIONS		10
 

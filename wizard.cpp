@@ -10,6 +10,7 @@ BEGIN_EVENT_TABLE(CWizard,wxDialog)
 	EVT_BUTTON(ID_1_NEXT,CWizard::OnButton1Next)
 	EVT_BUTTON(ID_2_PREV,CWizard::OnButton2Prev)
 	EVT_BUTTON(ID_2_NEXT,CWizard::OnButton2Next)
+	EVT_BUTTON(ID_3_PREV,CWizard::OnButton3Prev)
 END_EVENT_TABLE()
 
 
@@ -17,11 +18,16 @@ CWizard::CWizard()
 :wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(500,400), wxCAPTION)
 {
 	SetGui();
-}	
+}
 
 CWizard::~CWizard()
 {
-
+	for(size_t i = 0; i < vDevices.size(); i++)
+	{
+		delete 	vDevices[i];
+	}
+	
+	vDevices.clear();
 }
 
 void CWizard::SetGui()
@@ -32,14 +38,17 @@ void CWizard::SetGui()
 	m_MainSizer->Add(m_Page1,0,wxALL|wxEXPAND,5);
 	m_Page2 = Page2();
 	m_MainSizer->Add(m_Page2,0,wxALL|wxEXPAND,5);
+	m_Page3 = Page3();
+	m_MainSizer->Add(m_Page3,0,wxALL|wxEXPAND,5);
 	
 	m_Page2->Hide();
+	m_Page3->Hide();
 	
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
 	ButtonSizer->AddStretchSpacer(1);
 	
-	wxButton *ButtonClose = new wxButton(this,wxID_OK,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
+	wxButton *ButtonClose = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 	
 	this->SetSizer(m_MainSizer);
@@ -90,6 +99,32 @@ wxPanel *CWizard::Page2()
 	return Panel;
 }
 
+wxPanel *CWizard::Page3()
+{
+	wxPanel *Panel = new wxPanel(this);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(PanelSizer);
+
+	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
+	PanelSizer->Add(Text,0,wxALL,10);
+
+	m_NewListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),NULL);
+	PanelSizer->Add(m_NewListBox,0,wxALL|wxEXPAND,5);
+	
+	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+	PanelSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,0);
+	ButtonSizer->AddStretchSpacer(1);
+	
+	m_ButtonP3Prev = new wxButton(Panel,ID_3_PREV,GetMsg(MSG_PREV));
+	ButtonSizer->Add(m_ButtonP3Prev,0,wxALL|wxALIGN_RIGHT,5);
+
+	m_ButtonP3Next = new wxButton(Panel,wxID_OK,GetMsg(MSG_FINISH));
+	ButtonSizer->Add(m_ButtonP3Next,0,wxALL|wxALIGN_RIGHT,5);
+
+	return Panel;
+}
+
+
 void CWizard::Start()
 {
 	m_ButtonP1Next->Disable();
@@ -98,7 +133,7 @@ void CWizard::Start()
 	CSerial *Serial = new CSerial();
     Serial->ScanPorts();
     m_Count = Serial->GetPortInfoLength();
-	m_BaudCount = Serial->GetBaudInfoLength() - 1;
+	m_BaudCount = Serial->GetBaudInfoLength();
     
 	for(int i = 0; i < m_Count; i++)
     {
@@ -152,9 +187,13 @@ void CWizard::SetDeviceType()
 				Serial->_SetPort(m_Searcher->GetPortName());
 				Serial->SetBaud(m_Searcher->GetBaudRate());
 				Serial->SetDeviceType(Talker->id_device);
+				
+				CDevices devices;
+				wxString talker(devices.GetById(Talker->id_device)->name ,wxConvUTF8);
+				Serial->SetDeviceName(talker);
 				vDevices.push_back(Serial);
 				wxString port(m_Searcher->GetPortName(),wxConvUTF8);
-				wxString talker(Talker->name,wxConvUTF8);
+				
 				m_ListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),m_Searcher->GetBaudRate(),talker.wc_str()));
 			}
 			
@@ -164,14 +203,52 @@ void CWizard::SetDeviceType()
 
 }
 
+size_t CWizard::GetCount()
+{
+	return vNewDevices.size();
+}
+
+CMySerial *CWizard::GetDevice(int id)
+{
+	return vNewDevices[id];
+}
+
+void CWizard::OnButton3Prev(wxCommandEvent &event)
+{
+	
+	m_Page2->Show();
+	m_Page3->Hide();
+	m_MainSizer->SetSizeHints(this);
+	this->Layout();
+
+}
 
 void CWizard::OnButton2Next(wxCommandEvent &event)
 {
-	for(size_t i = 0; i < m_ListBox->GetCount(); i++)
+	
+	wxArrayInt items;
+	m_ListBox->GetSelections(items);
+	m_NewListBox->Clear();
+	vNewDevices.clear();
+
+	for(size_t i = 0; i < items.size(); i++)
 	{
-		m_ListBox->GetSelection();
+		int id = items[i];
+		CMySerial *serial = vDevices[id];	
+		vNewDevices.push_back(vDevices[id]);
+		wxString port(serial->GetPortName(),wxConvUTF8);
+		CDevices devices;
+		wxString talker(devices.GetById(serial->GetDeviceType())->name ,wxConvUTF8);
+		m_NewListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),serial->GetBaudRate(),talker.wc_str()));
 	}
+
+	m_Page2->Hide();
+	m_Page3->Show();
+	m_MainSizer->SetSizeHints(this);
+	this->Layout();
+
 }
+
 
 void CWizard::OnButton2Prev(wxCommandEvent &event)
 {

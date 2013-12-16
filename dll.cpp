@@ -395,7 +395,7 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 {
 	switch(data->id_function)
 	{
-		case 1: m_Broker->SetShip(m_Broker->GetParentPtr(),data->values);	break;
+		case 0: m_Broker->SetShip(m_Broker->GetParentPtr(),data->values);	break;
 	}
 }
 
