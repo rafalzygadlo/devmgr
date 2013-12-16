@@ -46,8 +46,10 @@ void CWizard::SetGui()
 	
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_MainSizer->Add(ButtonSizer,0,wxALL|wxEXPAND,5);
-	ButtonSizer->AddStretchSpacer(1);
-	
+
+	wxStaticText *LabelProductInfo = new wxStaticText(this,wxID_ANY,GetProductInfo() ,wxDefaultPosition,wxDefaultSize);
+	ButtonSizer->Add(LabelProductInfo,0,wxALL,5);
+			
 	wxButton *ButtonClose = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 	
