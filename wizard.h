@@ -14,6 +14,7 @@ class CWizard: public wxDialog
 	int m_BaudCount;
 	wxListBox *m_ListBox,*m_NewListBox;
 	wxButton *m_ButtonP1Next, *m_ButtonP2Next, *m_ButtonP2Prev , *m_ButtonP3Prev, *m_ButtonP3Next;
+	wxButton *m_ButtonClose;
 	wxTextCtrl *m_LogBox;
 	CSearcher *m_Searcher;
 	wxPanel *m_Page1, *m_Page2, *m_Page3;

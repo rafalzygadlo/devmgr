@@ -50,8 +50,8 @@ void CWizard::SetGui()
 	wxStaticText *LabelProductInfo = new wxStaticText(this,wxID_ANY,GetProductInfo() ,wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(LabelProductInfo,0,wxALL,5);
 			
-	wxButton *ButtonClose = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
-	ButtonSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
+	m_ButtonClose = new wxButton(this,wxID_CANCEL,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
+	ButtonSizer->Add(m_ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 	
 	this->SetSizer(m_MainSizer);
 	m_MainSizer->SetSizeHints(this);
@@ -130,7 +130,7 @@ wxPanel *CWizard::Page3()
 void CWizard::Start()
 {
 	m_ButtonP1Next->Disable();
-	
+	m_ButtonClose->Disable();
 	m_ListBox->Clear();
 	CSerial *Serial = new CSerial();
     Serial->ScanPorts();
@@ -151,7 +151,7 @@ void CWizard::Start()
 			m_Searcher->Start();
 			
 			wxString port(port_name,wxConvUTF8);
-			m_LogBox->AppendText(wxString::Format(_("Scaning %s %d\n"),port.wc_str(),m_Searcher->GetBaudInfo(j)));
+			m_LogBox->AppendText(wxString::Format(GetMsg(MSG_SCANNING) ,port.wc_str(),m_Searcher->GetBaudInfo(j)));
 
 			WaitForSingleObject(m_Searcher->GetHandle(),INFINITE);
 			
@@ -162,6 +162,7 @@ void CWizard::Start()
     }
 
 	m_ButtonP1Next->Enable();
+	m_ButtonClose->Enable();
 	delete Serial;
 
 	m_Page1->Hide();
