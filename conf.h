@@ -83,6 +83,9 @@
 #define MSG_MONITOR					26
 #define MSG_CLOSE					27
 #define MSG_NEXT					28
+#define MSG_PREV					29
+#define MSG_FINISH					30
+#define MSG_SCANNING				31
 
 #define MAX_DATA_POSITIONS		10
 

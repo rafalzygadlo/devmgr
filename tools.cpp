@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][29] = 
+const wxChar *nvLanguage[2][32] = 
 { 
 	/*EN*/
 	{
@@ -41,6 +41,9 @@ const wxChar *nvLanguage[2][29] =
 		_("Monitor"),
 		_("Close"),
 		_("Next >"),
+		_("< Prev"),
+		_("Finish"),
+		_("Scaning %s %d\n"),
 
 	},
 	

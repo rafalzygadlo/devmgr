@@ -137,7 +137,6 @@ bool CConfig::Validate()
 	}
 
 
-
 	Refresh();
 	
 	return result;
@@ -204,14 +203,13 @@ void CConfig::SetDeviceType(int type)
 	DeviceTypeCombo->SetSelection(type);
 }
 
-
 void CConfig::ShowWindow(bool show)
 {
 	Show(show);
 }
 
 void CConfig::OnCloseButton(wxCommandEvent &event)
-{	
+{
 	Hide();
 }
 
