@@ -131,6 +131,7 @@ wxPanel *CWizard::Page3()
 
 void CWizard::Start()
 {
+	m_Counter = 0;
 	m_ButtonP1Next->Disable();
 	m_ButtonClose->Disable();
 	m_ListBox->Clear();
@@ -138,6 +139,7 @@ void CWizard::Start()
     Serial->ScanPorts();
     m_Count = Serial->GetPortInfoLength();
 	m_BaudCount = Serial->GetBaudInfoLength();
+	m_LogBox->Clear();
     
 	for(int i = 0; i < m_Count; i++)
     {
