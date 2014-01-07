@@ -222,5 +222,4 @@ void CParser::SetFunction(int id_function, double *values)
 	
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 	
-	
 }

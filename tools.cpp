@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][32] = 
+const wxChar *nvLanguage[2][35] = 
 { 
 	/*EN*/
 	{
@@ -43,7 +43,10 @@ const wxChar *nvLanguage[2][32] =
 		_("Next >"),
 		_("< Prev"),
 		_("Finish"),
-		_("Scaning %s %d\n"),
+		_("Scanning %s %d\n"),
+		_("No devices found"),
+		_("Found %d device(s)"),
+		_("Selected device(s) %d")
 
 	},
 	

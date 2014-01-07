@@ -10,8 +10,9 @@ class CSearcher;
 class CWizard: public wxDialog
 {
 
-	int m_Count;
+	int m_Count, m_Counter;
 	int m_BaudCount;
+	bool m_Found;
 	wxListBox *m_ListBox,*m_NewListBox;
 	wxButton *m_ButtonP1Next, *m_ButtonP2Next, *m_ButtonP2Prev , *m_ButtonP3Prev, *m_ButtonP3Next;
 	wxButton *m_ButtonClose;
@@ -21,6 +22,8 @@ class CWizard: public wxDialog
 	wxBoxSizer *m_MainSizer;
 	std::vector <CMySerial*> vDevices;
 	std::vector <CMySerial*> vNewDevices;
+	wxStaticText *m_Page1Text,*m_Page2Text,*m_Page3Text;
+
 
 	void Start();
 	void SetGui();

@@ -153,7 +153,13 @@ void CMySerial::OnLine( char *buffer, int length)
 
 void CMySerial::OnNMEALine( char *buffer, int length)
 {
+	
+	m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"gps_SetNMEALine",this);
+
 	Parse(buffer);
+
 }
 
 void CMySerial::OnReconnect()

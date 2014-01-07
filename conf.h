@@ -86,6 +86,9 @@
 #define MSG_PREV					29
 #define MSG_FINISH					30
 #define MSG_SCANNING				31
+#define MSG_NO_DEVICE_FOUND			32
+#define MSG_DEVICE_FOUND			33
+#define MSG_SELECTED_DEVICES		34
 
 #define MAX_DATA_POSITIONS		10
 
@@ -118,4 +121,8 @@ enum
 	ID_SET_BAUD,
 };
 
+
 #endif
+
+
+
