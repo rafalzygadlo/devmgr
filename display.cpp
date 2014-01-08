@@ -379,9 +379,10 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 		m_MapPlugin = (CMapPlugin*)SignalID->GetData();
 		m_SignalType = m_MapPlugin->GetDisplaySignalType();
 		m_DeviceId = m_MapPlugin->GetDeviceId();
+		m_SignalType = m_MapPlugin->GetDisplaySignalType();
+
 		InitDisplay();
 		GetSignal();    // kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
-		
 		GetMutex()->Unlock();
 		return false;
 	}
@@ -467,7 +468,7 @@ wxPanel *CDisplayPlugin::GetSignalsPanel(CMySerial *serial)
 
 void CDisplayPlugin::GetSignal()
 {
-	m_SignalType = m_MapPlugin->GetDisplaySignalType();
+	
 	
 	switch(m_SignalType)
 	{
@@ -480,8 +481,15 @@ void CDisplayPlugin::GetSignal()
 		case SERIAL_SIGNAL_RECONNECT: 	OnReconnect();		break;
 		case SERIAL_SIGNAL_NO_SIGNAL:	OnNoSignal();		break;
 		case SERIAL_SIGNAL_CONNECTED:	OnConnected();		break;
+		case DATA_SIGNAL:				OnData();			break;
 	}
 	
+}
+
+void CDisplayPlugin::OnData()
+{
+	SData *data = m_MapPlugin->GetData();
+	fprintf(stdout,"%d %s\n",data->id,data->marker);
 }
 
 void CDisplayPlugin::StartDevice()

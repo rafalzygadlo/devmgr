@@ -73,6 +73,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void GetSignal();
 	void StartDevice();
 	void StopDevice();
+	void OnData();
 		
 	void OnConnected();
 	void OnReconnect();

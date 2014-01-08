@@ -56,7 +56,7 @@ void CParser::SetDefinition(int device_type)
 
 void CParser::Parse( char *line)
 {
-	
+	//fprintf(stdout,"%s",line);
 	//sygna³ nowej lini
 			
 	SDefinition DataDefinition;
@@ -99,8 +99,19 @@ void CParser::Parse( char *line)
 			}
 							
 			FreeStrList( StrList, Size );
+			 
+			CSignals signals;
+			SSignals *s = signals.GetById(m_Data.id);
+			
+			CSIDS sids;
+						
 			if( ValidData )
+			{
+				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
+				// ustawia funkcje definiowane w protocole
+				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnData",&m_Data);
 				SetValidData();
+			}
 			
 		}
 

@@ -37,12 +37,14 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
     m_Broker = NaviBroker;
 	m_ConfigPath = GetPluginConfigPath();
 	m_EnableControls = false;
+	m_Data = NULL;
 	
-	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
+	//AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
+	AddExecuteFunction("devmgr_OnData",OnData);
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -364,22 +366,6 @@ void *CMapPlugin::OnDeviceSignal(void *NaviMapIOApiPtr, void *Params)
 	return NULL;
 }
 
-void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
-{
-	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	SData *Data = (SData*)Params;
-
-	
-	ThisPtr->SetData(Data);
-	
-	return NULL;
-
-}
-
-void CMapPlugin::SetData(SData *val)
-{
-	
-}
 
 void *CMapPlugin::OnFunctionData(void *NaviMapIOApiPtr, void *Params)
 {
@@ -389,6 +375,27 @@ void *CMapPlugin::OnFunctionData(void *NaviMapIOApiPtr, void *Params)
 	ThisPtr->SetFunctionData(Data);
 	
 	return NULL;
+}
+
+void *CMapPlugin::OnData(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	SData *Data = (SData*)Params;
+	
+	ThisPtr->SetData(Data);
+	
+	return NULL;
+}
+
+SData *CMapPlugin::GetData()
+{
+	return m_Data;
+}
+
+void CMapPlugin::SetData(SData *value)
+{
+	m_Data = value;
+	SendSignal(DATA_SIGNAL,0);
 }
 
 void CMapPlugin::SetFunctionData(SFunctionData *data)

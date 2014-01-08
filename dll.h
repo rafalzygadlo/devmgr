@@ -37,18 +37,20 @@ class CMapPlugin :public CNaviMapIOApi
 	float m_Scale;
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
+	SData *m_Data;
 		
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
 	void SendSignal(int type, int id);
+	void SendDataSignal(SData *data);
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);
 	wxArrayString GetConfigItems(wxString path);
 	void OnReconnect(CMySerial *Serial);
 	bool IsInited();
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
-	void SetData(SData *val);
+	void SetData(SData *value);
 	void SetDisplaySignal(int type);
 	void SetFunctionData(SFunctionData *data);
 
@@ -70,6 +72,7 @@ public:
 	void StopDevice(CMySerial *serial);
 	void ReindexDevics();
 	void RenderPosition();
+	SData *GetData();
 	
 	int GetDisplaySignalType();
 	int GetDeviceId();
@@ -88,6 +91,7 @@ public:
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
 	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
+	static void *OnData(void *NaviMapIOApiPtr, void *Params); // dane
 	
 };	
 
