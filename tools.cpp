@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][35] = 
+const wxChar *nvLanguage[2][37] = 
 { 
 	/*EN*/
 	{
@@ -46,7 +46,9 @@ const wxChar *nvLanguage[2][35] =
 		_("Scanning %s %d\n"),
 		_("No devices found"),
 		_("Found %d device(s)"),
-		_("Selected device(s) %d")
+		_("Selected device(s) %d"),
+		_("Socket"),
+		_("Serial"),
 
 	},
 	
@@ -95,11 +97,12 @@ wxString GetWorkDir(void)
 	return buffer;
 }
 
-CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int type)
+/*
+CReader *CreateNewDevice(wxString name, char *port, int baud, bool run, int type)
 {
-	CMySerial *Serial = new CMySerial();
+	CReader *Serial = new CReader();
 	Serial->SetBaud(baud);
-	Serial->_SetPort(port);
+	Serial->SetPort(port);
 	Serial->SetDeviceName(name);
 	Serial->SetRunOnStart(run);
 	Serial->SetDeviceType(type);
@@ -109,6 +112,36 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int ty
 	return Serial;
 
 }
+*/
+
+CReader *CreateSerialDevice(wxString name, char *port, int baud, bool run)
+{
+	CReader *Serial = new CReader();
+	Serial->SetDeviceType(DEVICE_TYPE_SERIAL);
+	Serial->SetBaud(baud);
+	Serial->SetPort(port);
+	Serial->SetDeviceName(name);
+	Serial->SetRunOnStart(run);
+	Serial->SetParseLine(true);
+	
+	return Serial;
+
+}
+
+CReader *CreateSocketDevice(wxString name, wxString host, wxString mount_point, int port, bool run)
+{
+	CReader *Socket = new CReader();
+	Socket->SetDeviceType(DEVICE_TYPE_SOCKET);
+	Socket->SetHost(host.char_str());
+	Socket->SetPort(port);
+	Socket->SetMountPoint(mount_point.char_str());
+	Socket->SetDeviceName(name);
+	Socket->SetRunOnStart(run);
+	Socket->SetParseLine(true);
+	return Socket;
+
+}
+
 
 char **ExplodeStr(const char *str, const char *separator, int *size) 
 {

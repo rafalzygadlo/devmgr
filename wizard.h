@@ -4,7 +4,7 @@
 #include <wx/wx.h>
 #include "conf.h"
 #include "searcher.h"
-#include "serial.h"
+#include "reader.h"
 
 class CSearcher;
 class CWizard: public wxDialog
@@ -20,8 +20,8 @@ class CWizard: public wxDialog
 	CSearcher *m_Searcher;
 	wxPanel *m_Page1, *m_Page2, *m_Page3;
 	wxBoxSizer *m_MainSizer;
-	std::vector <CMySerial*> vDevices;
-	std::vector <CMySerial*> vNewDevices;
+	std::vector <CReader*> vDevices;
+	std::vector <CReader*> vNewDevices;
 	wxStaticText *m_Page1Text,*m_Page2Text,*m_Page3Text;
 
 
@@ -44,7 +44,7 @@ public:
 	void ThreadBegin(int work_id);
 	void ThreadEnd(int work_id);
 	size_t GetCount();
-	CMySerial *GetDevice(int id);
+	CReader *GetDevice(int id);
 		
 	DECLARE_EVENT_TABLE();
 

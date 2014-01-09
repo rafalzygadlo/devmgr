@@ -90,12 +90,16 @@
 #define MSG_NO_DEVICE_FOUND			32
 #define MSG_DEVICE_FOUND			33
 #define MSG_SELECTED_DEVICES		34
+#define MSG_DEVICE_TYPE_SOCKET		35
+#define MSG_DEVICE_TYPE_SERIAL		36
+#define MSG_HOST					37
 
 #define MAX_DATA_POSITIONS		10
-
-
 #define WORK_WIZARD 0
 
+
+#define DEVICE_TYPE_SOCKET	0
+#define DEVICE_TYPE_SERIAL	1
 
 typedef struct SData 
 {

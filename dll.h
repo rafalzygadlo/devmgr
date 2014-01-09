@@ -13,7 +13,7 @@
 	#include <windows.h>
 	#include <crtdbg.h>
 #endif
-#include "serial.h"
+#include "reader.h"
 #include "conf.h"
 
 #ifdef __cplusplus
@@ -25,7 +25,7 @@ class CMyFrame;
 class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
-	std::vector<CMySerial*> m_vDevices;
+	std::vector<CReader*> m_vDevices;
 	CNaviBroker *m_Broker;
 	bool m_NeedExit;
 	wxFileConfig *m_FileConfig;
@@ -47,7 +47,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);
 	wxArrayString GetConfigItems(wxString path);
-	void OnReconnect(CMySerial *Serial);
+	void OnReconnect(CReader *ptr);
 	bool IsInited();
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
 	void SetData(SData *value);
@@ -63,13 +63,13 @@ public:
 	bool GetNeedExit(void);
 	CNaviBroker *GetBroker();
 	size_t GetDevicesCount();
-	CMySerial *GetSerial(size_t idx);
+	CReader *GetReader(size_t idx);
 	void DeleteDevice(size_t idx);
-	void AddDevice(CMySerial *serial);
-	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
-	void RemoveDevice(CMySerial *serial);
-	void StartDevice(CMySerial *serial);
-	void StopDevice(CMySerial *serial);
+	void AddDevice(CReader *ptr);
+	void AddDeviceFunc(CReader *ptr); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
+	void RemoveDevice(CReader *ptr);
+	void StartDevice(CReader *ptr);
+	void StopDevice(CReader *ptr);
 	void ReindexDevics();
 	void RenderPosition();
 	SData *GetData();

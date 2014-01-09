@@ -19,7 +19,7 @@ class CStatus: public wxDialog
 	
 public:
 
-	CStatus(CMySerial *serial);
+	CStatus(CReader *serial);
 	~CStatus();
 	void ShowWindow(bool show);	
 	int GetBaud();

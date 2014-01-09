@@ -200,15 +200,15 @@ void CWizard::SetDeviceType()
 		{
 			if(Talker->id_device > -1)
 			{
-				CMySerial *Serial = new CMySerial();
-				Serial->_SetPort(m_Searcher->GetPortName());
-				Serial->SetBaud(m_Searcher->GetBaudRate());
-				Serial->SetDeviceType(Talker->id_device);
+				CReader *Reader = new CReader();
+				Reader->SetPort(m_Searcher->GetPortName());
+				Reader->SetBaud(m_Searcher->GetBaudRate());
+				Reader->SetDeviceType(Talker->id_device);
 				
 				CDevices devices;
 				wxString talker(devices.GetById(Talker->id_device)->name ,wxConvUTF8);
-				Serial->SetDeviceName(talker);
-				vDevices.push_back(Serial);
+				Reader->SetDeviceName(talker);
+				vDevices.push_back(Reader);
 				wxString port(m_Searcher->GetPortName(),wxConvUTF8);
 				
 				m_ListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),m_Searcher->GetBaudRate(),talker.wc_str()));
@@ -226,7 +226,7 @@ size_t CWizard::GetCount()
 	return vNewDevices.size();
 }
 
-CMySerial *CWizard::GetDevice(int id)
+CReader *CWizard::GetDevice(int id)
 {
 	return vNewDevices[id];
 }
@@ -252,12 +252,12 @@ void CWizard::OnButton2Next(wxCommandEvent &event)
 	for(size_t i = 0; i < items.size(); i++)
 	{
 		int id = items[i];
-		CMySerial *serial = vDevices[id];	
+		CReader *ptr = vDevices[id];	
 		vNewDevices.push_back(vDevices[id]);
-		wxString port(serial->GetPortName(),wxConvUTF8);
+		wxString port(ptr->GetPortName(),wxConvUTF8);
 		CDevices devices;
-		wxString talker(devices.GetById(serial->GetDeviceType())->name ,wxConvUTF8);
-		m_NewListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),serial->GetBaudRate(),talker.wc_str()));
+		wxString talker(devices.GetById(ptr->GetDeviceType())->name ,wxConvUTF8);
+		m_NewListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),ptr->GetBaudRate(),talker.wc_str()));
 	}
 
 	m_Page3Text->SetLabel(wxString::Format(GetMsg(MSG_SELECTED_DEVICES),items.size()));

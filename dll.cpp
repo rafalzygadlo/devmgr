@@ -2,7 +2,7 @@
 #include "NaviDisplaySignals.h"
 #include "conf.h"
 #include "dll.h"
-#include "serial.h"
+#include "reader.h"
 #include "tools.h"
 #include "info.h"
 #include "devices.h"
@@ -72,12 +72,12 @@ void CMapPlugin::WriteConfig()
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
 	
-		CMySerial *Serial = m_vDevices[i];
-		name = Serial->GetDeviceName();
-		running = Serial->IsRunning();
-		wxString port(Serial->GetPortName(),wxConvUTF8);
-		baud = Serial->GetBaudRate();
-		type= Serial->GetDeviceType();		
+		CReader *ptr = m_vDevices[i];
+		name = ptr->GetDeviceName();
+		running = ptr->IsRunning();
+		wxString port(ptr->GetPortName(),wxConvUTF8);
+		baud = ptr->GetBaudRate();
+		type = ptr->GetDeviceType();		
 		
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),name);
 		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),port);
@@ -110,9 +110,9 @@ void CMapPlugin::ReadConfig()
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),&running);
 		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DEVICE_TYPE)),&type);
 		
-		CMySerial *serial = CreateNewDevice(name,port.char_str(),baud,running,type);
+		//CMySerial *ptr = CreateNewDevice(name,port.char_str(),baud,running,type);
 				
-		AddDevice(serial);
+		//AddDevice(serial);
 	
 	}
 			
@@ -132,7 +132,7 @@ size_t CMapPlugin::GetDevicesCount()
 	return m_vDevices.size();
 }
 
-CMySerial *CMapPlugin::GetSerial(size_t idx)
+CReader *CMapPlugin::GetReader(size_t idx)
 {
 	if(idx > m_vDevices.size())
 		return NULL;
@@ -144,32 +144,32 @@ CMySerial *CMapPlugin::GetSerial(size_t idx)
 void *CMapPlugin::AddDevice(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	ThisPtr->AddDeviceFunc((CMySerial*)Params);
+	ThisPtr->AddDeviceFunc((CReader*)Params);
 
 	return NULL;
 }
 
-void CMapPlugin::AddDeviceFunc(CMySerial *serial)
+void CMapPlugin::AddDeviceFunc(CReader *ptr)
 {
-	AddDevice(serial);
+	AddDevice(ptr);
 	SendSignal(ADD_DEVICE,0);
 }
 
-void CMapPlugin::StartDevice(CMySerial *serial)
+void CMapPlugin::StartDevice(CReader *ptr)
 {
-	SendSignal(START_DEVICE,serial->GetDeviceId());
+	SendSignal(START_DEVICE,ptr->GetDeviceId());
 }
 
-void CMapPlugin::StopDevice(CMySerial *serial)
+void CMapPlugin::StopDevice(CReader *ptr)
 {
-	SendSignal(STOP_DEVICE,serial->GetDeviceId());
+	SendSignal(STOP_DEVICE,ptr->GetDeviceId());
 }
 
-void CMapPlugin::RemoveDevice(CMySerial *serial)
+void CMapPlugin::RemoveDevice(CReader *ptr)
 {
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-		if(m_vDevices[i] == serial)
+		if(m_vDevices[i] == ptr)
 		{
 			m_vDevices[i]->Stop();
 			CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_vDevices[i]->GetDeviceName()));
@@ -193,15 +193,15 @@ void CMapPlugin::ReindexDevics()
 	}
 }
 
-void CMapPlugin::AddDevice(CMySerial *serial)
+void CMapPlugin::AddDevice(CReader *ptr)
 {
-	m_vDevices.push_back(serial);
+	m_vDevices.push_back(ptr);
 
-	serial->SetBroker(m_Broker);
-	serial->SetDeviceId(m_vDevices.size() - 1);
+	ptr->SetBroker(m_Broker);
+	ptr->SetDeviceId(m_vDevices.size() - 1);
 			
-	if(serial->RunOnStart())
-		serial->Start();
+	if(ptr->RunOnStart())
+		ptr->Start();
 
 }
 
@@ -360,8 +360,8 @@ void *CMapPlugin::GetParentPtr(void *NaviMapIOApiPtr, void *Params)
 void *CMapPlugin::OnDeviceSignal(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	CMySerial *Serial = (CMySerial*)Params;
-	ThisPtr->SendSignal(Serial->GetSignalType(),Serial->GetDeviceId());
+	CReader *ptr = (CReader*)Params;
+	ThisPtr->SendSignal(ptr->GetSignalType(),ptr->GetDeviceId());
 		
 	return NULL;
 }

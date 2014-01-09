@@ -3,7 +3,7 @@
 
 #include <wx/wx.h>
 #include "NaviBroker.h"
-#include "serial.h"
+#include "reader.h"
 
 wxString GetProductInfo();
 wxString GetProductName();
@@ -12,8 +12,6 @@ void FreeMutex();
 wxString GetPluginConfigPath();								
 wxString GetWorkDir(void);
 void PrintInfo(CNaviBroker *Broker,wchar_t *text);	// drukuj info na mapie
-CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int type);
-
 char **ExplodeStr(const char *str, const char *separator, int *size);
 void FreeStrList(char **list, int length);
 time_t GetUTCTimeNow(void);
@@ -24,6 +22,8 @@ bool SetGlobalPrioryty(int fid);
 bool Set_RMC_COG();
 bool Set_VTG_COG();
 bool Check_HDT();
+CReader *CreateSerialDevice(wxString name, char *port, int baud, bool run);
+CReader *CreateNtripDevice(wxString name, wxString host, wxString mount_point, int port, bool run);
 
 // funkcje protokolu
 
