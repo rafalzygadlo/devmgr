@@ -2,6 +2,7 @@
 #include "protocol.h"
 #include "tools.h"
 #include "GeometryTools.h"
+#include "ais.h"
 
 CParser::CParser()
 {
@@ -104,7 +105,13 @@ void CParser::Parse( char *line)
 			SSignals *s = signals.GetById(m_Data.id);
 			
 			CSIDS sids;
-						
+			
+			switch(m_Data.id)
+			{
+			case 25: Ais(m_Data.value);
+			
+			}
+			
 			if( ValidData )
 			{
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
@@ -117,6 +124,17 @@ void CParser::Parse( char *line)
 
 	}
 }
+
+void CParser::Ais(char *str)
+{
+	unsigned char *bits = NULL;
+	size_t bitlen = 0;
+	to6bit(str,bits,&bitlen);
+
+	ais_binary_decode(bits,bitlen);
+	
+}
+
 
 char *CParser::ConvertStr(char *str)
 {

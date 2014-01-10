@@ -506,8 +506,8 @@ void CDisplayPlugin::GetSignal()
 
 void CDisplayPlugin::OnData()
 {
-	SData *data = m_MapPlugin->GetData();
-	fprintf(stdout,"%d %s\n",data->id,data->marker);
+	//SData *data = m_MapPlugin->GetData();
+	//fprintf(stdout,"%d %s\n",data->id,data->marker);
 }
 
 void CDisplayPlugin::StartDevice()

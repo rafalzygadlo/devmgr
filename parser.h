@@ -21,6 +21,7 @@ class CParser
 	void SetFunction(int id_function, double *values);
 	void Reset(float *tab);
 	double DD( float DM );
+	void Ais(char *str);
 		
 public:
 	CParser();
