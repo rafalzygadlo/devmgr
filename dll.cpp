@@ -59,36 +59,73 @@ CMapPlugin::~CMapPlugin()
 	FreeMutex();
 }
 
-
 void CMapPlugin::WriteConfig()
 {
+	int type;
 	m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
-	wxString name,port;
-	int baud, type;
-	bool running;
-	
 	m_FileConfig->DeleteGroup(_(KEY_DEVICES));
 	
 	for(size_t i = 0; i < m_vDevices.size(); i++)
 	{
-	
 		CReader *ptr = m_vDevices[i];
-		name = ptr->GetDeviceName();
-		running = ptr->IsRunning();
-		wxString port(ptr->GetPortName(),wxConvUTF8);
-		baud = ptr->GetBaudRate();
-		type = ptr->GetDeviceType();		
+		type = ptr->GetConnectionType();		
 		
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),name);
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),port);
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),baud);
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),running);
-		m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DEVICE_TYPE)),type);
-	
+		switch(type)
+		{
+			case CONNECTION_TYPE_SERIAL:	WriteSerialConfig(i);	break;
+			case CONNECTION_TYPE_SOCKET:	WriteSocketConfig(i);	break;
+				
+		}
+			
 	}
 	
 	delete m_FileConfig;
 	m_FileConfig = NULL;
+
+}
+
+void CMapPlugin::WriteSerialConfig(int index)
+{
+	wxString name;
+	int baud, type, ctype;
+	bool running;
+	
+	CReader *Reader = m_vDevices[index];
+	name = Reader->GetDeviceName();
+	running = Reader->IsRunning();
+	wxString port(Reader->GetSerialPort(),wxConvUTF8);
+	baud = Reader->GetBaudRate();
+	type = Reader->GetDeviceType();
+	ctype = Reader->GetConnectionType();
+			
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_NAME)),name);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_SERIAL_PORT)),port);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_BAUD)),baud);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_RUNNING)),running);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_DEVICE_TYPE)),type);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_CONNECTION_TYPE)),ctype);
+}
+
+void CMapPlugin::WriteSocketConfig(int index)
+{
+	wxString name, host;
+	int  port, ctype, type;
+	bool running;
+	
+	CReader *Reader = m_vDevices[index];
+	name = Reader->GetDeviceName();
+	running = Reader->IsRunning();
+	port = Reader->GetPort();
+	host = wxString(Reader->GetHost(),wxConvUTF8);
+	ctype = Reader->GetConnectionType();
+	type = Reader->GetDeviceType();
+		
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_NAME)),name);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_HOST)),host);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_PORT)),port);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_RUNNING)),running);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_DEVICE_TYPE)),type);
+	m_FileConfig->Write(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_CONNECTION_TYPE)),ctype);
 
 }
 
@@ -98,22 +135,17 @@ void CMapPlugin::ReadConfig()
 	size_t len = m_FileConfig->GetNumberOfGroups();
 	
 	wxArrayString devices = GetConfigItems(_(KEY_DEVICES));
-	wxString name, port;
-	int baud,type;
-	bool running;
+	int type;
 	
 	for(size_t i = 0; i < devices.size(); i++)
 	{
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_NAME)),&name);
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_PORT)),&port);
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_BAUD)),&baud);
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_RUNNING)),&running);
-		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_DEVICE_TYPE)),&type);
+		m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),i,_(KEY_CONNECTION_TYPE)),&type);
 		
-		//CMySerial *ptr = CreateNewDevice(name,port.char_str(),baud,running,type);
-				
-		//AddDevice(serial);
-	
+		switch(type)
+		{
+			case CONNECTION_TYPE_SERIAL:	ReadSerialConfig(i);	break;
+			case CONNECTION_TYPE_SOCKET:	ReadSocketConfig(i);	break;
+		}
 	}
 			
 	delete m_FileConfig;
@@ -121,6 +153,41 @@ void CMapPlugin::ReadConfig()
 
 
 }
+
+void CMapPlugin::ReadSerialConfig(int index)
+{
+	wxString port, name;
+	int baud,dtype;
+	bool running;
+
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_NAME)),&name);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_SERIAL_PORT)),&port);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_BAUD)),&baud);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_RUNNING)),&running);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_DEVICE_TYPE)),&dtype);
+	
+	CReader *reader = CreateSerialDevice(name,port.char_str(),baud,dtype,running);
+	AddDevice(reader);
+
+}
+
+void CMapPlugin::ReadSocketConfig(int index)
+{
+	wxString name, host;
+	bool running;
+	int port,dtype;
+
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_NAME)),&name);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_HOST)),&host);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_PORT)),&port);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_RUNNING)),&running);
+	m_FileConfig->Read(wxString::Format(_("%s/%d/%s"),_(KEY_DEVICES),index,_(KEY_DEVICE_TYPE)),&dtype);
+	
+	CReader *socket = CreateSocketDevice(name,host,port,dtype,running);
+	AddDevice(socket);
+
+}
+
 
 CNaviBroker *CMapPlugin::GetBroker()
 {

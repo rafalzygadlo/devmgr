@@ -17,7 +17,7 @@
 #define nvPI 3.1415926535897932384626433832795
 
 #define PRODUCT_NAME "Device Manager"
-#define PRODUCT_VERSION "0.1"
+#define PRODUCT_VERSION "1.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
 
@@ -27,6 +27,9 @@
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
 #define KEY_DEVICE_TYPE "device_type"
+#define KEY_CONNECTION_TYPE "connection_type"
+#define KEY_SERIAL_PORT "serial_port"
+#define KEY_HOST "host"
 
 #define DIR_WORKDIR "workdir"
 
@@ -94,12 +97,15 @@
 #define MSG_DEVICE_TYPE_SERIAL		36
 #define MSG_HOST					37
 
-#define MAX_DATA_POSITIONS		10
+#define MAX_DATA_POSITIONS	10
 #define WORK_WIZARD 0
 
+#define CONNECTION_TYPE_SOCKET	0
+#define CONNECTION_TYPE_SERIAL	1
 
-#define DEVICE_TYPE_SOCKET	0
-#define DEVICE_TYPE_SERIAL	1
+#define DEFAULT_SOCKET_HOST "195.116.95.12"
+#define DEFAULT_SOCKET_PORT	"3556"
+
 
 typedef struct SData 
 {

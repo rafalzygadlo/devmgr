@@ -295,11 +295,11 @@ void CDisplayPlugin::ConfigureDevice()
 		m_DeviceConfig = new CConfig();
 	m_DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
 	m_DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
-	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
-
-	//SDevices *item = GetDevice(m_SelectedDevice->GetDeviceType());
+	m_DeviceConfig->SetConnectionType(m_SelectedDevice->GetConnectionType());
 	m_DeviceConfig->SetDeviceType(m_SelectedDevice->GetDeviceType());
 	
+	// zalezy od typu polaczenia
+	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
@@ -307,8 +307,15 @@ void CDisplayPlugin::ConfigureDevice()
 		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
 		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
 		m_SelectedDevice->SetDeviceType(m_DeviceConfig->GetDeviceType());
+		m_SelectedDevice->SetConnectionType(m_DeviceConfig->GetConnectionType());
 		m_SelectedDevice->SetDefinition();
-		m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetSerialPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
+
+		if(m_DeviceConfig->GetConnectionType() == CONNECTION_TYPE_SERIAL)
+			m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetSerialPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
+		if(m_DeviceConfig->GetConnectionType() == CONNECTION_TYPE_SOCKET)
+			m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s::%s] %s"),m_DeviceConfig->GetHost().wc_str() ,m_DeviceConfig->GetSocketPort().wc_str(), m_DeviceConfig->GetDeviceName().wc_str()));
+	
+	
 	}	
 }
 
@@ -334,7 +341,7 @@ void CDisplayPlugin::OnDeviceWizard(wxCommandEvent &event)
 		for(size_t i = 0; i < count; i++)
 		{
 			CReader *newreader = Wizard->GetDevice(i);
-			CReader *reader = CreateSerialDevice(newreader->GetDeviceName(), (char*)newreader->GetPortName(), newreader->GetBaudRate(), true);
+			CReader *reader = CreateSerialDevice(newreader->GetDeviceName(), (char*)newreader->GetPortName(), newreader->GetBaudRate(), newreader->GetDeviceType() ,true);
 			m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",reader);
 		}
 	}
@@ -349,12 +356,25 @@ void CDisplayPlugin::OnNewDevice(wxCommandEvent &event)
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
+		CReader *reader = NULL;
 		int count = m_MapPlugin->GetDevicesCount(); 
 		wxString name = wxString::Format(_("%s"),m_DeviceConfig->GetDeviceName().wc_str());
-		//CMySerial *serial = CreateNewDevice(name, m_DeviceConfig->GetPort().char_str(),	m_DeviceConfig->GetBaud(),true, m_DeviceConfig->GetDeviceType());
-		//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",serial);
-	}	
-	
+		
+		switch(m_DeviceConfig->GetConnectionType())
+		{
+			case CONNECTION_TYPE_SERIAL:
+				reader = CreateSerialDevice(name, m_DeviceConfig->GetSerialPort().char_str(),m_DeviceConfig->GetBaud(),m_DeviceConfig->GetDeviceType(), true);
+			break;
+			case CONNECTION_TYPE_SOCKET:
+				long port;
+				m_DeviceConfig->GetSocketPort().ToLong(&port);
+				reader = CreateSocketDevice(name, m_DeviceConfig->GetHost(),port,m_DeviceConfig->GetDeviceType(),true);
+			break;
+				
+		}
+		
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",reader);
+	}
 	
 }
 
@@ -541,6 +561,7 @@ void CDisplayPlugin::AddTreeItem(int item_id)
 
 	CReader *ptr = m_MapPlugin->GetReader(item_id);
 	wxString port(ptr->GetPortName(),wxConvUTF8);
+	wxString host(ptr->GetHost(),wxConvUTF8);
 	int icon_id = ICON_START;
 	bool running = false;
 	
@@ -550,7 +571,13 @@ void CDisplayPlugin::AddTreeItem(int item_id)
 		running = true;
 	}
 	
-	wxTreeItemId id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),ptr->GetDeviceName().wc_str()),icon_id);
+	wxTreeItemId id;
+
+	if(ptr->GetConnectionType() == CONNECTION_TYPE_SERIAL)
+		id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s] %s"),port.wc_str(),ptr->GetDeviceName().wc_str()),icon_id);
+	if(ptr->GetConnectionType() == CONNECTION_TYPE_SOCKET)
+		id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s::%d] %s"),host,ptr->GetPort(), ptr->GetDeviceName().wc_str()),icon_id);
+
 	CItem *Item = new CItem();
 	ptr->SetTreeCtrl(m_Devices);
 	ptr->SetTreeItemId(id);

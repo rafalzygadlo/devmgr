@@ -16,21 +16,22 @@ class CConfig: public wxDialog
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
 	wxTextCtrl *SerialNameText, *SocketNameText, *PortText, *HostText;
-		//*UserText,*PassText;
-	wxComboBox *ComboDeviceType;
-
-	wxPanel *SocketPanel,*SerialPanel;
+	wxComboBox *ConnectionTypeCombo, *DeviceTypeCombo;
+	wxPanel *SocketPanel,*SerialPanel,*DevicePanel;
 	int DeviceType;
+	int ConnectionType;
 		
 	bool Validate();
 	bool ValidateSerial();
 	bool ValidateSocket();
 	wxPanel *GetSerialPanel();
 	wxPanel *GetSocketPanel();
-	void ShowDevicePanel(int type);
+	wxPanel *GetDeviceTypePanel();
+	void ShowConnectionPanel(int type);
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
 	void OnScanPorts(wxHyperlinkEvent &event);
+	void OnConnectionType(wxCommandEvent &event);
 	void OnDeviceType(wxCommandEvent &event);
 	
 	
@@ -38,20 +39,20 @@ public:
 
 	CConfig();
 	~CConfig();
-	void ShowWindow(bool show);	
+	
 	int GetBaud();
+	int GetDeviceType();
+	int GetConnectionType();
+	wxString GetHost();
 	wxString GetDeviceName();
 	wxString GetSerialPort();
 	wxString GetSocketPort();
-	int GetDeviceType();
-	wxString GetHost();
-	wxString GetMount();
-	
+	void ShowWindow(bool show);
+	void SetConnectionType(int type);
 	void SetDeviceType(int type);
 	void SetDeviceName(wxString name);
 	void SetPort(char *port);
 	void SetBaud(int baud);
-	
 	void SetPort(int port);
 	void SetHost(char *host);
 		
@@ -62,7 +63,8 @@ public:
 	{
 		ID_CLOSE = 24138,
 		ID_REFRESH,
-		ID_TYPE
+		ID_CONNECTION_TYPE,
+		ID_DEVICE_TYPE
 	};
 
 };

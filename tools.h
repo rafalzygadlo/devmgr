@@ -22,9 +22,8 @@ bool SetGlobalPrioryty(int fid);
 bool Set_RMC_COG();
 bool Set_VTG_COG();
 bool Check_HDT();
-CReader *CreateSerialDevice(wxString name, char *port, int baud, bool run);
-CReader *CreateNtripDevice(wxString name, wxString host, wxString mount_point, int port, bool run);
-
+CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool run);
+CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, bool run);
 // funkcje protokolu
 
 #endif

@@ -17,9 +17,10 @@ CReader::CReader()
 	m_Broker = NULL;
 	m_Parser = new CParser();
 	TreeCtrl = NULL;
-	m_DeviceType = DEVICE_TYPE_SERIAL;
+	m_DeviceType = -1;
 	SerialPtr = (CSerial*)this;
 	SocketPtr = (CClient*)this;
+	m_ConnectionType = CONNECTION_TYPE_SERIAL;
 }
 
 CReader::~CReader()
@@ -113,6 +114,16 @@ void CReader::SetPort(int port)
 	SocketPtr->_SetPort(port);
 }
 
+int CReader::GetSocketPort()
+{
+	return SocketPtr->GetPort();
+}
+
+const char *CReader::GetSerialPort()
+{
+	return SerialPtr->GetPortName();
+}
+
 void CReader::Parse( char *line)
 {
 	 m_Parser->Parse(line);
@@ -120,37 +131,37 @@ void CReader::Parse( char *line)
 
 void CReader::Stop()
 {
-	switch(m_DeviceType)
+	switch(m_ConnectionType)
 	{
-		case DEVICE_TYPE_SOCKET: SocketPtr->Stop(); break;
-		case DEVICE_TYPE_SERIAL: SerialPtr->Stop(); break;
+		case CONNECTION_TYPE_SOCKET: SocketPtr->Stop(); break;
+		case CONNECTION_TYPE_SERIAL: SerialPtr->Stop(); break;
 	}
 }
 
 void CReader::Start()
 {
-	switch(m_DeviceType)
+	switch(m_ConnectionType)
 	{
-		case DEVICE_TYPE_SOCKET: SocketPtr->Start(); break;
-		case DEVICE_TYPE_SERIAL: SerialPtr->Start(); break;
+		case CONNECTION_TYPE_SOCKET: SocketPtr->Start(); break;
+		case CONNECTION_TYPE_SERIAL: SerialPtr->Start(); break;
 	}
 }
 
 void CReader::SetParseLine(bool val)
 {
-	switch(m_DeviceType)
+	switch(m_ConnectionType)
 	{
-		case DEVICE_TYPE_SOCKET: SocketPtr->SetParseLine(val);	break;
-		case DEVICE_TYPE_SERIAL: SerialPtr->SetParseLine(val);	break;
+		case CONNECTION_TYPE_SOCKET: SocketPtr->SetParseLine(val);	break;
+		case CONNECTION_TYPE_SERIAL: SerialPtr->SetParseLine(val);	break;
 	}
 }
 
 bool CReader::IsConnected()
 {
-	switch(m_DeviceType)
+	switch(m_ConnectionType)
 	{
-		case DEVICE_TYPE_SOCKET:	return SocketPtr->IsConnected();
-		case DEVICE_TYPE_SERIAL:	return SerialPtr->IsConnected();
+		case CONNECTION_TYPE_SOCKET:	return SocketPtr->IsConnected();
+		case CONNECTION_TYPE_SERIAL:	return SerialPtr->IsConnected();
 	}
 
 	return false;
@@ -161,9 +172,17 @@ void CReader::SetHost(char *host)
 	SocketPtr->_SetHost(host);
 }
 
+void CReader::SetConnectionType(int type)
+{
+	m_ConnectionType = type;
+}
+
+int CReader::GetConnectionType()
+{
+	return m_ConnectionType;
+}
 
 // zdarzenia seriala
-
 void CReader::OnConnect()
 {
 }
@@ -203,16 +222,14 @@ void CReader::OnBeforeMainLoop()
 
 void CReader::OnLine( char *buffer, int length)
 {
-	
+	m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
+	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	Parse(buffer);	
 }
 
 void CReader::OnNMEALine( char *buffer, int length)
 {
-	
-	m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
-	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
-	Parse(buffer);
-
+	// narazie przeniesiono do OnLine
 }
 
 void CReader::OnReconnect()

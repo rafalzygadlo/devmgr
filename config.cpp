@@ -9,14 +9,15 @@
 BEGIN_EVENT_TABLE(CConfig,wxDialog)
 	EVT_BUTTON(ID_CLOSE,OnCloseButton)
 	EVT_HYPERLINK(ID_REFRESH,OnScanPorts)
-	EVT_COMBOBOX(ID_TYPE,OnDeviceType)
+	EVT_COMBOBOX(ID_CONNECTION_TYPE,OnConnectionType)
+	EVT_COMBOBOX(ID_DEVICE_TYPE,OnDeviceType)
 END_EVENT_TABLE()
 
 
 CConfig::CConfig()
 	:wxDialog(NULL,wxID_ANY, _(PRODUCT_NAME), wxDefaultPosition, wxDefaultSize )
 {
-	DeviceType = DEVICE_TYPE_SERIAL;
+	ConnectionType = CONNECTION_TYPE_SERIAL;
 	Reader = new CReader();
 
 	MainSizer = new wxBoxSizer(wxVERTICAL);
@@ -24,19 +25,21 @@ CConfig::CConfig()
 						
 	this->SetSizer(MainSizer);
 	
-	ComboDeviceType = new wxComboBox(this,ID_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,wxCB_READONLY);
-	ComboDeviceType->Append(GetMsg(MSG_DEVICE_TYPE_SOCKET));
-	ComboDeviceType->Append(GetMsg(MSG_DEVICE_TYPE_SERIAL));
-	MainSizer->Add(ComboDeviceType,0,wxALL|wxEXPAND,5); 
+	ConnectionTypeCombo = new wxComboBox(this,ID_CONNECTION_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,wxCB_READONLY);
+	ConnectionTypeCombo->Append(GetMsg(MSG_DEVICE_TYPE_SOCKET));
+	ConnectionTypeCombo->Append(GetMsg(MSG_DEVICE_TYPE_SERIAL));
+	MainSizer->Add(ConnectionTypeCombo,0,wxALL|wxEXPAND,5); 
 
 	SerialPanel = GetSerialPanel();
 	SocketPanel = GetSocketPanel();
+	DevicePanel = GetDeviceTypePanel();
 	SocketPanel->Hide();
 	
-	ComboDeviceType->SetSelection(DEVICE_TYPE_SERIAL);
-	MainSizer->Add(SerialPanel,0,wxALL|wxEXPAND,0);
-	MainSizer->Add(SocketPanel,0,wxALL|wxEXPAND,0);
-		
+	ConnectionTypeCombo->SetSelection(CONNECTION_TYPE_SERIAL);
+	MainSizer->Add(SerialPanel,0,wxALL|wxEXPAND,5);
+	MainSizer->Add(SocketPanel,0,wxALL|wxEXPAND,5);
+	MainSizer->Add(DevicePanel,0,wxALL|wxEXPAND,5);
+
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText *LabelProductInfo = new wxStaticText(this,wxID_ANY,GetProductInfo() ,wxDefaultPosition,wxDefaultSize);
 	ButtonSizer->Add(LabelProductInfo,0,wxALL,5);
@@ -59,6 +62,42 @@ CConfig::~CConfig(void)
 {
 	delete Reader;
 }
+
+wxPanel *CConfig::GetDeviceTypePanel()
+{
+	wxPanel *Panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Panel->SetBackgroundColour(*wxWHITE);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(PanelSizer);
+	wxFlexGridSizer *FlexGrid1Sizer = new wxFlexGridSizer(2);
+	FlexGrid1Sizer->AddGrowableCol(1);
+	PanelSizer->Add(FlexGrid1Sizer,1,wxALL|wxEXPAND,10);
+	
+	for(size_t i = 0; i < Reader->GetBaudInfoLength(); i++)
+		BaudCombo->Append(wxString::Format(_("%d"),Reader->GetBaudInfo(i)));
+
+	wxStaticText *DeviceType = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_TYPE));
+	FlexGrid1Sizer->Add(DeviceType,0,wxALL,5);
+	DeviceTypeCombo = new wxComboBox(Panel,ID_DEVICE_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,wxCB_READONLY);
+	FlexGrid1Sizer->Add(DeviceTypeCombo,0,wxALL,5);
+
+	DeviceTypeCombo->Clear();
+	CDevices *Devices = new CDevices();
+		
+	size_t len = Devices->GetLen();
+	for(size_t i = 0; i < len; i++)
+	{
+		SDevices * device = Devices->Get(i);
+		wxString name(device->name,wxConvUTF8);
+		DeviceTypeCombo->SetClientData(device);
+		DeviceTypeCombo->Append(name);
+	}				
+	
+	delete Devices;
+
+	return Panel;
+}
+
 
 wxPanel *CConfig::GetSerialPanel()
 {
@@ -93,9 +132,6 @@ wxPanel *CConfig::GetSerialPanel()
 	BaudCombo = new wxComboBox(Panel,wxID_ANY,wxEmptyString);
 	FlexGrid1Sizer->Add(BaudCombo,0,wxALL,5);
 	
-	for(size_t i = 0; i < Reader->GetBaudInfoLength(); i++)
-		BaudCombo->Append(wxString::Format(_("%d"),Reader->GetBaudInfo(i)));
-
 	return Panel;
 }
 
@@ -117,7 +153,7 @@ wxPanel *CConfig::GetSocketPanel()
 	
 	wxStaticText *HostLabel = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_HOST));
 	FlexGrid1Sizer->Add(HostLabel,0,wxALL,5);
-	HostText = new wxTextCtrl(Panel,wxID_ANY,wxEmptyString);
+	HostText = new wxTextCtrl(Panel,wxID_ANY,_(DEFAULT_SOCKET_HOST));
 	FlexGrid1Sizer->Add(HostText,0,wxALL|wxEXPAND,5);
 	
 	//wxStaticText *UserLabel = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_USER));
@@ -132,7 +168,7 @@ wxPanel *CConfig::GetSocketPanel()
 		
 	wxStaticText *PortLabel = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_PORT));
 	FlexGrid1Sizer->Add(PortLabel,0,wxALL,5);
-	PortText = new wxTextCtrl(Panel,wxID_ANY,wxEmptyString);
+	PortText = new wxTextCtrl(Panel,wxID_ANY,_(DEFAULT_SOCKET_PORT));
 	//PortText->SetValue(wxString::Format(_("%d"),SOCKET_DEFAULT_PORT));
 	FlexGrid1Sizer->Add(PortText,0,wxALL,5);
 			
@@ -149,10 +185,10 @@ bool CConfig::Validate()
 {
 	bool result = true;
 
-	switch(DeviceType)
+	switch(ConnectionType)
 	{
-		case DEVICE_TYPE_SERIAL:	return ValidateSerial();
-		case DEVICE_TYPE_SOCKET:	return ValidateSocket();
+		case CONNECTION_TYPE_SERIAL:	return ValidateSerial();
+		case CONNECTION_TYPE_SOCKET:	return ValidateSocket();
 
 	}
 
@@ -188,6 +224,16 @@ bool CConfig::ValidateSerial()
 		BaudCombo->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	}
 
+	if(DeviceTypeCombo->GetValue().empty())
+	{
+		DeviceTypeCombo->SetBackgroundColour(*wxRED);
+		result = false;
+	}else{
+		DeviceTypeCombo->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	}
+	
+	
+	
 	Refresh();
 	
 	return result;
@@ -222,6 +268,13 @@ bool CConfig::ValidateSocket()
 		PortText->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	}
 
+	if(DeviceTypeCombo->GetValue().empty())
+	{
+		DeviceTypeCombo->SetBackgroundColour(*wxRED);
+		result = false;
+	}else{
+		DeviceTypeCombo->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	}
 	
 
 	Refresh();
@@ -241,34 +294,43 @@ int CConfig::GetDeviceType()
 	return DeviceType;
 }
 
-void CConfig::ShowDevicePanel(int type)
+int CConfig::GetConnectionType()
+{
+	return ConnectionType;
+}
+
+void CConfig::ShowConnectionPanel(int type)
 {
 	SocketPanel->Hide();
 	SerialPanel->Hide();
 	
 
-	if(type == DEVICE_TYPE_SOCKET)
+	if(type == CONNECTION_TYPE_SOCKET)
 	{
 		SocketPanel->Show();
 		MainSizer->SetSizeHints(this);
 		this->Layout();
 	}
 
-	if(type == DEVICE_TYPE_SERIAL)
+	if(type == CONNECTION_TYPE_SERIAL)
 	{
 		SerialPanel->Show();
 		MainSizer->SetSizeHints(this);
 		this->Layout();
 	}
 
-
-
 }
 
 void CConfig::OnDeviceType(wxCommandEvent &event)
 {
 	DeviceType = event.GetSelection();
-	ShowDevicePanel(event.GetSelection());
+}
+
+
+void CConfig::OnConnectionType(wxCommandEvent &event)
+{
+	ConnectionType = event.GetSelection();
+	ShowConnectionPanel(event.GetSelection());
 }
 
 void CConfig::OnScanPorts(wxHyperlinkEvent &event)
@@ -290,9 +352,9 @@ void CConfig::OnScanPorts(wxHyperlinkEvent &event)
 
 wxString CConfig::GetDeviceName()
 {
-	if(DeviceType == DEVICE_TYPE_SOCKET)
+	if(ConnectionType == CONNECTION_TYPE_SOCKET)
 		return SocketNameText->GetValue();
-	if(DeviceType == DEVICE_TYPE_SERIAL)
+	if(ConnectionType == CONNECTION_TYPE_SERIAL)
 		return SerialNameText->GetValue();
 	
 	return wxEmptyString;
@@ -340,21 +402,27 @@ void CConfig::SetHost(char *host)
 
 void CConfig::SetDeviceName(wxString name)
 {
-	switch(DeviceType)
+	switch(ConnectionType)
 	{
-		case DEVICE_TYPE_SERIAL:	SerialNameText->SetLabel(name); break;
-		case DEVICE_TYPE_SOCKET:	SocketNameText->SetLabel(name); break;
+		case CONNECTION_TYPE_SERIAL:	SerialNameText->SetLabel(name); break;
+		case CONNECTION_TYPE_SOCKET:	SocketNameText->SetLabel(name); break;
 	}
+}
+
+void CConfig::SetConnectionType(int type)
+{
+	ConnectionType = type;
+	ConnectionTypeCombo->SetSelection(type);
+	//ConnectionTypeCombo->Disable();
+	ShowConnectionPanel(type);
 }
 
 void CConfig::SetDeviceType(int type)
 {
 	DeviceType = type;
-	ComboDeviceType->SetSelection(type);
-	ComboDeviceType->Disable();
-	ShowDevicePanel(type);
+	DeviceTypeCombo->SetSelection(type);
+	
 }
-
 
 void CConfig::ShowWindow(bool show)
 {

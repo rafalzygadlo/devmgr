@@ -26,7 +26,8 @@ class CReader :public CSerial, public CClient
 	wxTreeCtrl *TreeCtrl;
 	CSerial *SerialPtr;
 	CClient *SocketPtr;
-		
+	int m_ConnectionType;
+
 public:
 	CReader();
 	~CReader();
@@ -39,12 +40,11 @@ public:
 	void SetRunOnStart(bool val);
 	wxString GetDeviceName();
 	size_t GetDeviceId();					
-	int GetSignalType();
+	void SetDefinition();
 	void Parse( char *line);
 	void SetDeviceType(int type);
+	int GetSignalType();
 	int GetDeviceType();
-	void SetDefinition();
-	int GetMarkersLength();
 	void SetTreeItemId(wxTreeItemId id);
 	void SetTreeCtrl(wxTreeCtrl *tree);
 	wxTreeItemId GetTreeItemId();
@@ -55,6 +55,10 @@ public:
 	void SetParseLine(bool val);
 	bool IsConnected();
 	void SetHost(char *host);
+	int GetSocketPort();
+	const char *GetSerialPort();
+	void SetConnectionType(int type);
+	int GetConnectionType();
 
 	
 	virtual void OnConnect();

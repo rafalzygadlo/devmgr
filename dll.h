@@ -53,7 +53,10 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetData(SData *value);
 	void SetDisplaySignal(int type);
 	void SetFunctionData(SFunctionData *data);
-
+	void WriteSerialConfig(int index);
+	void WriteSocketConfig(int index);
+	void ReadSocketConfig(int index);
+	void ReadSerialConfig(int index);
 					
 public:
 
