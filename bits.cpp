@@ -17,6 +17,7 @@
 
 #include "bits.h"
 
+
 uint64_t ubits(unsigned char buf[], unsigned int start, unsigned int width, bool le)
 /* extract a (zero-origin) bitfield from the buffer as an unsigned big-endian uint64_t */
 {

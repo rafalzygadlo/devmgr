@@ -104,8 +104,13 @@
 #define CONNECTION_TYPE_SERIAL	1
 
 #define DEFAULT_SOCKET_HOST "195.116.95.12"
-#define DEFAULT_SOCKET_PORT	"3556"
+#define DEFAULT_SOCKET_PORT	"3557"
 
+// w bibliotece protocols definicja w tablicach parsera
+#define AIS_MESSAGE					25
+#define AIS_FRAGMENTS				34
+#define AIS_FRAGMENT_NUMBER			35
+#define AIS_SEQUENTIAL_MESSAGE_ID	36
 
 typedef struct SData 
 {

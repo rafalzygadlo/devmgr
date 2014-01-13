@@ -10,6 +10,7 @@
 class CParser
 {
 	SData m_Data;
+	bool m_Multipart;
 	CNaviBroker *m_Broker;
 	std::vector<SDefinition> m_DataDefinition;
 	std::vector<SPosition> m_PositionDefinition;
@@ -22,6 +23,10 @@ class CParser
 	void Reset(float *tab);
 	double DD( float DM );
 	void Ais(char *str);
+	void AisFragments(char *val);
+	void AisFragmentNumber(char *val);
+	void AisSequentialMessageId(char *val);
+
 		
 public:
 	CParser();

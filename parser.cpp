@@ -60,6 +60,7 @@ void CParser::Parse( char *line)
 	//fprintf(stdout,"%s",line);
 	//sygna³ nowej lini
 			
+	m_Multipart = false;
 	SDefinition DataDefinition;
 	for( size_t d = 0; d < m_DataDefinition.size() ; d++ ) 
 	{
@@ -107,8 +108,8 @@ void CParser::Parse( char *line)
 			CSIDS sids;
 			
 			switch(m_Data.id)
-			{
-			case 25: Ais(m_Data.value);
+			{				
+				case AIS_MESSAGE: Ais(line); break;
 			
 			}
 			
@@ -116,7 +117,7 @@ void CParser::Parse( char *line)
 			{
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
 				// ustawia funkcje definiowane w protocole
-				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnData",&m_Data);
+				//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnData",&m_Data);
 				SetValidData();
 			}
 			
@@ -125,14 +126,27 @@ void CParser::Parse( char *line)
 	}
 }
 
-void CParser::Ais(char *str)
+void CParser::Ais(char *line)
 {
+	
+	int size;
+	char **StrList = ExplodeStr(line, ",", &size);
+	
+	fprintf(stderr,"SIZE:%d\n",size);
+	char *a = StrList[1];
+	char *b = StrList[2];
+	char *c = StrList[3];
+	
+	if(m_Multipart)
+		return;
+	/*
 	unsigned char *bits = NULL;
 	size_t bitlen = 0;
 	to6bit(str,bits,&bitlen);
 
 	ais_binary_decode(bits,bitlen);
-	
+	free(bits);
+	*/
 }
 
 

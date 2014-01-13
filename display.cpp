@@ -295,25 +295,38 @@ void CDisplayPlugin::ConfigureDevice()
 		m_DeviceConfig = new CConfig();
 	m_DeviceConfig->SetPort((char*)m_SelectedDevice->GetPortName());
 	m_DeviceConfig->SetBaud(m_SelectedDevice->GetBaudRate());
+	m_DeviceConfig->SetHost(m_SelectedDevice->GetHost());
+	m_DeviceConfig->SetPort(m_SelectedDevice->GetPort());
 	m_DeviceConfig->SetConnectionType(m_SelectedDevice->GetConnectionType());
 	m_DeviceConfig->SetDeviceType(m_SelectedDevice->GetDeviceType());
 	
+
 	// zalezy od typu polaczenia
 	m_DeviceConfig->SetDeviceName(m_SelectedDevice->GetDeviceName());
 	
 	if(m_DeviceConfig->ShowModal() == wxID_OK)
 	{
-		m_SelectedDevice->SetPort(m_DeviceConfig->GetSerialPort().char_str());
-		m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
+		
 		m_SelectedDevice->SetDeviceName(m_DeviceConfig->GetDeviceName());
 		m_SelectedDevice->SetDeviceType(m_DeviceConfig->GetDeviceType());
 		m_SelectedDevice->SetConnectionType(m_DeviceConfig->GetConnectionType());
 		m_SelectedDevice->SetDefinition();
 
 		if(m_DeviceConfig->GetConnectionType() == CONNECTION_TYPE_SERIAL)
+		{
+			m_SelectedDevice->SetPort(m_DeviceConfig->GetSerialPort().char_str());
+			m_SelectedDevice->SetBaud(m_DeviceConfig->GetBaud());
 			m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s] %s"),m_DeviceConfig->GetSerialPort().wc_str(),m_DeviceConfig->GetDeviceName().wc_str()));
+		}
+		
 		if(m_DeviceConfig->GetConnectionType() == CONNECTION_TYPE_SOCKET)
+		{
+			long port; 
+			m_DeviceConfig->GetSocketPort().ToLong(&port);
+			m_SelectedDevice->SetPort(port);
+			m_SelectedDevice->SetHost(m_DeviceConfig->GetHost().char_str());
 			m_Devices->SetItemText(m_SelectedItemId,wxString::Format(_("[%s::%s] %s"),m_DeviceConfig->GetHost().wc_str() ,m_DeviceConfig->GetSocketPort().wc_str(), m_DeviceConfig->GetDeviceName().wc_str()));
+		}
 	
 	
 	}	
