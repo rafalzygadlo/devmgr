@@ -7,6 +7,7 @@
 CParser::CParser()
 {
 	m_Broker = NULL;
+	m_MessageId = m_FragmentNumber = m_FragmentCount = 0;
 }
 
 CParser::~CParser()
@@ -132,13 +133,55 @@ void CParser::Ais(char *line)
 	int size;
 	char **StrList = ExplodeStr(line, ",", &size);
 	
-	fprintf(stderr,"SIZE:%d\n",size);
-	char *a = StrList[1];
-	char *b = StrList[2];
-	char *c = StrList[3];
-	
-	if(m_Multipart)
+	//fprintf(stderr,"SIZE:%d\n",size);
+	char *Fragments = StrList[1];// count of frag
+
+	int fragments = atoi(Fragments);
+	if(size != AIS_PARTS)
+	{
+		fprintf(stdout,"%d\n",size);
+		FreeStrList( StrList, size );
 		return;
+	}
+
+	int fn = 0;
+
+	if(fragments > 1)
+	{
+		int size;
+		int fc = atoi(StrList[1]);		// fragment counter
+		fn = atoi(StrList[2]);			//fragment number
+		int mid = atoi(StrList[3]);		// message ID
+		
+		if(m_MessageId == 0)	// zaczynamy
+			m_MessageId = mid;
+		
+		if(mid != m_MessageId)
+			return;
+		
+		m_MessageId = mid;
+		char *csum = StrList[6];		//AIS_PAD
+	
+		char **last = ExplodeStr(csum,"*",&size);
+		int pad = atoi(last[0]);
+
+		m_FragmentCount++;
+		if(fn != m_FragmentCount)
+			return;
+		
+
+		FreeStrList( last, size );
+		
+	}
+	
+	FreeStrList( StrList, size );
+		
+	if(fn == m_FragmentCount)
+	{
+		m_FragmentCount = 0;
+		m_FragmentNumber = 0;
+		int a = 0;
+	}
 	/*
 	unsigned char *bits = NULL;
 	size_t bitlen = 0;

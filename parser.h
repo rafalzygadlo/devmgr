@@ -14,6 +14,7 @@ class CParser
 	CNaviBroker *m_Broker;
 	std::vector<SDefinition> m_DataDefinition;
 	std::vector<SPosition> m_PositionDefinition;
+	int m_MessageId,m_FragmentNumber,m_FragmentCount;
 	
 	char ConvertChar(char data);
 	char *ConvertStr(char *str);

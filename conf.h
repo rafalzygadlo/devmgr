@@ -108,9 +108,11 @@
 
 // w bibliotece protocols definicja w tablicach parsera
 #define AIS_MESSAGE					25
-#define AIS_FRAGMENTS				34
-#define AIS_FRAGMENT_NUMBER			35
-#define AIS_SEQUENTIAL_MESSAGE_ID	36
+//#define AIS_FRAGMENTS				34
+//#define AIS_FRAGMENT_NUMBER			35
+//#define AIS_SEQUENTIAL_MESSAGE_ID	36
+
+#define AIS_PARTS 7 // czesci wiadomosci
 
 typedef struct SData 
 {
