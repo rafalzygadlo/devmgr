@@ -7,7 +7,11 @@
 CParser::CParser()
 {
 	m_Broker = NULL;
-	m_MessageId = m_FragmentNumber = m_FragmentCount = 0;
+	m_MessageId = -1;
+	m_FragmentCount = 0;
+	m_Bits = NULL;
+	m_Bitlen = 0;
+	m_OldLen = 0;
 }
 
 CParser::~CParser()
@@ -130,68 +134,78 @@ void CParser::Parse( char *line)
 void CParser::Ais(char *line)
 {
 	
-	int size;
-	char **StrList = ExplodeStr(line, ",", &size);
+	int str_size;
+	char **StrList = ExplodeStr(line, ",", &str_size);
 	
-	//fprintf(stderr,"SIZE:%d\n",size);
-	char *Fragments = StrList[1];// count of frag
-
-	int fragments = atoi(Fragments);
-	if(size != AIS_PARTS)
+	if(str_size != AIS_PARTS)
 	{
-		fprintf(stdout,"%d\n",size);
-		FreeStrList( StrList, size );
+		fprintf(stdout,"%d\n",str_size);
+		FreeStrList( StrList, str_size );
 		return;
 	}
 
 	int fn = 0;
-
-	if(fragments > 1)
-	{
-		int size;
-		int fc = atoi(StrList[1]);		// fragment counter
-		fn = atoi(StrList[2]);			//fragment number
-		int mid = atoi(StrList[3]);		// message ID
+	int fc = 0;
+	bool decode = true;
+	fc = atoi(StrList[AIS_FRAGMENT_COUNTER]);		// fragment counter
+	fn = atoi(StrList[AIS_FRAGMENT_NUMBER]);		//fragment number
+	char *data = StrList[AIS_DATA];
+	int pad = 0;
 		
-		if(m_MessageId == 0)	// zaczynamy
+	if(fc > 1)
+	{
+		decode = false;
+		fprintf(stderr,"%s",line);
+				
+		int mid = atoi(StrList[AIS_MESSAGE_ID]);		// message ID
+		
+		if(m_MessageId == -1)	// zaczynamy
+		{		
+			m_FragmentCount = 0;
 			m_MessageId = mid;
+		}
 		
 		if(mid != m_MessageId)
 			return;
 		
 		m_MessageId = mid;
-		char *csum = StrList[6];		//AIS_PAD
-	
-		char **last = ExplodeStr(csum,"*",&size);
-		int pad = atoi(last[0]);
+		char *csum = StrList[AIS_CHECKSUM];		//AIS_CHECKSUM
+		int last_size;
+		char **last = ExplodeStr(csum,"*",&last_size);
+		pad = atoi(last[0]); // AIS_PAD
 
 		m_FragmentCount++;
 		if(fn != m_FragmentCount)
 			return;
 		
-
-		FreeStrList( last, size );
+		FreeStrList( last, last_size );
 		
+				
+		if(fc == m_FragmentCount)
+		{
+			m_FragmentCount = 0;
+			m_MessageId = -1;
+			decode = true;
+			int a = 0;
+		}
+				
+	}
+		
+	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
+	//m_Bitlen -= (pad - '0');
+	
+	FreeStrList( StrList, str_size );
+	
+	if(decode)
+	{
+		ais_binary_decode(m_Bits,m_Bitlen);
+		free(m_Bits);
+		m_Bits = NULL;
+		m_Bitlen = 0;
+		m_OldLen = 0;
 	}
 	
-	FreeStrList( StrList, size );
-		
-	if(fn == m_FragmentCount)
-	{
-		m_FragmentCount = 0;
-		m_FragmentNumber = 0;
-		int a = 0;
-	}
-	/*
-	unsigned char *bits = NULL;
-	size_t bitlen = 0;
-	to6bit(str,bits,&bitlen);
-
-	ais_binary_decode(bits,bitlen);
-	free(bits);
-	*/
 }
-
 
 char *CParser::ConvertStr(char *str)
 {

@@ -108,6 +108,13 @@
 
 // w bibliotece protocols definicja w tablicach parsera
 #define AIS_MESSAGE					25
+
+#define AIS_CHECKSUM			6
+#define AIS_MESSAGE_ID			3			
+#define AIS_FRAGMENT_NUMBER		2
+#define AIS_FRAGMENT_COUNTER	1
+#define AIS_DATA				5
+
 //#define AIS_FRAGMENTS				34
 //#define AIS_FRAGMENT_NUMBER			35
 //#define AIS_SEQUENTIAL_MESSAGE_ID	36

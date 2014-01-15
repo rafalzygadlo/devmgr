@@ -976,11 +976,13 @@ struct ais_t
   //  };
 };
 
-void to6bit(char *data, unsigned char *&bits, size_t *length);
+void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
 int ais_binary_decode(unsigned char *bits, size_t bitlen);
 void ais_message_1(unsigned char *bits, ais_t *ais);
 void ais_message_4(unsigned char *bits, ais_t *ais);
 void ais_message_5(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais);
+
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 
