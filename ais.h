@@ -9,11 +9,11 @@
 #define AIS_MSG_1	1
 #define AIS_MSG_2	2
 
-//#define BITS_PER_BYTE	8
+#define BITS_PER_BYTE	8
 #define UBITS(s, l)	ubits((unsigned char *)bits, s, l, false)
 #define SBITS(s, l)	sbits((signed char *)bits, s, l, false)
 #define UCHARS(s, to)	from_sixbit((unsigned char *)bits, s, sizeof(to)-1, to)
-//#define ENDCHARS(s, to)	from_sixbit((unsigned char *)bits, s, (bitlen-(s))/6,to)
+#define ENDCHARS(s, to)	from_sixbit((unsigned char *)bits, s, (bitlen-(s))/6,to)
 
 #define AIS_MSG_1	1
 #define AIS_MSG_2	2
@@ -43,6 +43,11 @@
 #define AIS_MSG_26	26
 #define AIS_MSG_27	27
 
+struct ais_p
+{
+	float lon;
+	float lat;
+};
 
 struct route_info {
     unsigned int linkage;	/* Message Linkage ID */
@@ -65,9 +70,10 @@ struct ais_t
     //unsigned int	type;		/* message type */
     unsigned int    repeat;		/* Repeat indicator */
     unsigned int	mmsi;		/* MMSI */
-  //  union {
+    //union {
 	/* Types 1-3 Common navigation info */
 	struct {
+		bool valid;
 	    unsigned int status;		/* navigation status */
 	    signed turn;			/* rate of turn */
 #define AIS_TURN_HARD_LEFT	-127
@@ -98,6 +104,7 @@ struct ais_t
 	} type1;
 	/* Type 4 - Base Station Report & Type 11 - UTC and Date Response */
 	struct {
+		bool valid;
 	    unsigned int year;			/* UTC year */
 #define AIS_YEAR_NOT_AVAILABLE	0
 	    unsigned int month;			/* UTC month */
@@ -120,6 +127,7 @@ struct ais_t
 	} type4;
 	/* Type 5 - Ship static and voyage related data */
 	struct {
+		bool valid;
 	    unsigned int ais_version;	/* AIS version level */
 	    unsigned int imo;		/* IMO identification */
 	    char callsign[7+1];		/* callsign */
@@ -142,6 +150,7 @@ struct ais_t
 	} type5;
 	/* Type 6 - Addressed Binary Message */
 	struct {
+		bool valid;
 	    unsigned int seqno;		/* sequence number */
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    bool retransmit;		/* retransmit flag */
@@ -150,7 +159,7 @@ struct ais_t
 	    unsigned int fid;           /* Functional ID */
 #define AIS_TYPE6_BINARY_MAX	920	/* 920 bits */
 	    size_t bitcount;		/* bit count of the data */
-	    union {
+	    //union {
 		char bitdata[(AIS_TYPE6_BINARY_MAX + 7) / 8];
 		/* Inland AIS - ETA at lock/bridge/terminal */
 		struct {
@@ -284,7 +293,7 @@ struct ais_t
 		/*** WORK IN PROGRESS - NOT YET DECODED ***/
 		struct {
 		    bool wmo;			/* true if WMO variant */
-		    union {
+		    //union {
 			struct {
 			    char location[20+1];	/* Location */
 			    signed int lon;		/* Longitude */
@@ -364,7 +373,7 @@ struct ais_t
 #define DAC1FID21_HUMIDITY_NOT_VAILABLE		127
 			    /* some trailing fields are missing */
 			} wmo_obs;
-		    };
+		    //};
 	        } dac1fid21;
 		/*** WORK IN PROGRESS ENDS HERE ***/
 		/* IMO289 - Dangerous Cargo Indication */
@@ -403,10 +412,11 @@ struct ais_t
 			unsigned int cspeed;	/* Current Speed Predicted */
 		    } tidals[3];
 		} dac1fid32;
-	    };
+	    //};
 	} type6;
 	/* Type 7 - Binary Acknowledge */
 	struct {
+		bool valid;
 	    unsigned int mmsi1;
 	    unsigned int mmsi2;
 	    unsigned int mmsi3;
@@ -415,11 +425,12 @@ struct ais_t
 	} type7;
 	/* Type 8 - Broadcast Binary Message */
 	struct {
+		bool valid;
 	    unsigned int dac;       	/* Designated Area Code */
 	    unsigned int fid;       	/* Functional ID */
 #define AIS_TYPE8_BINARY_MAX	952	/* 952 bits */
 	    size_t bitcount;		/* bit count of the data */
-	    union {
+	    //union {
 		char bitdata[(AIS_TYPE8_BINARY_MAX + 7) / 8];
 		/* Inland static ship and voyage-related data */
 		struct {
@@ -709,7 +720,7 @@ struct ais_t
 		    unsigned int ice;		/* is there sea ice? */
 #define DAC1FID31_ICE_NOT_AVAILABLE		3
 		} dac1fid31;
-	    };
+	    //};
 	} type8;
 	/* Type 9 - Standard SAR Aircraft Position Report */
 	struct {
@@ -973,7 +984,7 @@ struct ais_t
 #define AIS_LONGRANGE_COURSE_NOT_AVAILABLE 511
 	    bool gnss;			/* are we reporting GNSS position? */
 	} type27;
-  //  };
+    //};
 };
 
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
@@ -982,6 +993,8 @@ void ais_message_1(unsigned char *bits, ais_t *ais);
 void ais_message_4(unsigned char *bits, ais_t *ais);
 void ais_message_5(unsigned char *bits, size_t bitlen, ais_t *ais);
 void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_7(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais);
 
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);

@@ -155,7 +155,7 @@ void CParser::Ais(char *line)
 	if(fc > 1)
 	{
 		decode = false;
-		fprintf(stderr,"%s",line);
+		//fprintf(stderr,"%s",line);
 				
 		int mid = atoi(StrList[AIS_MESSAGE_ID]);		// message ID
 		
@@ -192,7 +192,7 @@ void CParser::Ais(char *line)
 	}
 		
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
-	//m_Bitlen -= (pad - '0');
+	m_Bitlen -= pad;
 	
 	FreeStrList( StrList, str_size );
 	
