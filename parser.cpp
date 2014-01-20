@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "protocol.h"
 #include "tools.h"
-#include "GeometryTools.h"
+//#include "GeometryTools.h"
 
 CParser::CParser()
 {
@@ -204,12 +204,12 @@ void CParser::SetValidData()
 
 void CParser::Reset(float *tab)
 {
-	tab[0] = NAVI_UNDEFINED;
-	tab[1] = NAVI_UNDEFINED;
-	tab[2] = NAVI_UNDEFINED;
-	tab[3] = NAVI_UNDEFINED;
-	tab[4] = NAVI_UNDEFINED;
-	tab[5] = NAVI_UNDEFINED;
+	//tab[0] = NAVI_UNDEFINED;
+	//tab[1] = NAVI_UNDEFINED;
+	//tab[2] = NAVI_UNDEFINED;
+	//tab[3] = NAVI_UNDEFINED;
+	//tab[4] = NAVI_UNDEFINED;
+	//tab[5] = NAVI_UNDEFINED;
 				
 }
 
