@@ -35,7 +35,7 @@ ais_p *ais_pos_exists(int idx)
 
 ais_t *ais_msg_exists(int mmsi)
 {
-	for(size_t  i = 0; i < vAisp.size(); i++)
+	for(size_t  i = 0; i < vAist.size(); i++)
 	{
 		ais_t *ais = vAist[i];
 		if(ais->mmsi == mmsi)
@@ -71,38 +71,35 @@ int ais_binary_decode(unsigned char *bits, size_t bitlen)
 	{
 		case AIS_MSG_1:		
 		case AIS_MSG_2:		
-		case AIS_MSG_3:
-			ais_message_1(bits,ais);		
-		break;
-		
+		case AIS_MSG_3:		ais_message_1(bits,ais);			break;
 		case AIS_MSG_4:		
-		case AIS_MSG_11:	
-			ais_message_4(bits,ais);		
-		break;
-		
-		case AIS_MSG_5:		
-			ais_message_5(bits,bitlen,ais); 
-		break;
-		
-		case AIS_MSG_6:		
-			ais_message_6(bits,bitlen,ais);	
-		break;
-		
+		case AIS_MSG_11:	ais_message_4(bits,ais);			break;
+		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		break;
+		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		break;
 		case AIS_MSG_13:
-		case AIS_MSG_7:	
-			ais_message_7(bits,bitlen,ais);	
-		break;
+		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		break;
+		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		break;
+		case AIS_MSG_9:		ais_message_9(bits,ais);			break;
+		case AIS_MSG_10:	ais_message_10(bits,ais);			break;
+		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	break;
+		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	break;
+		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	break;
+		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	break;
+		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	break;
+		case AIS_MSG_18:	ais_message_18(bits,ais);			break;
+		case AIS_MSG_19:	ais_message_19(bits,ais);			break;
+		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	break;
+		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	break;
+		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
+		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
 
-		case AIS_MSG_8:
-			ais_message_8(bits,bitlen,ais);
-		break;
-	
-
+		default:
+			fprintf(stdout,"%d\n",type);
 	}
 
 	// mutex jest potrzebny
-	if(add)
-		vAist.push_back(ais); // wyciek jak morze ba³tyckie
+//	if(add)
+//		vAist.push_back(ais); // wyciek jak morze ba³tyckie
 
 	//ais_pos_exists(
 	//prepare_render_list(ais,);
@@ -261,9 +258,9 @@ void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais)
 				ais->type6.dac235fid10.ana_ext2	= (int)UBITS(108, 10);
 				ais->type6.dac235fid10.racon    = (int)UBITS(118, 2);
 				ais->type6.dac235fid10.light    = (int)UBITS(120, 2);
-				ais->type6.dac235fid10.alarm    = UBITS(122, 1);
+				ais->type6.dac235fid10.alarm    = (bool)UBITS(122, 1);
 				ais->type6.dac235fid10.stat_ext	= (int)UBITS(123, 8);
-				ais->type6.dac235fid10.off_pos  = UBITS(131, 1);
+				ais->type6.dac235fid10.off_pos  = (bool)UBITS(131, 1);
 				/* skip 4 bits */
 			break;
 	    }
@@ -358,7 +355,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 	size_t i = 0;
 	size_t u = 0;
 	
-	ais->type8.valid = true;
+	
 	//ais->type8.spare        = UBITS(38, 2);
 	ais->type8.dac            = (int)UBITS(40, 10);
 	ais->type8.fid            = (int)UBITS(50, 6);
@@ -413,31 +410,31 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 				UCHARS(56, ais->type8.dac1fid13.reason);
 				UCHARS(176, ais->type8.dac1fid13.closefrom);
 				UCHARS(296, ais->type8.dac1fid13.closeto);
-				ais->type8.dac1fid13.radius 	= UBITS(416, 10);
-				ais->type8.dac1fid13.extunit	= UBITS(426, 2);
-				ais->type8.dac1fid13.fday   	= UBITS(428, 5);
-				ais->type8.dac1fid13.fmonth 	= UBITS(433, 4);
-				ais->type8.dac1fid13.fhour  	= UBITS(437, 5);
-				ais->type8.dac1fid13.fminute	= UBITS(442, 6);
-				ais->type8.dac1fid13.tday   	= UBITS(448, 5);
-				ais->type8.dac1fid13.tmonth 	= UBITS(453, 4);
-				ais->type8.dac1fid13.thour  	= UBITS(457, 5);
-				ais->type8.dac1fid13.tminute	= UBITS(462, 6);
+				ais->type8.dac1fid13.radius 	= (int)UBITS(416, 10);
+				ais->type8.dac1fid13.extunit	= (int)UBITS(426, 2);
+				ais->type8.dac1fid13.fday   	= (int)UBITS(428, 5);
+				ais->type8.dac1fid13.fmonth 	= (int)UBITS(433, 4);
+				ais->type8.dac1fid13.fhour  	= (int)UBITS(437, 5);
+				ais->type8.dac1fid13.fminute	= (int)UBITS(442, 6);
+				ais->type8.dac1fid13.tday   	= (int)UBITS(448, 5);
+				ais->type8.dac1fid13.tmonth 	= (int)UBITS(453, 4);
+				ais->type8.dac1fid13.thour  	= (int)UBITS(457, 5);
+				ais->type8.dac1fid13.tminute	= (int)UBITS(462, 6);
 				/* skip 4 bits */
 				structured = true;
 			break;
 	    
 			case 15:        /* IMO236 - Extended ship and voyage */
-				ais->type8.dac1fid15.airdraught	= UBITS(56, 11);
+				ais->type8.dac1fid15.airdraught	= (int)UBITS(56, 11);
 				/* skip 5 bits */
 				structured = true;
 			break;
 	    
 			case 16:	    /* Number of Persons On Board */
 				if (ais->type8.bitcount == 136)
-					ais->type8.dac1fid16.persons = UBITS(88, 13);/* 289 */
+					ais->type8.dac1fid16.persons = (int)UBITS(88, 13);/* 289 */
 				else
-					ais->type8.dac1fid16.persons = UBITS(55, 13);/* 236 */
+					ais->type8.dac1fid16.persons = (int)UBITS(55, 13);/* 236 */
 				structured = true;
 			break;
 	    
@@ -448,14 +445,14 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 				{
 					//target_t tp = ais->type8.dac1fid17.targets[u].id;
 					int a = ARRAY_BASE + (ELEMENT_SIZE*u);
-					ais->type8.dac1fid17.targets[u].idtype = UBITS(a + 0, 2);
+					ais->type8.dac1fid17.targets[u].idtype = (int)UBITS(a + 0, 2);
 					switch (ais->type8.dac1fid17.targets[u].idtype) 
 					{
 						case DAC1FID17_IDTYPE_MMSI:
-							ais->type8.dac1fid17.targets[u].id.mmsi	= UBITS(a + 2, 42);
+							ais->type8.dac1fid17.targets[u].id.mmsi	= (int)UBITS(a + 2, 42);
 						break;
 						case DAC1FID17_IDTYPE_IMO:
-							ais->type8.dac1fid17.targets[u].id.imo	= UBITS(a + 2, 42);
+							ais->type8.dac1fid17.targets[u].id.imo	= (int)UBITS(a + 2, 42);
 						break;
 						case DAC1FID17_IDTYPE_CALLSIGN:
 							UCHARS(a+2, ais->type8.dac1fid17.targets[u].id.callsign);
@@ -466,11 +463,11 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 					}
 					
 					/* skip 4 bits */
-					ais->type8.dac1fid17.targets[u].lat	= SBITS(a + 48, 24);
-					ais->type8.dac1fid17.targets[u].lon	= SBITS(a + 72, 25);
-					ais->type8.dac1fid17.targets[u].course	= UBITS(a + 97, 9);
-					ais->type8.dac1fid17.targets[u].second	= UBITS(a + 106, 6);
-					ais->type8.dac1fid17.targets[u].speed	= UBITS(a + 112, 10);
+					ais->type8.dac1fid17.targets[u].lat	= (int)SBITS(a + 48, 24);
+					ais->type8.dac1fid17.targets[u].lon	= (int)SBITS(a + 72, 25);
+					ais->type8.dac1fid17.targets[u].course	= (int)UBITS(a + 97, 9);
+					ais->type8.dac1fid17.targets[u].second	= (int)UBITS(a + 106, 6);
+					ais->type8.dac1fid17.targets[u].speed	= (int)UBITS(a + 112, 10);
 				}
 		ais->type8.dac1fid17.ntargets = u;
 #undef ARRAY_BASE
@@ -479,15 +476,15 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 		break;
 	    
 			case 19:        /* IMO289 - Marine Traffic Signal */
-				ais->type8.dac1fid19.linkage	= UBITS(56, 10);
+				ais->type8.dac1fid19.linkage	= (int)UBITS(56, 10);
 				UCHARS(66, ais->type8.dac1fid19.station);
-				ais->type8.dac1fid19.lon	= SBITS(186, 25);
-				ais->type8.dac1fid19.lat	= SBITS(211, 24);
-				ais->type8.dac1fid19.status	= UBITS(235, 2);
-				ais->type8.dac1fid19.signal	= UBITS(237, 5);
-				ais->type8.dac1fid19.hour	= UBITS(242, 5);
-				ais->type8.dac1fid19.minute	= UBITS(247, 6);
-				ais->type8.dac1fid19.nextsignal	= UBITS(253, 5);
+				ais->type8.dac1fid19.lon	= (int)SBITS(186, 25);
+				ais->type8.dac1fid19.lat	= (int)SBITS(211, 24);
+				ais->type8.dac1fid19.status	= (int)UBITS(235, 2);
+				ais->type8.dac1fid19.signal	= (int)UBITS(237, 5);
+				ais->type8.dac1fid19.hour	= (int)UBITS(242, 5);
+				ais->type8.dac1fid19.minute	= (int)UBITS(247, 6);
+				ais->type8.dac1fid19.nextsignal	= (int)UBITS(253, 5);
 				/* skip 102 bits */
 				structured = true;
 			break;
@@ -505,22 +502,22 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 27:        /* IMO289 - Route information - broadcast */
-				ais->type8.dac1fid27.linkage	= UBITS(56, 10);
-				ais->type8.dac1fid27.sender	= UBITS(66, 3);
-				ais->type8.dac1fid27.rtype	= UBITS(69, 5);
-				ais->type8.dac1fid27.month	= UBITS(74, 4);
-				ais->type8.dac1fid27.day	= UBITS(78, 5);
-				ais->type8.dac1fid27.hour	= UBITS(83, 5);
-				ais->type8.dac1fid27.minute	= UBITS(88, 6);
-				ais->type8.dac1fid27.duration	= UBITS(94, 18);
-				ais->type8.dac1fid27.waycount	= UBITS(112, 5);
+				ais->type8.dac1fid27.linkage	= (int)UBITS(56, 10);
+				ais->type8.dac1fid27.sender	= (int)UBITS(66, 3);
+				ais->type8.dac1fid27.rtype	= (int)UBITS(69, 5);
+				ais->type8.dac1fid27.month	= (int)UBITS(74, 4);
+				ais->type8.dac1fid27.day	= (int)UBITS(78, 5);
+				ais->type8.dac1fid27.hour	= (int)UBITS(83, 5);
+				ais->type8.dac1fid27.minute	= (int)UBITS(88, 6);
+				ais->type8.dac1fid27.duration	= (int)UBITS(94, 18);
+				ais->type8.dac1fid27.waycount	= (int)UBITS(112, 5);
 #define ARRAY_BASE 117
 #define ELEMENT_SIZE 55
 				for (i = 0; i < ais->type8.dac1fid27.waycount; i++) 
 				{
 					int a = ARRAY_BASE + (ELEMENT_SIZE*i);
-					ais->type8.dac1fid27.waypoints[i].lon	= SBITS(a + 0, 28);
-					ais->type8.dac1fid27.waypoints[i].lat	= SBITS(a + 28, 27);
+					ais->type8.dac1fid27.waypoints[i].lon	= (int)SBITS(a + 0, 28);
+					ais->type8.dac1fid27.waypoints[i].lat	= (int)SBITS(a + 28, 27);
 				}
 #undef ARRAY_BASE
 #undef ELEMENT_SIZE
@@ -528,66 +525,68 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 29:        /* IMO289 - Text Description - broadcast */
-				ais->type8.dac1fid29.linkage   = UBITS(56, 10);
+				ais->type8.dac1fid29.linkage   = (int)UBITS(56, 10);
 				ENDCHARS(66, ais->type8.dac1fid29.text);
 				structured = true;
 			break;
 	    
 			case 31:        /* IMO289 - Meteorological/Hydrological data */
-				ais->type8.dac1fid31.lon		= SBITS(56, 25);
-				ais->type8.dac1fid31.lat		= SBITS(81, 24);
+				ais->type8.dac1fid31.lon		= (int)SBITS(56, 25);
+				ais->type8.dac1fid31.lat		= (int)SBITS(81, 24);
 				ais->type8.dac1fid31.accuracy       = (bool)UBITS(105, 1);
-				ais->type8.dac1fid31.day		= UBITS(106, 5);
-				ais->type8.dac1fid31.hour		= UBITS(111, 5);
-				ais->type8.dac1fid31.minute		= UBITS(116, 6);
-				ais->type8.dac1fid31.wspeed		= UBITS(122, 7);
-				ais->type8.dac1fid31.wgust		= UBITS(129, 7);
-				ais->type8.dac1fid31.wdir		= UBITS(136, 9);
-				ais->type8.dac1fid31.wgustdir	= UBITS(145, 9);
-				ais->type8.dac1fid31.airtemp	= SBITS(154, 11);
-				ais->type8.dac1fid31.humidity	= UBITS(165, 7);
-				ais->type8.dac1fid31.dewpoint	= SBITS(172, 10);
-				ais->type8.dac1fid31.pressure	= UBITS(182, 9);
-				ais->type8.dac1fid31.pressuretend	= UBITS(191, 2);
-				ais->type8.dac1fid31.visgreater	= UBITS(193, 1);
-				ais->type8.dac1fid31.visibility	= UBITS(194, 7);
-				ais->type8.dac1fid31.waterlevel	= UBITS(201, 12);
-				ais->type8.dac1fid31.leveltrend	= UBITS(213, 2);
-				ais->type8.dac1fid31.cspeed		= UBITS(215, 8);
-				ais->type8.dac1fid31.cdir		= UBITS(223, 9);
-				ais->type8.dac1fid31.cspeed2	= UBITS(232, 8);
-				ais->type8.dac1fid31.cdir2		= UBITS(240, 9);
-				ais->type8.dac1fid31.cdepth2	= UBITS(249, 5);
-				ais->type8.dac1fid31.cspeed3	= UBITS(254, 8);
-				ais->type8.dac1fid31.cdir3		= UBITS(262, 9);
-				ais->type8.dac1fid31.cdepth3	= UBITS(271, 5);
-				ais->type8.dac1fid31.waveheight	= UBITS(276, 8);
-				ais->type8.dac1fid31.waveperiod	= UBITS(284, 6);
-				ais->type8.dac1fid31.wavedir	= UBITS(290, 9);
-				ais->type8.dac1fid31.swellheight	= UBITS(299, 8);
-				ais->type8.dac1fid31.swellperiod	= UBITS(307, 6);
-				ais->type8.dac1fid31.swelldir	= UBITS(313, 9);
-				ais->type8.dac1fid31.seastate	= UBITS(322, 4);
-				ais->type8.dac1fid31.watertemp	= SBITS(326, 10);
-				ais->type8.dac1fid31.preciptype	= UBITS(336, 3);
-				ais->type8.dac1fid31.salinity	= UBITS(339, 9);
-				ais->type8.dac1fid31.ice		= UBITS(348, 2);
+				ais->type8.dac1fid31.day		= (int)UBITS(106, 5);
+				ais->type8.dac1fid31.hour		= (int)UBITS(111, 5);
+				ais->type8.dac1fid31.minute		= (int)UBITS(116, 6);
+				ais->type8.dac1fid31.wspeed		= (int)UBITS(122, 7);
+				ais->type8.dac1fid31.wgust		= (int)UBITS(129, 7);
+				ais->type8.dac1fid31.wdir		= (int)UBITS(136, 9);
+				ais->type8.dac1fid31.wgustdir	= (int)UBITS(145, 9);
+				ais->type8.dac1fid31.airtemp	= (int)SBITS(154, 11);
+				ais->type8.dac1fid31.humidity	= (int)UBITS(165, 7);
+				ais->type8.dac1fid31.dewpoint	= (int)SBITS(172, 10);
+				ais->type8.dac1fid31.pressure	= (int)UBITS(182, 9);
+				ais->type8.dac1fid31.pressuretend	= (int)UBITS(191, 2);
+				ais->type8.dac1fid31.visgreater	= (int)UBITS(193, 1);
+				ais->type8.dac1fid31.visibility	= (int)UBITS(194, 7);
+				ais->type8.dac1fid31.waterlevel	= (int)UBITS(201, 12);
+				ais->type8.dac1fid31.leveltrend	= (int)UBITS(213, 2);
+				ais->type8.dac1fid31.cspeed		= (int)UBITS(215, 8);
+				ais->type8.dac1fid31.cdir		= (int)UBITS(223, 9);
+				ais->type8.dac1fid31.cspeed2	= (int)UBITS(232, 8);
+				ais->type8.dac1fid31.cdir2		= (int)UBITS(240, 9);
+				ais->type8.dac1fid31.cdepth2	= (int)UBITS(249, 5);
+				ais->type8.dac1fid31.cspeed3	= (int)UBITS(254, 8);
+				ais->type8.dac1fid31.cdir3		= (int)UBITS(262, 9);
+				ais->type8.dac1fid31.cdepth3	= (int)UBITS(271, 5);
+				ais->type8.dac1fid31.waveheight	= (int)UBITS(276, 8);
+				ais->type8.dac1fid31.waveperiod	= (int)UBITS(284, 6);
+				ais->type8.dac1fid31.wavedir	= (int)UBITS(290, 9);
+				ais->type8.dac1fid31.swellheight	= (int)UBITS(299, 8);
+				ais->type8.dac1fid31.swellperiod	= (int)UBITS(307, 6);
+				ais->type8.dac1fid31.swelldir	= (int)UBITS(313, 9);
+				ais->type8.dac1fid31.seastate	= (int)UBITS(322, 4);
+				ais->type8.dac1fid31.watertemp	= (int)SBITS(326, 10);
+				ais->type8.dac1fid31.preciptype	= (int)UBITS(336, 3);
+				ais->type8.dac1fid31.salinity	= (int)UBITS(339, 9);
+				ais->type8.dac1fid31.ice		= (int)UBITS(348, 2);
 				structured = true;
 			break;
 		}
+	}
 	 
+	
 	if (ais->type8.dac == 200) 
 	{
 	    switch (ais->type8.fid) 
 		{
 			case 21:	/* Inland ship static and voyage related data */
 				UCHARS(56, ais->type8.dac200fid10.vin);
-				ais->type8.dac200fid10.length	= UBITS(104, 13);
-				ais->type8.dac200fid10.beam	= UBITS(117, 10);
-				ais->type8.dac200fid10.type	= UBITS(127, 14);
-				ais->type8.dac200fid10.hazard	= UBITS(141, 3);
-				ais->type8.dac200fid10.draught	= UBITS(144, 11);
-				ais->type8.dac200fid10.loaded	= UBITS(155, 2);
+				ais->type8.dac200fid10.length	= (int)UBITS(104, 13);
+				ais->type8.dac200fid10.beam	= (int)UBITS(117, 10);
+				ais->type8.dac200fid10.type	= (int)UBITS(127, 14);
+				ais->type8.dac200fid10.hazard	= (int)UBITS(141, 3);
+				ais->type8.dac200fid10.draught	= (int)UBITS(144, 11);
+				ais->type8.dac200fid10.loaded	= (int)UBITS(155, 2);
 				ais->type8.dac200fid10.speed_q	= (bool)UBITS(157, 1);
 				ais->type8.dac200fid10.course_q	= (bool)UBITS(158, 1);
 				ais->type8.dac200fid10.heading_q	= (bool)UBITS(159, 1);
@@ -596,23 +595,23 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 23:
-				ais->type8.dac200fid23.start_year	= UBITS(56, 8);
-				ais->type8.dac200fid23.start_month	= UBITS(64, 4);
-				ais->type8.dac200fid23.start_day	= UBITS(68, 5);
-				ais->type8.dac200fid23.end_year	= UBITS(73, 8);
-				ais->type8.dac200fid23.end_month	= UBITS(81, 4);
-				ais->type8.dac200fid23.end_day	= UBITS(85, 5);
-				ais->type8.dac200fid23.start_hour	= UBITS(90, 5);
-				ais->type8.dac200fid23.start_minute	= UBITS(95, 6);
-				ais->type8.dac200fid23.end_hour	= UBITS(101, 5);
-				ais->type8.dac200fid23.end_minute	= UBITS(106, 6);
-				ais->type8.dac200fid23.start_lon	= SBITS(112, 28);
-				ais->type8.dac200fid23.start_lat	= SBITS(140, 27);
-				ais->type8.dac200fid23.end_lon	= SBITS(167, 28);
-				ais->type8.dac200fid23.end_lat	= SBITS(195, 27);
-				ais->type8.dac200fid23.type	= UBITS(222, 4);
-				ais->type8.dac200fid23.min	= SBITS(226, 9);
-				ais->type8.dac200fid23.max	= SBITS(235, 9);
+				ais->type8.dac200fid23.start_year	= (int)UBITS(56, 8);
+				ais->type8.dac200fid23.start_month	= (int)UBITS(64, 4);
+				ais->type8.dac200fid23.start_day	= (int)UBITS(68, 5);
+				ais->type8.dac200fid23.end_year	= (int)UBITS(73, 8);
+				ais->type8.dac200fid23.end_month	= (int)UBITS(81, 4);
+				ais->type8.dac200fid23.end_day	= (int)UBITS(85, 5);
+				ais->type8.dac200fid23.start_hour	= (int)UBITS(90, 5);
+				ais->type8.dac200fid23.start_minute	= (int)UBITS(95, 6);
+				ais->type8.dac200fid23.end_hour	= (int)UBITS(101, 5);
+				ais->type8.dac200fid23.end_minute	= (int)UBITS(106, 6);
+				ais->type8.dac200fid23.start_lon	= (int)SBITS(112, 28);
+				ais->type8.dac200fid23.start_lat	= (int)SBITS(140, 27);
+				ais->type8.dac200fid23.end_lon	= (int)SBITS(167, 28);
+				ais->type8.dac200fid23.end_lat	= (int)SBITS(195, 27);
+				ais->type8.dac200fid23.type	= (int)UBITS(222, 4);
+				ais->type8.dac200fid23.min	= (int)SBITS(226, 9);
+				ais->type8.dac200fid23.max	= (int)SBITS(235, 9);
 				ais->type8.dac200fid23.intensity	= (int)UBITS(244, 2);
 				ais->type8.dac200fid23.wind	= (int)UBITS(246, 4);
 				/* skip 6 bits */
@@ -650,11 +649,377 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 	}
 	/* land here if we failed to match a known DAC/FID */
 	if (!structured)
-	    (void)memcpy(ais->type8.bitdata,
-			 (char *)bits + (56 / BITS_PER_BYTE),
-			 (ais->type8.bitcount + 7) / 8);
+	    (void)memcpy(ais->type8.bitdata, (char *)bits + (56 / BITS_PER_BYTE), (ais->type8.bitcount + 7) / 8);
+	else
+		ais->type8.valid = true;
 
 }
+
+/* Standard SAR Aircraft Position Report */
+void ais_message_9(unsigned char *bits, ais_t *ais)
+{
+
+	//PERMISSIVE_LENGTH_CHECK(168);
+	ais->type9.valid = true;
+	ais->type9.alt = (int)UBITS(38, 12);
+	ais->type9.speed = (int)UBITS(50, 10);
+	ais->type9.accuracy	= (bool)UBITS(60, 1);
+	ais->type9.lon = (int)SBITS(61, 28);
+	ais->type9.lat = (int)SBITS(89, 27);
+	ais->type9.course = (int)UBITS(116, 12);
+	ais->type9.second = (int)UBITS(128, 6);
+	ais->type9.regional = (int)UBITS(134, 8);
+	ais->type9.dte = (int)UBITS(142, 1);
+	//ais->type9.spare		= UBITS(143, 3);
+	ais->type9.assigned = UBITS(146, 1)!=0;
+	ais->type9.raim	= UBITS(147, 1)!=0;
+	ais->type9.radio = (int)UBITS(148, 19);
+
+}
+
+/* UTC/Date inquiry */
+void ais_message_10(unsigned char *bits, ais_t *ais)
+{
+	//PERMISSIVE_LENGTH_CHECK(72);
+	ais->type10.valid = true;
+	//ais->type10.spare        = UBITS(38, 2);
+	ais->type10.dest_mmsi      = (int)UBITS(40, 30);
+	//ais->type10.spare2       = UBITS(70, 2);
+}
+
+/* Safety Related Message */
+void ais_message_12(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+
+	if (bitlen < 72 || bitlen > 1008) 
+	{
+	    return;
+	}
+	ais->type12.valid = true;
+	ais->type12.seqno          = (int)UBITS(38, 2);
+	ais->type12.dest_mmsi      = (int)UBITS(40, 30);
+	ais->type12.retransmit     = (bool)UBITS(70, 1);
+	//ais->type12.spare        = UBITS(71, 1);
+	ENDCHARS(72, ais->type12.text);
+
+}
+
+/* Safety Related Broadcast Message */
+void ais_message_14(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+
+	if (bitlen < 40 || bitlen > 1008) 
+	{
+	    return;
+	}
+	//ais->type14.spare          = UBITS(38, 2);
+	ais->type14.valid = true;
+	ENDCHARS(40, ais->type14.text);
+}
+
+/* Interrogation */
+void ais_message_15(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+	if (bitlen < 88 || bitlen > 168) 
+	{
+	    return;
+	}
+	ais->type15.valid = true;
+	//(void)memset(&ais->type15, '\0', sizeof(ais->type15));
+	//ais->type14.spare         = UBITS(38, 2);
+	ais->type15.mmsi1		= (int)UBITS(40, 30);
+	ais->type15.type1_1		= (int)UBITS(70, 6);
+	ais->type15.type1_1		= (int)UBITS(70, 6);
+	ais->type15.offset1_1	= (int)UBITS(76, 12);
+	//ais->type14.spare2        = UBITS(88, 2);
+	
+	if (bitlen > 90) 
+	{
+	    ais->type15.type1_2	= (int)UBITS(90, 6);
+	    ais->type15.offset1_2	= (int)UBITS(96, 12);
+	    //ais->type14.spare3    = UBITS(108, 2);
+	    if (bitlen > 110) 
+		{
+			ais->type15.mmsi2	= (int)UBITS(110, 30);
+			ais->type15.type2_1	= (int)UBITS(140, 6);
+			ais->type15.offset2_1	= (int)UBITS(146, 12);
+			//ais->type14.spare4	= UBITS(158, 2);
+	    }
+	}
+
+}
+
+
+/* Assigned Mode Command */
+void ais_message_16(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+
+	if (bitlen != 96 && bitlen != 144) 
+	{
+		return;
+	}
+	ais->type16.valid = true;
+	ais->type16.mmsi1		= (int)UBITS(40, 30);
+	ais->type16.offset1		= (int)UBITS(70, 12);
+	ais->type16.increment1	= (int)UBITS(82, 10);
+	if (bitlen < 144)
+	{
+	    ais->type16.mmsi2 = ais->type16.offset2 = ais->type16.increment2 = 0;
+	}else {
+	    ais->type16.mmsi2	= (int)UBITS(92, 30);
+	    ais->type16.offset2	= (int)UBITS(122, 12);
+	    ais->type16.increment2	= (int)UBITS(134, 10);
+	}
+	
+}
+
+
+/* GNSS Broadcast Binary Message */
+void ais_message_17(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+	if (bitlen < 80 || bitlen > 816) 
+	{
+	    return;
+	}
+	ais->type17.valid		= true;
+	//ais->type17.spare     = UBITS(38, 2);
+	ais->type17.lon			= UBITS(40, 18);
+	ais->type17.lat			= UBITS(58, 17);
+	//ais->type17.spare	    = UBITS(75, 4);
+	ais->type17.bitcount    = bitlen - 80;
+	(void)memcpy(ais->type17.bitdata, (char *)bits + (80 / BITS_PER_BYTE), (ais->type17.bitcount + 7) / 8);
+
+}
+	
+/* Standard Class B CS Position Report */
+void ais_message_18(unsigned char *bits, ais_t *ais)
+{
+
+//	PERMISSIVE_LENGTH_CHECK(168)
+	ais->type18.valid		= true;
+	ais->type18.reserved	= UBITS(38, 8);
+	ais->type18.speed		= UBITS(46, 10);
+	ais->type18.accuracy	= UBITS(56, 1)!=0;
+	ais->type18.lon			= SBITS(57, 28);
+	ais->type18.lat			= SBITS(85, 27);
+	ais->type18.course		= UBITS(112, 12);
+	ais->type18.heading		= UBITS(124, 9);
+	ais->type18.second		= UBITS(133, 6);
+	ais->type18.regional	= UBITS(139, 2);
+	ais->type18.cs			= UBITS(141, 1)!=0;
+	ais->type18.display 	= UBITS(142, 1)!=0;
+	ais->type18.dsc     	= UBITS(143, 1)!=0;
+	ais->type18.band    	= UBITS(144, 1)!=0;
+	ais->type18.msg22   	= UBITS(145, 1)!=0;
+	ais->type18.assigned	= UBITS(146, 1)!=0;
+	ais->type18.raim		= UBITS(147, 1)!=0;
+	ais->type18.radio		= UBITS(148, 20);
+}
+
+/* Extended Class B CS Position Report */
+void ais_message_19(unsigned char *bits, ais_t *ais)
+{
+	//PERMISSIVE_LENGTH_CHECK(312)
+	ais->type19.valid		= true;
+	ais->type19.reserved     = UBITS(38, 8);
+	ais->type19.speed        = UBITS(46, 10);
+	ais->type19.accuracy     = UBITS(56, 1)!=0;
+	ais->type19.lon          = SBITS(57, 28);
+	ais->type19.lat          = SBITS(85, 27);
+	ais->type19.course       = UBITS(112, 12);
+	ais->type19.heading      = UBITS(124, 9);
+	ais->type19.second       = UBITS(133, 6);
+	ais->type19.regional     = UBITS(139, 4);
+	UCHARS(143, ais->type19.shipname);
+	ais->type19.shiptype     = UBITS(263, 8);
+	ais->type19.to_bow       = UBITS(271, 9);
+	ais->type19.to_stern     = UBITS(280, 9);
+	ais->type19.to_port      = UBITS(289, 6);
+	ais->type19.to_starboard = UBITS(295, 6);
+	ais->type19.epfd         = UBITS(301, 4);
+	ais->type19.raim         = UBITS(305, 1)!=0;
+	ais->type19.dte          = UBITS(306, 1)!=0;
+	ais->type19.assigned     = UBITS(307, 1)!=0;
+	//ais->type19.spare      = UBITS(308, 4);
+
+}
+
+/* Data Link Management Message */
+void ais_message_20(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+	if (bitlen < 72 || bitlen > 160) 
+	{
+		return;
+	}
+	
+	ais->type20.valid		= true;
+	//ais->type20.spare		= UBITS(38, 2);
+	ais->type20.valid		= true;
+	ais->type20.offset1		= UBITS(40, 12);
+	ais->type20.number1		= UBITS(52, 4);
+	ais->type20.timeout1	= UBITS(56, 3);
+	ais->type20.increment1	= UBITS(59, 11);
+	ais->type20.offset2		= UBITS(70, 12);
+	ais->type20.number2		= UBITS(82, 4);
+	ais->type20.timeout2	= UBITS(86, 3);
+	ais->type20.increment2	= UBITS(89, 11);
+	ais->type20.offset3		= UBITS(100, 12);
+	ais->type20.number3		= UBITS(112, 4);
+	ais->type20.timeout3	= UBITS(116, 3);
+	ais->type20.increment3	= UBITS(119, 11);
+	ais->type20.offset4		= UBITS(130, 12);
+	ais->type20.number4		= UBITS(142, 4);
+	ais->type20.timeout4	= UBITS(146, 3);
+	ais->type20.increment4	= UBITS(149, 11);
+
+}
+
+/* Aid-to-Navigation Report */
+void ais_message_21(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+	if (bitlen < 272 || bitlen > 360) 
+	{
+		return;
+	}
+	
+	ais->type21.valid		= true;
+	ais->type21.aid_type = UBITS(38, 5);
+	from_sixbit((unsigned char *)bits,43, 20, ais->type21.name);
+	ais->type21.accuracy     = UBITS(163, 1);
+	ais->type21.lon          = SBITS(164, 28);
+	ais->type21.lat          = SBITS(192, 27);
+	ais->type21.to_bow       = UBITS(219, 9);
+	ais->type21.to_stern     = UBITS(228, 9);
+	ais->type21.to_port      = UBITS(237, 6);
+	ais->type21.to_starboard = UBITS(243, 6);
+	ais->type21.epfd         = UBITS(249, 4);
+	ais->type21.second       = UBITS(253, 6);
+	ais->type21.off_position = UBITS(259, 1)!=0;
+	ais->type21.regional     = UBITS(260, 8);
+	ais->type21.raim         = UBITS(268, 1)!=0;
+	ais->type21.virtual_aid  = UBITS(269, 1)!=0;
+	ais->type21.assigned     = UBITS(270, 1)!=0;
+	//ais->type21.spare      = UBITS(271, 1);
+	if (strlen(ais->type21.name) == 20 && bitlen > 272)
+	    ENDCHARS(272, ais->type21.name + 20);
+
+}
+
+/* Channel Management */
+void ais_message_22(unsigned char *bits,  ais_t *ais)
+{
+	ais->type22.valid		= true;
+	ais->type22.channel_a    = UBITS(40, 12);
+	ais->type22.channel_b    = UBITS(52, 12);
+	ais->type22.txrx         = UBITS(64, 4);
+	ais->type22.power        = UBITS(68, 1);
+	ais->type22.addressed    = UBITS(139, 1);
+	
+	if (!ais->type22.addressed) 
+	{
+	    ais->type22.area.ne_lon     = SBITS(69, 18);
+	    ais->type22.area.ne_lat     = SBITS(87, 17);
+	    ais->type22.area.sw_lon     = SBITS(104, 18);
+	    ais->type22.area.sw_lat     = SBITS(122, 17);
+	
+	} else {
+	
+		ais->type22.mmsi.dest1		= UBITS(69, 30);
+	    ais->type22.mmsi.dest2		= UBITS(104, 30);
+	}
+	
+	ais->type22.band_a       = UBITS(140, 1);
+	ais->type22.band_b       = UBITS(141, 1);
+	ais->type22.zonesize     = UBITS(142, 3);
+	
+}
+
+/* Group Assignment Command */
+void ais_message_23(unsigned char *bits,  ais_t *ais)
+{
+	ais->type23.valid		= true;
+	ais->type23.ne_lon		= SBITS(40, 18);
+	ais->type23.ne_lat      = SBITS(58, 17);
+	ais->type23.sw_lon      = SBITS(75, 18);
+	ais->type23.sw_lat      = SBITS(93, 17);
+	ais->type23.stationtype = UBITS(110, 4);
+	ais->type23.shiptype    = UBITS(114, 8);
+	ais->type23.txrx        = UBITS(144, 4);
+	ais->type23.interval    = UBITS(146, 4);
+	ais->type23.quiet       = UBITS(150, 4);
+
+}
+
+/* Class B CS Static Data Report */
+void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+
+//	switch (UBITS(38, 2)) 
+//	{
+		/* save incoming 24A shipname/MMSI pairs in a circular queue */	
+		//case 0:
+	    //{
+			//struct ais_type24a_t *saveptr = &type24_queue->ships[type24_queue->index];
+			//saveptr->mmsi = ais->mmsi;
+			//UCHARS(40, saveptr->shipname);
+			//++type24_queue->index;
+			//type24_queue->index %= MAX_TYPE24_INTERLEAVE;
+	    //}
+	    //ais->type24.a.spare	= UBITS(160, 8);
+
+	    //UCHARS(40, ais->type24.shipname);
+	    //ais->type24.part = part_a;
+	    //return;
+		//case 1:
+	    
+			//ais->type24.shiptype = UBITS(40, 8);
+			/*
+			* In ITU-R 1371-4, there are new model and serial fields
+			* carved out of the right-hand end of vendorid, which is
+			* reduced from 7 chars to 3.  To cope with older AIS
+			* implementations conforming to revision 3 and older,
+			* unpack the trailing bits *both* ways; truly
+			* revision-4-conformant implementations will have up to
+			* four characters of trailing garbage on the vendorid,
+			* and older implementations will have garbafe in the
+			* model and serial fields.
+			*/
+			//UCHARS(48, ais->type24.vendorid);
+			//ais->type24.model = UBITS(66, 4);
+			//ais->type24.serial = UBITS(70, 20);
+			//UCHARS(90, ais->type24.callsign);
+			
+			//if (AIS_AUXILIARY_MMSI(ais->mmsi)) 
+			//{
+//				ais->type24.mothership_mmsi   = UBITS(132, 30);
+	//		} else {
+		//		ais->type24.dim.to_bow        = UBITS(132, 9);
+			//	ais->type24.dim.to_stern      = UBITS(141, 9);
+				//ais->type24.dim.to_port       = UBITS(150, 6);
+				//ais->type24.dim.to_starboard  = UBITS(156, 6);
+			//}
+			//ais->type24.b.spare	    = UBITS(162, 8);
+
+			/* search the 24A queue for a matching MMSI */
+			//for (i = 0; i < MAX_TYPE24_INTERLEAVE; i++) 
+			//{
+				//if (type24_queue->ships[i].mmsi == ais->mmsi) 
+				//{
+					//(void)strlcpy(ais->type24.shipname,  type24_queue->ships[i].shipname,  sizeof(type24_queue->ships[i].shipname));
+					/* prevent false match if a 24B is repeated */
+					//type24_queue->ships[i].mmsi = 0;
+					//ais->type24.part = both;
+					//return;
+				//}
+			//}
+
+			/* no match, return Part B */
+			//ais->type24.part = part_b;
+			//return;
+	
+	//default:
+	  //  return;
+	//}
 
 }
 

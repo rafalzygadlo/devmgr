@@ -17,6 +17,7 @@ class CParser
 	int m_MessageId,m_FragmentCount;
 	unsigned char *m_Bits;
 	size_t m_Bitlen, m_OldLen;
+	CFunctions Functions;
 	
 	char ConvertChar(char data);
 	char *ConvertStr(char *str);

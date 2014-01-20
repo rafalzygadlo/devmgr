@@ -255,7 +255,7 @@ bool SetGlobalPrioryty(int fid)
 	{
 		case SIGNAL_HDT:
 			m_HDT_Exists = true; 
-			m_HDT_Counter = 10;
+			m_HDT_Counter = 30;
 			return true;
 		break;
 		
@@ -268,6 +268,7 @@ bool SetGlobalPrioryty(int fid)
 		break;
 	}
 	
+	// dla innych zawsze true
 	return true;
 }
 
@@ -280,6 +281,7 @@ bool Check_HDT()
 		m_HDT_Exists = false;
 		return false;
 	}else{
+		//fprintf(stdout,"FORM HDT\n");
 		return true;
 	}
 }
@@ -290,8 +292,10 @@ bool Set_VTG_COG()
 	
 	if(m_HDT_Exists)
 		return false;
-	else
+	else{
+		//fprintf(stdout,"FORM VTG\n");
 		return true;
+	}
 }
 
 bool Set_RMC_COG()
@@ -300,6 +304,8 @@ bool Set_RMC_COG()
 
 	if(m_HDT_Exists)
 		return false;
-	else
+	else{
+		//fprintf(stdout,"FORM COG\n");
 		return true;
+	}
 }

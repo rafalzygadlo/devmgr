@@ -43,13 +43,29 @@
 #define AIS_MSG_26	26
 #define AIS_MSG_27	27
 
+#define AIS_SHIPNAME_MAXLEN	20
+#define MAX_TYPE24_INTERLEAVE	8	/* max number of queued type 24s */
+
 struct ais_p
 {
 	float lon;
 	float lat;
 };
 
-struct route_info {
+struct ais_type24a_t 
+{
+    unsigned int mmsi;
+    char shipname[AIS_SHIPNAME_MAXLEN + 1];
+};
+
+struct ais_type24_queue_t 
+{
+    struct ais_type24a_t ships[MAX_TYPE24_INTERLEAVE];
+    int index;
+};
+
+struct route_info 
+{
     unsigned int linkage;	/* Message Linkage ID */
     unsigned int sender;	/* Sender Class */
     unsigned int rtype;		/* Route Type */
@@ -724,6 +740,7 @@ struct ais_t
 	} type8;
 	/* Type 9 - Standard SAR Aircraft Position Report */
 	struct {
+		bool valid;
 	    unsigned int alt;		/* altitude in meters */
 #define AIS_ALT_NOT_AVAILABLE	4095
 #define AIS_ALT_HIGH    	4094	/* 4094 meters or higher */
@@ -744,12 +761,14 @@ struct ais_t
 	} type9;
 	/* Type 10 - UTC/Date Inquiry */
 	struct {
+		bool valid;
 	    //unsigned int spare;
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    //unsigned int spare2;
 	} type10;
 	/* Type 12 - Safety-Related Message */
 	struct {
+		bool valid;
 	    unsigned int seqno;		/* sequence number */
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    bool retransmit;		/* retransmit flag */
@@ -759,12 +778,14 @@ struct ais_t
 	} type12;
 	/* Type 14 - Safety-Related Broadcast Message */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 #define AIS_TYPE14_TEXT_MAX	161	/* 952 bits of six-bit, plus NUL */
 	    char text[AIS_TYPE14_TEXT_MAX];
 	} type14;
 	/* Type 15 - Interrogation */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int mmsi1;
 	    unsigned int type1_1;
@@ -780,6 +801,7 @@ struct ais_t
 	} type15;
 	/* Type 16 - Assigned Mode Command */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int mmsi1;
 	    unsigned int offset1;
@@ -790,6 +812,7 @@ struct ais_t
 	} type16;
 	/* Type 17 - GNSS Broadcast Binary Message */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 #define AIS_GNSS_LATLON_DIV	600.0
 	    int lon;			/* longitude */
@@ -801,6 +824,7 @@ struct ais_t
 	} type17;
 	/* Type 18 - Standard Class B CS Position Report */
 	struct {
+		bool valid;
 	    unsigned int reserved;	/* altitude in meters */
 	    unsigned int speed;		/* speed over ground in deciknots */
 	    bool accuracy;		/* position accuracy */
@@ -823,6 +847,7 @@ struct ais_t
 	} type18;
 	/* Type 19 - Extended Class B CS Position Report */
 	struct {
+		bool valid;
 	    unsigned int reserved;	/* altitude in meters */
 	    unsigned int speed;		/* speed over ground in deciknots */
 	    bool accuracy;		/* position accuracy */
@@ -846,6 +871,7 @@ struct ais_t
 	} type19;
 	/* Type 20 - Data Link Management Message */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int offset1;	/* TDMA slot offset */
 	    unsigned int number1;	/* number of xlots to allocate */
@@ -866,6 +892,7 @@ struct ais_t
 	} type20;
 	/* Type 21 - Aids to Navigation Report */
 	struct {
+		bool valid;
 	    unsigned int aid_type;	/* aid type */
 	    char name[35];		/* name of aid to navigation */
 	    bool accuracy;		/* position accuracy */
@@ -886,6 +913,7 @@ struct ais_t
 	} type21;
 	/* Type 22 - Channel Management */
 	struct {
+		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int channel_a;	/* Channel A number */
 	    unsigned int channel_b;	/* Channel B number */
@@ -911,6 +939,7 @@ struct ais_t
 	} type22;
 	/* Type 23 - Group Assignment Command */
 	struct {
+		bool valid;
 	    int ne_lon;			/* NE corner longitude */
 	    int ne_lat;			/* NE corner latitude */
 	    int sw_lon;			/* SW corner longitude */
@@ -926,6 +955,7 @@ struct ais_t
 	} type23;
 	/* Type 24 - Class B CS Static Data Report */
 	struct {
+		bool valid;
 	    char shipname[AIS_SHIPNAME_MAXLEN+1];	/* vessel name */
 	    enum {
 		both,
@@ -949,6 +979,7 @@ struct ais_t
 	} type24;
 	/* Type 25 - Addressed Binary Message */
 	struct {
+		bool valid;
 	    bool addressed;		/* addressed-vs.broadcast flag */
 	    bool structured;		/* structured-binary flag */
 	    unsigned int dest_mmsi;	/* destination MMSI */
@@ -959,6 +990,7 @@ struct ais_t
 	} type25;
 	/* Type 26 - Addressed Binary Message */
 	struct {
+		bool valid;
 	    bool addressed;		/* addressed-vs.broadcast flag */
 	    bool structured;		/* structured-binary flag */
 	    unsigned int dest_mmsi;	/* destination MMSI */
@@ -970,6 +1002,7 @@ struct ais_t
 	} type26;
 	/* Type 27 - Long Range AIS Broadcast message */
 	struct {
+		bool valid;
 	    bool accuracy;		/* position accuracy */
 	    bool raim;			/* RAIM flag */
 	    unsigned int status;	/* navigation status */
@@ -995,6 +1028,20 @@ void ais_message_5(unsigned char *bits, size_t bitlen, ais_t *ais);
 void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais);
 void ais_message_7(unsigned char *bits, size_t bitlen, ais_t *ais);
 void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_9(unsigned char *bits, ais_t *ais);
+void ais_message_10(unsigned char *bits, ais_t *ais);
+void ais_message_12(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_14(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_15(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_16(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_17(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_18(unsigned char *bits, ais_t *ais);
+void ais_message_19(unsigned char *bits, ais_t *ais);
+void ais_message_20(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_21(unsigned char *bits, size_t bitlen, ais_t *ais);
+void ais_message_22(unsigned char *bits, ais_t *ais);
+void ais_message_23(unsigned char *bits, ais_t *ais);
+void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais);
 
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);

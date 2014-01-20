@@ -198,8 +198,8 @@ void CParser::Ais(char *line)
 	
 	if(decode)
 	{
-		ais_binary_decode(m_Bits,m_Bitlen);
-		free(m_Bits);
+		//ais_binary_decode(m_Bits,m_Bitlen);
+		//free(m_Bits);
 		m_Bits = NULL;
 		m_Bitlen = 0;
 		m_OldLen = 0;
@@ -271,8 +271,7 @@ double CParser::ConvertValue(int signal_id,double data)
 
 void CParser::SetValidData()
 {
-
-	CFunctions Functions;
+		
 	CFunctiond Functiond;
 	size_t len = Functions.GetLen();
 	
@@ -291,9 +290,11 @@ void CParser::SetValidData()
 			if(funcd->id_signal == id_signal)
 			{
 				//Reset(funcs->values);
-				funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
-				if(SetGlobalPrioryty(funcd->id_signal))
+				if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
+				{
+					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
 					SetFunction(funcd->id,funcs->values);
+				}
 			}
 
 		}
@@ -316,10 +317,7 @@ void CParser::Reset(float *tab)
 void CParser::SetFunction(int id_function, double *values)
 {
 	SFunctionData Function;
-		
 	Function.id_function = id_function;
 	memcpy(Function.values,values,sizeof(double) * MAX_VALUES_LEN);
-	
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
-	
 }
