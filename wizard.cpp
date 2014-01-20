@@ -13,10 +13,12 @@ BEGIN_EVENT_TABLE(CWizard,wxDialog)
 	EVT_BUTTON(ID_3_PREV,CWizard::OnButton3Prev)
 END_EVENT_TABLE()
 
-
 CWizard::CWizard()
-:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(500,400), wxCAPTION)
+:wxDialog(NULL,wxID_ANY, GetMsg(MSG_DEVICE_WIZARD), wxDefaultPosition, wxSize(500,400), wxCAPTION)
 {
+	m_Found = false;
+	m_Count = 0;
+	m_Counter = 0;
 	SetGui();
 }
 
@@ -64,8 +66,8 @@ wxPanel *CWizard::Page1()
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 	Panel->SetSizer(PanelSizer);
 	
-	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
-	PanelSizer->Add(Text,0,wxALL,10);
+	m_Page1Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
+	PanelSizer->Add(m_Page1Text,0,wxALL,5);
 		
 	m_LogBox = new wxTextCtrl(Panel,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(300,200),wxTE_MULTILINE);
 	PanelSizer->Add(m_LogBox,0,wxALL|wxEXPAND,5);
@@ -82,8 +84,8 @@ wxPanel *CWizard::Page2()
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 	Panel->SetSizer(PanelSizer);
 
-	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
-	PanelSizer->Add(Text,0,wxALL,10);
+	m_Page2Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_NO_DEVICE_FOUND));
+	PanelSizer->Add(m_Page2Text,0,wxALL,5);
 
 	m_ListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),NULL,wxLB_MULTIPLE);
 	PanelSizer->Add(m_ListBox,0,wxALL|wxEXPAND,5);
@@ -107,8 +109,8 @@ wxPanel *CWizard::Page3()
 	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 	Panel->SetSizer(PanelSizer);
 
-	wxStaticText *Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
-	PanelSizer->Add(Text,0,wxALL,10);
+	m_Page3Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_WIZARD));
+	PanelSizer->Add(m_Page3Text,0,wxALL,5);
 
 	m_NewListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),NULL);
 	PanelSizer->Add(m_NewListBox,0,wxALL|wxEXPAND,5);
@@ -129,6 +131,7 @@ wxPanel *CWizard::Page3()
 
 void CWizard::Start()
 {
+	m_Counter = 0;
 	m_ButtonP1Next->Disable();
 	m_ButtonClose->Disable();
 	m_ListBox->Clear();
@@ -136,6 +139,7 @@ void CWizard::Start()
     Serial->ScanPorts();
     m_Count = Serial->GetPortInfoLength();
 	m_BaudCount = Serial->GetBaudInfoLength();
+	m_LogBox->Clear();
     
 	for(int i = 0; i < m_Count; i++)
     {
@@ -161,8 +165,17 @@ void CWizard::Start()
 		
     }
 
+	if(m_Found)
+	{
+		m_ButtonP2Next->Enable();
+		m_Page2Text->SetLabel(wxString::Format(GetMsg(MSG_DEVICE_FOUND),m_Counter));
+	}else{
+		m_ButtonP2Next->Disable();
+	}
+	
 	m_ButtonP1Next->Enable();
 	m_ButtonClose->Enable();
+	
 	delete Serial;
 
 	m_Page1->Hide();
@@ -181,23 +194,25 @@ void CWizard::SetDeviceType()
 	
 	for(size_t i = 0; i < count; i++)
 	{
+		m_Found = true;
 		Talker = Talkers.GetByIdTalker(m_Searcher->GetTalker(i));
 		if(Talker)
 		{
 			if(Talker->id_device > -1)
 			{
-				CMySerial *Serial = new CMySerial();
-				Serial->_SetPort(m_Searcher->GetPortName());
-				Serial->SetBaud(m_Searcher->GetBaudRate());
-				Serial->SetDeviceType(Talker->id_device);
+				CReader *Reader = new CReader();
+				Reader->SetPort(m_Searcher->GetPortName());
+				Reader->SetBaud(m_Searcher->GetBaudRate());
+				Reader->SetDeviceType(Talker->id_device);
 				
 				CDevices devices;
 				wxString talker(devices.GetById(Talker->id_device)->name ,wxConvUTF8);
-				Serial->SetDeviceName(talker);
-				vDevices.push_back(Serial);
+				Reader->SetDeviceName(talker);
+				vDevices.push_back(Reader);
 				wxString port(m_Searcher->GetPortName(),wxConvUTF8);
 				
 				m_ListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),m_Searcher->GetBaudRate(),talker.wc_str()));
+				m_Counter++;
 			}
 			
 		}
@@ -211,7 +226,7 @@ size_t CWizard::GetCount()
 	return vNewDevices.size();
 }
 
-CMySerial *CWizard::GetDevice(int id)
+CReader *CWizard::GetDevice(int id)
 {
 	return vNewDevices[id];
 }
@@ -237,14 +252,15 @@ void CWizard::OnButton2Next(wxCommandEvent &event)
 	for(size_t i = 0; i < items.size(); i++)
 	{
 		int id = items[i];
-		CMySerial *serial = vDevices[id];	
+		CReader *ptr = vDevices[id];	
 		vNewDevices.push_back(vDevices[id]);
-		wxString port(serial->GetPortName(),wxConvUTF8);
+		wxString port(ptr->GetPortName(),wxConvUTF8);
 		CDevices devices;
-		wxString talker(devices.GetById(serial->GetDeviceType())->name ,wxConvUTF8);
-		m_NewListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),serial->GetBaudRate(),talker.wc_str()));
+		wxString talker(devices.GetById(ptr->GetDeviceType())->name ,wxConvUTF8);
+		m_NewListBox->Append(wxString::Format(_("%s %d %s"),port.wc_str(),ptr->GetBaudRate(),talker.wc_str()));
 	}
 
+	m_Page3Text->SetLabel(wxString::Format(GetMsg(MSG_SELECTED_DEVICES),items.size()));
 	m_Page2->Hide();
 	m_Page3->Show();
 	m_MainSizer->SetSizeHints(this);

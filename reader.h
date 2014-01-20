@@ -7,9 +7,10 @@
 #include "NaviMapIOApi.h"
 #include "protocol.h"
 #include "parser.h"
+#include "sclient.h"
 #include <wx/treectrl.h>
 
-class CMySerial :public CSerial
+class CReader :public CSerial, public CClient
 {
 	CParser *m_Parser;
 	bool m_IsRunning;
@@ -23,10 +24,13 @@ class CMySerial :public CSerial
 	bool m_RunOnStart;
 	wxTreeItemId TreeItemId;
 	wxTreeCtrl *TreeCtrl;
-		
+	CSerial *SerialPtr;
+	CClient *SocketPtr;
+	int m_ConnectionType;
+
 public:
-	CMySerial();
-	~CMySerial();
+	CReader();
+	~CReader();
 	
 	bool IsRunning();
 	bool RunOnStart();
@@ -36,15 +40,26 @@ public:
 	void SetRunOnStart(bool val);
 	wxString GetDeviceName();
 	size_t GetDeviceId();					
-	int GetSignalType();
+	void SetDefinition();
 	void Parse( char *line);
 	void SetDeviceType(int type);
+	int GetSignalType();
 	int GetDeviceType();
-	void SetDefinition();
-	int GetMarkersLength();
 	void SetTreeItemId(wxTreeItemId id);
 	void SetTreeCtrl(wxTreeCtrl *tree);
 	wxTreeItemId GetTreeItemId();
+	void SetPort(const char *port);
+	void SetPort(int port);
+	void Stop();
+	void Start();
+	void SetParseLine(bool val);
+	bool IsConnected();
+	void SetHost(char *host);
+	int GetSocketPort();
+	const char *GetSerialPort();
+	void SetConnectionType(int type);
+	int GetConnectionType();
+
 	
 	virtual void OnConnect();
 	virtual void OnConnected();

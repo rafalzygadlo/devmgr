@@ -13,7 +13,7 @@
 	#include <windows.h>
 	#include <crtdbg.h>
 #endif
-#include "serial.h"
+#include "reader.h"
 #include "conf.h"
 
 #ifdef __cplusplus
@@ -25,7 +25,7 @@ class CMyFrame;
 class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
-	std::vector<CMySerial*> m_vDevices;
+	std::vector<CReader*> m_vDevices;
 	CNaviBroker *m_Broker;
 	bool m_NeedExit;
 	wxFileConfig *m_FileConfig;
@@ -37,21 +37,26 @@ class CMapPlugin :public CNaviMapIOApi
 	float m_Scale;
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
+	SData *m_Data;
 		
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
 	void SendSignal(int type, int id);
+	void SendDataSignal(SData *data);
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);
 	wxArrayString GetConfigItems(wxString path);
-	void OnReconnect(CMySerial *Serial);
+	void OnReconnect(CReader *ptr);
 	bool IsInited();
 	void RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength);
-	void SetData(SData *val);
+	void SetData(SData *value);
 	void SetDisplaySignal(int type);
 	void SetFunctionData(SFunctionData *data);
-
+	void WriteSerialConfig(int index);
+	void WriteSocketConfig(int index);
+	void ReadSocketConfig(int index);
+	void ReadSerialConfig(int index);
 					
 public:
 
@@ -61,15 +66,16 @@ public:
 	bool GetNeedExit(void);
 	CNaviBroker *GetBroker();
 	size_t GetDevicesCount();
-	CMySerial *GetSerial(size_t idx);
+	CReader *GetReader(size_t idx);
 	void DeleteDevice(size_t idx);
-	void AddDevice(CMySerial *serial);
-	void AddDeviceFunc(CMySerial *serial); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
-	void RemoveDevice(CMySerial *serial);
-	void StartDevice(CMySerial *serial);
-	void StopDevice(CMySerial *serial);
+	void AddDevice(CReader *ptr);
+	void AddDeviceFunc(CReader *ptr); // pomocnicza funkcja kiedy urzadzenie dodawane z display plugina wysy³any jest sygna³ zwrotny
+	void RemoveDevice(CReader *ptr);
+	void StartDevice(CReader *ptr);
+	void StopDevice(CReader *ptr);
 	void ReindexDevics();
 	void RenderPosition();
+	SData *GetData();
 	
 	int GetDisplaySignalType();
 	int GetDeviceId();
@@ -88,6 +94,7 @@ public:
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
 	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
+	static void *OnData(void *NaviMapIOApiPtr, void *Params); // dane
 	
 };	
 

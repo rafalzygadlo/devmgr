@@ -8,7 +8,7 @@
 #include "NaviMapIOApi.h"
 #include "NaviDisplayApi.h"
 #include "dll.h"
-#include "serial.h"
+#include "reader.h"
 #include "item.h"
 #include "config.h"
 
@@ -25,7 +25,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 {
 	
 	CConfig *m_DeviceConfig;
-	CMySerial *m_SelectedDevice;
+	CReader *m_SelectedDevice;
 	CItem *m_SelectedItem;
 	wxTreeItemId m_SelectedItemId;
 	CNaviBroker *m_Broker;
@@ -60,7 +60,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLogger(wxString txt);	// ustawia komunikaty w logerze
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void RemoveDevice();
-	wxPanel *GetSignalsPanel(CMySerial *serial);
+	wxPanel *GetSignalsPanel(CReader *reader);
 	
 	void Stop();
 	void Start();
@@ -73,6 +73,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void GetSignal();
 	void StartDevice();
 	void StopDevice();
+	void OnData();
 		
 	void OnConnected();
 	void OnReconnect();

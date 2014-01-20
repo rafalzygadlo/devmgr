@@ -1,55 +1,70 @@
-#ifndef __CONFIG
-#define __CONFIG
+#ifndef __DEVICECONFIG
+#define __DEVICECONFIG
 
 #include <wx/wx.h>
 #include <wx/hyperlink.h>
 #include "conf.h"
-#include "dll.h"
 #include "tools.h"
 #include <vector>
 
+class CReader;
 class CConfig: public wxDialog
 {
-	
-	CMySerial *mySerial;
+		
+	CReader *Reader;
 	wxBoxSizer *MainSizer;
 	wxComboBox *BaudCombo;
 	wxComboBox *PortCombo;
-	wxComboBox *DeviceTypeCombo;
-	wxTextCtrl *NameText;
-	wxTextCtrl *DataDefinition;
+	wxTextCtrl *SerialNameText, *SocketNameText, *PortText, *HostText;
+	wxComboBox *ConnectionTypeCombo, *DeviceTypeCombo;
+	wxPanel *SocketPanel,*SerialPanel,*DevicePanel;
+	int DeviceType;
+	int ConnectionType;
 		
 	bool Validate();
+	bool ValidateSerial();
+	bool ValidateSocket();
+	wxPanel *GetSerialPanel();
+	wxPanel *GetSocketPanel();
+	wxPanel *GetDeviceTypePanel();
+	void ShowConnectionPanel(int type);
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
 	void OnScanPorts(wxHyperlinkEvent &event);
+	void OnConnectionType(wxCommandEvent &event);
+	void OnDeviceType(wxCommandEvent &event);
 	
 	
 public:
 
 	CConfig();
 	~CConfig();
-	void ShowWindow(bool show);	
+	
 	int GetBaud();
-	wxString GetDeviceName();
-	wxString GetDataDefinition();
-	wxString GetPort();
 	int GetDeviceType();
-
-
+	int GetConnectionType();
+	wxString GetHost();
+	wxString GetDeviceName();
+	wxString GetSerialPort();
+	wxString GetSocketPort();
+	void ShowWindow(bool show);
+	void SetConnectionType(int type);
+	void SetDeviceType(int type);
 	void SetDeviceName(wxString name);
 	void SetPort(char *port);
 	void SetBaud(int baud);
-	void SetDeviceType(int type);
-	
-	
+	void SetPort(int port);
+	void SetHost(char *host);
+		
 	DECLARE_EVENT_TABLE();
 
 
 	enum
 	{
-		ID_CLOSE,
+		ID_CLOSE = 24138,
 		ID_REFRESH,
+		ID_CONNECTION_TYPE,
+		ID_DEVICE_TYPE
 	};
 
 };

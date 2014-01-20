@@ -17,7 +17,7 @@
 #define nvPI 3.1415926535897932384626433832795
 
 #define PRODUCT_NAME "Device Manager"
-#define PRODUCT_VERSION "0.1"
+#define PRODUCT_VERSION "1.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
 
@@ -27,6 +27,9 @@
 #define KEY_BAUD "baud"
 #define KEY_RUNNING "running"
 #define KEY_DEVICE_TYPE "device_type"
+#define KEY_CONNECTION_TYPE "connection_type"
+#define KEY_SERIAL_PORT "serial_port"
+#define KEY_HOST "host"
 
 #define DIR_WORKDIR "workdir"
 
@@ -49,6 +52,7 @@
 #define REMOVE_DEVICE				10	// usuwanie urzadzenia
 #define START_DEVICE				11  // sygnal startu urzadzenia
 #define STOP_DEVICE					12	// sygnal zatrzymania urzadzenia
+#define DATA_SIGNAL					13	// sygna³ danych
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
@@ -86,12 +90,36 @@
 #define MSG_PREV					29
 #define MSG_FINISH					30
 #define MSG_SCANNING				31
+#define MSG_NO_DEVICE_FOUND			32
+#define MSG_DEVICE_FOUND			33
+#define MSG_SELECTED_DEVICES		34
+#define MSG_DEVICE_TYPE_SOCKET		35
+#define MSG_DEVICE_TYPE_SERIAL		36
+#define MSG_HOST					37
 
-#define MAX_DATA_POSITIONS		10
-
-
+#define MAX_DATA_POSITIONS	10
 #define WORK_WIZARD 0
 
+#define CONNECTION_TYPE_SOCKET	0
+#define CONNECTION_TYPE_SERIAL	1
+
+#define DEFAULT_SOCKET_HOST "195.116.95.12"
+#define DEFAULT_SOCKET_PORT	"3557"
+
+// w bibliotece protocols definicja w tablicach parsera
+#define AIS_MESSAGE					25
+
+#define AIS_CHECKSUM			6
+#define AIS_MESSAGE_ID			3			
+#define AIS_FRAGMENT_NUMBER		2
+#define AIS_FRAGMENT_COUNTER	1
+#define AIS_DATA				5
+
+//#define AIS_FRAGMENTS				34
+//#define AIS_FRAGMENT_NUMBER			35
+//#define AIS_SEQUENTIAL_MESSAGE_ID	36
+
+#define AIS_PARTS 7 // czesci wiadomosci
 
 typedef struct SData 
 {
@@ -118,4 +146,8 @@ enum
 	ID_SET_BAUD,
 };
 
+
 #endif
+
+
+

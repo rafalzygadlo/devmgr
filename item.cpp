@@ -2,19 +2,19 @@
 
 CItem::CItem()
 {
-	m_Serial = NULL;
+	m_Reader = NULL;
 }
 
 CItem::~CItem()
 {
 }
 
-void CItem::SetSerial(CMySerial *serial)
+void CItem::SetReader(CReader *reader)
 {
-	m_Serial = serial;
+	m_Reader = reader;
 }
 
-CMySerial *CItem::GetSerial()
+CReader *CItem::GetReader()
 {
-	return m_Serial;
+	return m_Reader;
 }

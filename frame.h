@@ -5,7 +5,7 @@
 
 #include "NaviMapIOApi.h"
 #include "dll.h"
-#include "serial.h"
+#include "reader.h"
 
 
 class CMapPlugin;

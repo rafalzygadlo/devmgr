@@ -10,9 +10,14 @@
 class CParser
 {
 	SData m_Data;
+	bool m_Multipart;
 	CNaviBroker *m_Broker;
 	std::vector<SDefinition> m_DataDefinition;
 	std::vector<SPosition> m_PositionDefinition;
+	int m_MessageId,m_FragmentCount;
+	unsigned char *m_Bits;
+	size_t m_Bitlen, m_OldLen;
+	CFunctions Functions;
 	
 	char ConvertChar(char data);
 	char *ConvertStr(char *str);
@@ -21,6 +26,11 @@ class CParser
 	void SetFunction(int id_function, double *values);
 	void Reset(float *tab);
 	double DD( float DM );
+	void Ais(char *str);
+	void AisFragments(char *val);
+	void AisFragmentNumber(char *val);
+	void AisSequentialMessageId(char *val);
+
 		
 public:
 	CParser();

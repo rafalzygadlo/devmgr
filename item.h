@@ -3,20 +3,20 @@
 
 #include <wx/wx.h>
 #include <wx/treectrl.h>
-#include "serial.h"
+#include "reader.h"
 
 class CItem :public wxTreeItemData
 {
 		
-	CMySerial *m_Serial;
+	CReader *m_Reader;
 
 public:
 
 	CItem();
 	~CItem();
 		
-	void SetSerial(CMySerial *serial);
-	CMySerial *GetSerial();
+	void SetReader(CReader *reader);
+	CReader *GetReader();
 
 };
 

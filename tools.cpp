@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][32] = 
+const wxChar *nvLanguage[2][38] = 
 { 
 	/*EN*/
 	{
@@ -43,7 +43,13 @@ const wxChar *nvLanguage[2][32] =
 		_("Next >"),
 		_("< Prev"),
 		_("Finish"),
-		_("Scaning %s %d\n"),
+		_("Scanning %s %d\n"),
+		_("No devices found"),
+		_("Found %d device(s)"),
+		_("Selected device(s) %d"),
+		_("Internet Connection"),
+		_("Serial Connection"),
+		_("Host"),
 
 	},
 	
@@ -92,11 +98,12 @@ wxString GetWorkDir(void)
 	return buffer;
 }
 
-CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int type)
+/*
+CReader *CreateNewDevice(wxString name, char *port, int baud, bool run, int type)
 {
-	CMySerial *Serial = new CMySerial();
+	CReader *Serial = new CReader();
 	Serial->SetBaud(baud);
-	Serial->_SetPort(port);
+	Serial->SetPort(port);
 	Serial->SetDeviceName(name);
 	Serial->SetRunOnStart(run);
 	Serial->SetDeviceType(type);
@@ -106,6 +113,40 @@ CMySerial *CreateNewDevice(wxString name, char *port, int baud, bool run, int ty
 	return Serial;
 
 }
+*/
+
+CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool run)
+{
+	CReader *ptr = new CReader();
+	ptr->SetConnectionType(CONNECTION_TYPE_SERIAL);
+	ptr->SetDeviceType(dtype);
+	ptr->SetBaud(baud);
+	ptr->SetPort(port);
+	ptr->SetDeviceName(name);
+	ptr->SetRunOnStart(run);
+	ptr->SetParseLine(true);
+	ptr->SetDefinition();
+	
+	return ptr;
+
+}
+
+CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, bool run)
+{
+	CReader *ptr = new CReader();
+	ptr->SetConnectionType(CONNECTION_TYPE_SOCKET);
+	ptr->SetDeviceType(dtype);
+	ptr->SetHost(host.char_str());
+	ptr->SetPort(port);
+	ptr->SetDeviceName(name);
+	ptr->SetRunOnStart(run);
+	ptr->SetParseLine(true);
+	ptr->SetDefinition();
+
+	return ptr;
+
+}
+
 
 char **ExplodeStr(const char *str, const char *separator, int *size) 
 {
@@ -214,7 +255,7 @@ bool SetGlobalPrioryty(int fid)
 	{
 		case SIGNAL_HDT:
 			m_HDT_Exists = true; 
-			m_HDT_Counter = 10;
+			m_HDT_Counter = 30;
 			return true;
 		break;
 		
@@ -227,6 +268,7 @@ bool SetGlobalPrioryty(int fid)
 		break;
 	}
 	
+	// dla innych zawsze true
 	return true;
 }
 
@@ -239,6 +281,7 @@ bool Check_HDT()
 		m_HDT_Exists = false;
 		return false;
 	}else{
+		//fprintf(stdout,"FORM HDT\n");
 		return true;
 	}
 }
@@ -249,8 +292,10 @@ bool Set_VTG_COG()
 	
 	if(m_HDT_Exists)
 		return false;
-	else
+	else{
+		//fprintf(stdout,"FORM VTG\n");
 		return true;
+	}
 }
 
 bool Set_RMC_COG()
@@ -259,6 +304,8 @@ bool Set_RMC_COG()
 
 	if(m_HDT_Exists)
 		return false;
-	else
+	else{
+		//fprintf(stdout,"FORM COG\n");
 		return true;
+	}
 }

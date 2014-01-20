@@ -2,10 +2,16 @@
 #include "protocol.h"
 #include "tools.h"
 //#include "GeometryTools.h"
+#include "ais.h"
 
 CParser::CParser()
 {
 	m_Broker = NULL;
+	m_MessageId = -1;
+	m_FragmentCount = 0;
+	m_Bits = NULL;
+	m_Bitlen = 0;
+	m_OldLen = 0;
 }
 
 CParser::~CParser()
@@ -56,9 +62,10 @@ void CParser::SetDefinition(int device_type)
 
 void CParser::Parse( char *line)
 {
-	
+	//fprintf(stdout,"%s",line);
 	//sygna³ nowej lini
 			
+	m_Multipart = false;
 	SDefinition DataDefinition;
 	for( size_t d = 0; d < m_DataDefinition.size() ; d++ ) 
 	{
@@ -99,12 +106,105 @@ void CParser::Parse( char *line)
 			}
 							
 			FreeStrList( StrList, Size );
+			 
+			CSignals signals;
+			SSignals *s = signals.GetById(m_Data.id);
+			
+			CSIDS sids;
+			
+			switch(m_Data.id)
+			{				
+				case AIS_MESSAGE: Ais(line); break;
+			
+			}
+			
 			if( ValidData )
+			{
+				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
+				// ustawia funkcje definiowane w protocole
+				//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnData",&m_Data);
 				SetValidData();
+			}
 			
 		}
 
 	}
+}
+
+void CParser::Ais(char *line)
+{
+	
+	int str_size;
+	char **StrList = ExplodeStr(line, ",", &str_size);
+	
+	if(str_size != AIS_PARTS)
+	{
+		fprintf(stdout,"%d\n",str_size);
+		FreeStrList( StrList, str_size );
+		return;
+	}
+
+	int fn = 0;
+	int fc = 0;
+	bool decode = true;
+	fc = atoi(StrList[AIS_FRAGMENT_COUNTER]);		// fragment counter
+	fn = atoi(StrList[AIS_FRAGMENT_NUMBER]);		//fragment number
+	char *data = StrList[AIS_DATA];
+	int pad = 0;
+		
+	if(fc > 1)
+	{
+		decode = false;
+		//fprintf(stderr,"%s",line);
+				
+		int mid = atoi(StrList[AIS_MESSAGE_ID]);		// message ID
+		
+		if(m_MessageId == -1)	// zaczynamy
+		{		
+			m_FragmentCount = 0;
+			m_MessageId = mid;
+		}
+		
+		if(mid != m_MessageId)
+			return;
+		
+		m_MessageId = mid;
+		char *csum = StrList[AIS_CHECKSUM];		//AIS_CHECKSUM
+		int last_size;
+		char **last = ExplodeStr(csum,"*",&last_size);
+		pad = atoi(last[0]); // AIS_PAD
+
+		m_FragmentCount++;
+		if(fn != m_FragmentCount)
+			return;
+		
+		FreeStrList( last, last_size );
+		
+				
+		if(fc == m_FragmentCount)
+		{
+			m_FragmentCount = 0;
+			m_MessageId = -1;
+			decode = true;
+			int a = 0;
+		}
+				
+	}
+		
+	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
+	m_Bitlen -= pad;
+	
+	FreeStrList( StrList, str_size );
+	
+	if(decode)
+	{
+		//ais_binary_decode(m_Bits,m_Bitlen);
+		//free(m_Bits);
+		m_Bits = NULL;
+		m_Bitlen = 0;
+		m_OldLen = 0;
+	}
+	
 }
 
 char *CParser::ConvertStr(char *str)
@@ -171,8 +271,7 @@ double CParser::ConvertValue(int signal_id,double data)
 
 void CParser::SetValidData()
 {
-
-	CFunctions Functions;
+		
 	CFunctiond Functiond;
 	size_t len = Functions.GetLen();
 	
@@ -191,9 +290,11 @@ void CParser::SetValidData()
 			if(funcd->id_signal == id_signal)
 			{
 				//Reset(funcs->values);
-				funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
-				if(SetGlobalPrioryty(funcd->id_signal))
+				if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
+				{
+					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
 					SetFunction(funcd->id,funcs->values);
+				}
 			}
 
 		}
@@ -216,11 +317,7 @@ void CParser::Reset(float *tab)
 void CParser::SetFunction(int id_function, double *values)
 {
 	SFunctionData Function;
-		
 	Function.id_function = id_function;
 	memcpy(Function.values,values,sizeof(double) * MAX_VALUES_LEN);
-	
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
-	
-	
 }
