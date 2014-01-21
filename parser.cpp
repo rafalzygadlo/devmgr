@@ -18,6 +18,8 @@ CParser::~CParser()
 {
 	m_DataDefinition.clear();
 	m_PositionDefinition.clear();
+	if(m_Bits)
+		free(m_Bits);
 }
 
 void CParser::SetBroker(CNaviBroker *broker)
@@ -94,7 +96,7 @@ void CParser::Parse( char *line)
 				if(m_DataDefinition[d].id_signal == m_PositionDefinition[i].id_signal)
 				{
 					char *MarkerValue = StrList[ PositionDefinition.position ];
-					MarkerValue = ConvertStr(MarkerValue);
+					MarkerValue = ConvertStr(MarkerValue,m_DataDefinition[d].id_signal);
 					if( MarkerValue != NULL ) 
 					{
 						size_t MarkerValueSize = strlen( MarkerValue );
@@ -166,7 +168,12 @@ void CParser::Ais(char *line)
 		}
 		
 		if(mid != m_MessageId)
+		{
+			m_FragmentCount = 0;
+			m_MessageId = -1;
+			FreeStrList( StrList, str_size );
 			return;
+		}
 		
 		m_MessageId = mid;
 		char *csum = StrList[AIS_CHECKSUM];		//AIS_CHECKSUM
@@ -175,8 +182,15 @@ void CParser::Ais(char *line)
 		pad = atoi(last[0]); // AIS_PAD
 
 		m_FragmentCount++;
+		
 		if(fn != m_FragmentCount)
+		{
+			m_FragmentCount = 0;
+			m_MessageId = -1;
+			FreeStrList( last, last_size );
+			FreeStrList( StrList, str_size );
 			return;
+		}
 		
 		FreeStrList( last, last_size );
 		
@@ -191,6 +205,9 @@ void CParser::Ais(char *line)
 				
 	}
 		
+
+	GetMutex()->Lock();
+	
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
 	m_Bitlen -= pad;
 	
@@ -198,17 +215,26 @@ void CParser::Ais(char *line)
 	
 	if(decode)
 	{
-		//ais_binary_decode(m_Bits,m_Bitlen);
-		//free(m_Bits);
+		ais_binary_decode(m_Bits,m_Bitlen);
+		free(m_Bits);
 		m_Bits = NULL;
 		m_Bitlen = 0;
 		m_OldLen = 0;
 	}
 	
+	GetMutex()->Unlock();
+	
 }
 
-char *CParser::ConvertStr(char *str)
+char *CParser::ConvertStr(char *str, int id_signal)
 {
+	// sygnaly nie konwertowane
+	switch(id_signal)
+	{
+		case AIS_MESSAGE: return str;
+	}
+
+
 	if(str == NULL)
 		return NULL;
 	

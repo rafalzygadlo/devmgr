@@ -10,6 +10,7 @@
 #include "info.h"
 #include "wizard.h"
 
+
 #include "images/computer.img"
 #include "images/stop.img"
 #include "images/start.img"
@@ -37,6 +38,9 @@ BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_HYPERLINK(ID_START,CDisplayPlugin::OnStart)
 	EVT_HYPERLINK(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
 	
+	EVT_MENU_RANGE(ID_MENU_BEGIN,ID_MENU_END,CDisplayPlugin::OnMenuRange)
+	EVT_CONTEXT_MENU(CDisplayPlugin::OnMenu)
+
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
 	EVT_COMMAND(ID_TEXT,EVT_SET_TEXT,CDisplayPlugin::OnSetText)
@@ -51,8 +55,77 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	SetDisplayID(NDS_DEVICE_MANAGER);
 	m_Broker = NULL;
 	m_SignalsPanel = NULL;
+	m_Sizer = NULL;
+		
+	this->Disable();
+	m_FirstTime = true;
+	m_SelectedItem = NULL;
+	m_DeviceConfig = NULL;
+	m_ControlType = DEFAULT_CONTROL_TYPE;
+	
+	ArrayOfTypes.Add(_("Device Manager - Configurator"));
+	ArrayOfTypes.Add(_("Ais Targets list"));
+	ArrayOfTypes.Add(_("Speed"));
+	ArrayOfTypes.Add(_("Date"));
+	ArrayOfTypes.Add(_("Time"));
+	ArrayOfTypes.Add(_("Fix"));
+	ArrayOfTypes.Add(_("Direction"));
+	ArrayOfTypes.Add(_("Longitude"));
+	ArrayOfTypes.Add(_("Latitude"));
+	ArrayOfTypes.Add(_("PDOP"));
+	ArrayOfTypes.Add(_("HDOP"));
+	ArrayOfTypes.Add(_("VDOP"));
+	ArrayOfTypes.Add(_("Quality"));
+	ArrayOfTypes.Add(_("Sattelites"));
+	ArrayOfTypes.Add(_("Status"));
 
-	m_Sizer = new wxBoxSizer(wxVERTICAL);
+
+}
+
+CDisplayPlugin::~CDisplayPlugin()
+{
+	if(m_DeviceConfig != NULL)
+		delete m_DeviceConfig;
+		
+}
+
+int CDisplayPlugin::GetControlType()
+{
+	return m_ControlType - ID_MENU_BEGIN;
+}
+
+
+void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
+{
+	m_ControlType = event.GetId();
+	m_Caption = ArrayOfTypes[GetControlType()];
+	//if(Panel != NULL)
+	//{
+		//delete Panel;
+		//Panel = NULL;
+	//}
+	//Refresh();
+}
+
+void CDisplayPlugin::OnMenu(wxContextMenuEvent &event)
+{
+	
+	wxMenu *Menu = new wxMenu();
+	
+	for(int i = 0; i < ArrayOfTypes.size(); i++)
+		Menu->AppendRadioItem(i + ID_MENU_BEGIN ,ArrayOfTypes[i]);
+			
+	Menu->Check(m_ControlType, true);
+	
+	PopupMenu(Menu);
+	delete Menu;
+	
+}
+
+
+void CDisplayPlugin::GetDevicesPanel()
+{
+	
 	m_ImageListSmall = new wxImageList(16, 16);
 	wxMemoryInputStream in_0((const unsigned char*)stop,stop_size);
     wxImage myImage_0(in_0, wxBITMAP_TYPE_PNG);
@@ -70,20 +143,27 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
     wxImage myImage_3(in_3, wxBITMAP_TYPE_PNG);
     m_ImageListSmall->Add(myImage_3);	
 	
+		//m_ToolBar->set
+	wxBitmap stop(myImage_0);
+	wxBitmap start(myImage_1);
+	wxBitmap computer(myImage_2);
+	wxBitmap types(myImage_3);
+
+
+	m_Sizer = new wxBoxSizer(wxVERTICAL);
+
+	wxPanel *Panel = new wxPanel(this);
+	m_Sizer->Add(Panel,1,wxALL|wxEXPAND,0);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
 	
-	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
-	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
+	wxNotebook *Notebook = new wxNotebook(Panel,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
+	PanelSizer->Add(Notebook,1,wxALL|wxEXPAND,0);
 	wxPanel *Page1 = new wxPanel(Notebook);
 	Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(Page1Sizer);
 	Notebook->AddPage(Page1,GetMsg(MSG_DEVICES));
 
 	m_ToolBar = new wxToolBar(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTB_FLAT);
-	//m_ToolBar->set
-	wxBitmap stop(myImage_0);
-	wxBitmap start(myImage_1);
-	wxBitmap computer(myImage_2);
-	wxBitmap types(myImage_3);
 		
 	m_ToolBar->AddTool(ID_START, GetMsg(MSG_START), start, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_START));
 	m_ToolBar->AddTool(ID_STOP, GetMsg(MSG_START), stop, wxNullBitmap,wxITEM_NORMAL,GetMsg(MSG_STOP));
@@ -118,45 +198,35 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 		
 	m_LabelName = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
 	m_LabelName->SetFont(font);
-	m_InfoPanelSizer->Add(m_LabelName,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_LabelName,0,wxALL,2);
 
 	m_LabelPort = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
-	m_InfoPanelSizer->Add(m_LabelPort,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_LabelPort,0,wxALL,2);
 
 	m_LabelConnected = new wxStaticText(m_InfoPanel,wxID_ANY,wxEmptyString);
-	m_InfoPanelSizer->Add(m_LabelConnected,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_LabelConnected,0,wxALL,2);
 
 	font.SetPointSize(8);
 	m_StartButton = new wxHyperlinkCtrl(m_InfoPanel,ID_START,GetMsg(MSG_START),wxEmptyString);
 	m_StartButton->SetFont(font);
-	m_InfoPanelSizer->Add(m_StartButton,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_StartButton,0,wxALL,2);
 		
 	m_Monitor = new wxHyperlinkCtrl(m_InfoPanel,wxID_ANY,GetMsg(MSG_MONITOR),wxEmptyString);
 	m_Monitor->SetFont(font);
-	m_InfoPanelSizer->Add(m_Monitor,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_Monitor,0,wxALL,2);
 
 	m_ConfigureButton = new wxHyperlinkCtrl(m_InfoPanel,ID_CONFIGURE_DEVICE,GetMsg(MSG_CONFIGURE_DEVICE),wxEmptyString);
 	m_ConfigureButton->SetFont(font);
-	m_InfoPanelSizer->Add(m_ConfigureButton,0,wxALL,1);
+	m_InfoPanelSizer->Add(m_ConfigureButton,0,wxALL,2);
 	
 	//m_Logger = new wxTextCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
 	//m_Sizer->Add(m_Logger,0,wxALL|wxEXPAND);
-		
-	
-	this->Disable();
+			
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	m_DeviceConfig = NULL;
-
-}
-
-CDisplayPlugin::~CDisplayPlugin()
-{
-	if(m_DeviceConfig != NULL)
-		delete m_DeviceConfig;
 	
-	FreeMutex();
 }
 
 void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
@@ -190,9 +260,10 @@ void CDisplayPlugin::OnTreeSelChanged(wxTreeEvent &event)
 void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 {
 	m_SelectedItemId = event.GetItem();
+	
 	m_SelectedItem = (CItem*)m_Devices->GetItemData(event.GetItem());
 	m_Devices->SelectItem(event.GetItem());
-
+	
 	if(m_SelectedItem == NULL)
 	{
 		wxMenu *Menu = new wxMenu();
@@ -201,8 +272,7 @@ void CDisplayPlugin::OnTreeMenu(wxTreeEvent &event)
 		delete Menu;
 		return;
 	}
-
-	
+		
 	CReader *Reader = m_SelectedItem->GetReader();
 	m_SelectedDevice = Reader;
 	wxMenu *Menu = new wxMenu(wxString::Format(_("%s"),Reader->GetDeviceName().wc_str()));
@@ -404,8 +474,8 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 	if(SignalID->GetSignalID() == NDS_DEVICE_MANAGER)
 	{
-		if(GetMutex()->TryLock())
-			return false;
+		//if(GetMutex()->TryLock())
+			//return false;
 		
 		m_MapPlugin = (CMapPlugin*)SignalID->GetData();
 		m_SignalType = m_MapPlugin->GetDisplaySignalType();
@@ -414,7 +484,7 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 		InitDisplay();
 		GetSignal();    // kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
-		GetMutex()->Unlock();
+		//GetMutex()->Unlock();
 		return false;
 	}
 	
@@ -563,8 +633,7 @@ void CDisplayPlugin::InitDisplay()
 	{
 		m_FirstTime = false;
 		this->Enable();
-		SetDevices();
-		//SetSignals();
+		//SetDevices();
 	}
 
 }
@@ -643,7 +712,7 @@ void CDisplayPlugin::SetIconEvent(int icon_id)
 
 void CDisplayPlugin::OnSetText(wxCommandEvent &event)
 {
-
+	return;
 	CReader *ptr = (CReader*)event.GetClientData();
 	wxTreeItemIdValue cookie;
 	
@@ -707,6 +776,7 @@ void CDisplayPlugin::SetLogger(wxString txt)
 
 void CDisplayPlugin::SetDevices() 
 {
+
 	m_Devices->DeleteChildren(m_Root);
 	
 	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
@@ -716,32 +786,10 @@ void CDisplayPlugin::SetDevices()
 
 }
 
-void CDisplayPlugin::SetSignals()
-{
-	wxTreeItemIdValue cookie;
-	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
-	while(id.IsOk())
-	{
-		
-		CItem *item  = (CItem*)m_Devices->GetItemData(id);
-		CSerial *serial = item->GetReader();
-		for(size_t i = 0; i < serial->GetSignalCount();i++)
-		{
-			m_Devices->AppendItem(id,wxString::Format(_("%s"),serial->GetSignal(i)->name),0);
-		}
-	
-		id = m_Devices->GetNextChild(id,cookie);
-	
-	}
-
-
-}
-
 void CDisplayPlugin::SetDevicesData()
 {
 
 }
-
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {

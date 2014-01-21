@@ -25,7 +25,7 @@ class CMyFrame;
 class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
-	std::vector<CReader*> m_vDevices;
+	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
 	bool m_NeedExit;
 	wxFileConfig *m_FileConfig;
@@ -76,6 +76,7 @@ public:
 	void ReindexDevics();
 	void RenderPosition();
 	SData *GetData();
+	wxArrayPtrVoid *GetDevicesList();
 	
 	int GetDisplaySignalType();
 	int GetDeviceId();

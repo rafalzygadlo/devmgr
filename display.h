@@ -50,7 +50,12 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxHyperlinkCtrl *m_StartButton;
 	wxHyperlinkCtrl *m_ConfigureButton;
 	wxHyperlinkCtrl *m_Monitor;
-
+	int m_ControlType;
+	wxString m_Caption;
+	wxArrayString ArrayOfTypes;
+		
+	int GetControlType();
+	void GetDevicesPanel();
 	wxString GetCaption();
 	void SetDevicesData();
 	void SetDevices();
@@ -86,6 +91,8 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnStop(wxHyperlinkEvent &event);
 	void OnStart(wxCommandEvent &event);
 	void OnStart(wxHyperlinkEvent &event);
+	void OnMenuRange(wxCommandEvent &event);
+	void OnMenu(wxContextMenuEvent &event);
 
 	void OnUninstall(wxCommandEvent &event);
 	void OnConfigureDevice(wxCommandEvent &event);

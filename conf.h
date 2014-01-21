@@ -57,6 +57,10 @@
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
 
+#define ID_MENU_BEGIN 1000
+#define ID_MENU_END 1100
+#define DEFAULT_CONTROL_TYPE 1000
+
 // jezyki id
 #define MSG_DEVICE_NAME				0
 #define MSG_PORT					1

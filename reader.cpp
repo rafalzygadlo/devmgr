@@ -222,8 +222,8 @@ void CReader::OnBeforeMainLoop()
 
 void CReader::OnLine( char *buffer, int length)
 {
-	m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
-	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	//m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
+	//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 	Parse(buffer);	
 }
 

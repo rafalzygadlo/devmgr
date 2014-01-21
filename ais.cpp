@@ -1,37 +1,19 @@
 #include "ais.h"
+#include "tools.h"
 #include <stdio.h>
 
 std::vector <ais_t*> vAist;
-std::vector <ais_p*> vAisp;
 
-void prepare_render_list(ais_t *aist, ais_p *aisp)
+void ais_free_list()
 {
-	//ais_p *list = (ais_p*)malloc(sizeof(ais_p)); 
-		
-	if(aist->type1.valid)
+	for(size_t  i = 0; i < vAist.size(); i++)
 	{
-		aisp->lat = aist->type1.lat;
-		aisp->lat = aist->type1.lat;
-		return;
+		ais_t *ais = vAist[i];
+		free(ais);
 	}
 	
-	if(aist->type4.valid)
-	{
-		aisp->lat = aist->type4.lat;
-		aisp->lat = aist->type4.lat;
-		return;
-	}
-		
+	vAist.clear();
 }
-
-ais_p *ais_pos_exists(int idx)
-{
-	if(vAisp.size() > idx)
-		return vAisp[idx];
-	else
-		return NULL;
-}
-
 
 ais_t *ais_msg_exists(int mmsi)
 {
@@ -46,14 +28,13 @@ ais_t *ais_msg_exists(int mmsi)
 
 }
 
-int ais_binary_decode(unsigned char *bits, size_t bitlen)
+bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
 	ais_t *ais;
 	int mmsi;
 	mmsi = (int)UBITS(8, 30);
 	bool add = false;
-	
-	// mutex jest potrzebny
+		
 	ais = ais_msg_exists(mmsi);
 	
 	if(!ais)
@@ -96,17 +77,17 @@ int ais_binary_decode(unsigned char *bits, size_t bitlen)
 		default:
 			fprintf(stdout,"%d\n",type);
 	}
-
-	// mutex jest potrzebny
-//	if(add)
-//		vAist.push_back(ais); // wyciek jak morze ba³tyckie
-
-	//ais_pos_exists(
-	//prepare_render_list(ais,);
+		
+	if(add)
+	{	
+		vAist.push_back(ais);
+		return true;
+	}
 	
-	return type;
-	
+	return false;
 }
+
+
 /* Position Report */
 void ais_message_1(unsigned char *bits, ais_t *ais)
 {
@@ -758,6 +739,7 @@ void ais_message_16(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 		return;
 	}
+	
 	ais->type16.valid = true;
 	ais->type16.mmsi1		= (int)UBITS(40, 30);
 	ais->type16.offset1		= (int)UBITS(70, 12);
