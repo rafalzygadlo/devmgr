@@ -74,8 +74,8 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
 		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
 
-		default:
-			fprintf(stdout,"%d\n",type);
+		//default:
+			//fprintf(stdout,"%d\n",type);
 	}
 		
 	if(add)

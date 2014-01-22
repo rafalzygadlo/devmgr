@@ -3,7 +3,8 @@
 #include <wx/stdpaths.h>
 #include "protocol.h"
 
-wxMutex *mutex = NULL;
+wxMutex *a_mutex = NULL;
+wxMutex *s_mutex = NULL;
 int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
@@ -234,20 +235,36 @@ int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Sea
 	return -1;
 };
 
-void FreeMutex()
+void FreeAisMutex()
 {
-	if(mutex)
-		delete mutex;
-	mutex = NULL;
+	if(a_mutex)
+		delete a_mutex;
+	a_mutex = NULL;
 }
 
-wxMutex *GetMutex()
+wxMutex *GetAisMutex()
 {
-	if(mutex == NULL)
-		mutex = new wxMutex();
-	return mutex;
+	if(a_mutex == NULL)
+		a_mutex = new wxMutex();
+	return a_mutex;
 
 }
+
+void FreeSignalMutex()
+{
+	if(s_mutex)
+		delete s_mutex;
+	s_mutex = NULL;
+}
+
+wxMutex *GetSignalMutex()
+{
+	if(s_mutex == NULL)
+		s_mutex = new wxMutex();
+	return s_mutex;
+
+}
+
 
 bool SetGlobalPrioryty(int fid)
 {

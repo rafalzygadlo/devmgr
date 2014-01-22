@@ -20,7 +20,9 @@ CReader::CReader()
 	m_DeviceType = -1;
 	SerialPtr = (CSerial*)this;
 	SocketPtr = (CClient*)this;
+	m_LineEvent = false;
 	m_ConnectionType = CONNECTION_TYPE_SERIAL;
+	
 }
 
 CReader::~CReader()
@@ -79,20 +81,20 @@ bool CReader::IsRunning()
 	return m_IsRunning;
 }
 
-void CReader::SetTreeCtrl(wxTreeCtrl *tree)
-{
-	TreeCtrl = tree;
-}
+//void CReader::SetTreeCtrl(wxTreeCtrl *tree)
+//{
+//	TreeCtrl = tree;
+//}
 
-void CReader::SetTreeItemId(wxTreeItemId id)
-{
-	TreeItemId = id;
-}
+//void CReader::SetTreeItemId(wxTreeItemId id)
+//{
+	//TreeItemId = id;
+//}
 
-wxTreeItemId CReader::GetTreeItemId()
-{
-	return TreeItemId;
-}
+//wxTreeItemId CReader::GetTreeItemId()
+//{
+	//return TreeItemId;
+//}
 
 int CReader::GetSignalType()
 {
@@ -182,6 +184,35 @@ int CReader::GetConnectionType()
 	return m_ConnectionType;
 }
 
+char *CReader::GetBuffer()
+{
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET:	return SocketPtr->GetBuffer();
+		case CONNECTION_TYPE_SERIAL:	return SerialPtr->GetBuffer();
+	}
+
+	return NULL;
+
+}
+
+char *CReader::GetLineBuffer()
+{
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET:	return SocketPtr->GetLineBuffer();
+		case CONNECTION_TYPE_SERIAL:	return SerialPtr->GetLineBuffer();
+	}
+
+	return NULL;
+
+}
+
+void CReader::SetLineEvent()
+{
+	m_LineEvent = !m_LineEvent;
+}
+
 // zdarzenia seriala
 void CReader::OnConnect()
 {
@@ -189,7 +220,7 @@ void CReader::OnConnect()
 
 void CReader::OnConnected()
 {
-	m_SignalType = SERIAL_SIGNAL_CONNECTED;
+	m_SignalType = SIGNAL_CONNECTED;
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
@@ -222,8 +253,12 @@ void CReader::OnBeforeMainLoop()
 
 void CReader::OnLine( char *buffer, int length)
 {
-	//m_SignalType = SERIAL_SIGNAL_NMEA_LINE;
-	//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	if(m_LineEvent)
+	{
+		m_SignalType = SIGNAL_NMEA_LINE;
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this); // zaburza przeplyw sygnalow
+	}
+	
 	Parse(buffer);	
 }
 
@@ -234,7 +269,7 @@ void CReader::OnNMEALine( char *buffer, int length)
 
 void CReader::OnReconnect()
 {
-	m_SignalType = SERIAL_SIGNAL_RECONNECT;
+	m_SignalType = SIGNAL_RECONNECT;
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 
@@ -245,7 +280,7 @@ void CReader::OnNewSignal()
 
 void CReader::OnNoSignal()
 {
-	m_SignalType = SERIAL_SIGNAL_NO_SIGNAL;
+	m_SignalType = SIGNAL_NO_SIGNAL;
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
 }
 

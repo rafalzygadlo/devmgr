@@ -53,6 +53,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	int m_ControlType;
 	wxString m_Caption;
 	wxArrayString ArrayOfTypes;
+	CReader *m_Reader;
 		
 	int GetControlType();
 	void GetDevicesPanel();
@@ -79,7 +80,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void StartDevice();
 	void StopDevice();
 	void OnData();
-		
+	void OnNMEALine();
 	void OnConnected();
 	void OnReconnect();
 	void OnNoSignal();
@@ -96,8 +97,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 
 	void OnUninstall(wxCommandEvent &event);
 	void OnConfigureDevice(wxCommandEvent &event);
-	void OnConfigureDevice(wxHyperlinkEvent &event);
-
+	void OnMonitor(wxHyperlinkEvent &event);
 	void OnConfigureData(wxCommandEvent &event);
 	void OnNewDevice(wxCommandEvent &event);
 	void OnNewMarker(wxCommandEvent &event);
@@ -123,6 +123,7 @@ public:
 		ID_STOP,
 		ID_START,
 		ID_CONFIGURE_DEVICE,
+		ID_MONITOR,
 		ID_UNINSTALL,
 		ID_NEW_DEVICE,
 		ID_STATUS,

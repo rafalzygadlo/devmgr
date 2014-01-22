@@ -51,7 +51,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
-	GetMutex();
 	
 }
 
@@ -60,7 +59,8 @@ CMapPlugin::~CMapPlugin()
 	m_Devices->Clear();
 	delete m_Devices;
 	delete m_DisplaySignal;
-	FreeMutex();
+	FreeSignalMutex();
+	FreeAisMutex();
 }
 
 void CMapPlugin::WriteConfig()
@@ -228,12 +228,12 @@ void CMapPlugin::AddDeviceFunc(CReader *ptr)
 
 void CMapPlugin::StartDevice(CReader *ptr)
 {
-	SendSignal(START_DEVICE,ptr->GetDeviceId());
+	SendSignal(START_DEVICE,ptr);
 }
 
 void CMapPlugin::StopDevice(CReader *ptr)
 {
-	SendSignal(STOP_DEVICE,ptr->GetDeviceId());
+	SendSignal(STOP_DEVICE,ptr);
 }
 
 void CMapPlugin::RemoveDevice(CReader *ptr)
@@ -250,7 +250,7 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 
 			delete _ptr;
 			m_Devices->Remove(_ptr);
-			SendSignal(REMOVE_DEVICE,0);
+			SendSignal(REMOVE_DEVICE,_ptr);
 		}
 	}
 
@@ -334,7 +334,7 @@ void CMapPlugin::Run(void *Params)
 	ReadConfig();
 	m_Init = true;
 	m_EnableControls = true;
-	SendSignal(INIT_SIGNAL,0);
+	SendSignal(INIT_SIGNAL,NULL);
 } 
 
 void CMapPlugin::Kill(void)
@@ -359,7 +359,7 @@ void CMapPlugin::Kill(void)
         delete m_FileConfig;
 
 	ais_free_list();
-	SendSignal(CLEAR_DISPLAY,0);
+	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 
 }
@@ -441,7 +441,7 @@ void *CMapPlugin::OnDeviceSignal(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
 	CReader *ptr = (CReader*)Params;
-	ThisPtr->SendSignal(ptr->GetSignalType(),ptr->GetDeviceId());
+	ThisPtr->SendSignal(ptr->GetSignalType(),ptr);
 		
 	return NULL;
 }
@@ -475,7 +475,7 @@ SData *CMapPlugin::GetData()
 void CMapPlugin::SetData(SData *value)
 {
 	m_Data = value;
-	SendSignal(DATA_SIGNAL,0);
+	SendSignal(DATA_SIGNAL,NULL);
 }
 
 void CMapPlugin::SetFunctionData(SFunctionData *data)
@@ -507,11 +507,10 @@ void CMapPlugin::SetDisplaySignalType(int type)
 	m_DisplaySignalType = type;
 }
 
-void CMapPlugin::SendSignal(int type, int id)
+void CMapPlugin::SendSignal(int type, void *ptr)
 {
-	SetDeviceId(id);
-	SetDisplaySignalType(type);
-	m_DisplaySignal->SetData((void*)this,sizeof(this));
+	m_DisplaySignal->SetData((void*)ptr,sizeof(ptr));
+	m_DisplaySignal->SetTag(type);
 	GetBroker()->SendDisplaySignal((void*)m_DisplaySignal);
 }
 

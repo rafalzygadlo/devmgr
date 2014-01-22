@@ -95,6 +95,8 @@ void CParser::Parse( char *line)
 
 				if(m_DataDefinition[d].id_signal == m_PositionDefinition[i].id_signal)
 				{
+					if(PositionDefinition.position >= Size)
+						break;
 					char *MarkerValue = StrList[ PositionDefinition.position ];
 					MarkerValue = ConvertStr(MarkerValue,m_DataDefinition[d].id_signal);
 					if( MarkerValue != NULL ) 
@@ -206,7 +208,7 @@ void CParser::Ais(char *line)
 	}
 		
 
-	GetMutex()->Lock();
+	GetAisMutex()->Lock();
 	
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
 	m_Bitlen -= pad;
@@ -222,7 +224,7 @@ void CParser::Ais(char *line)
 		m_OldLen = 0;
 	}
 	
-	GetMutex()->Unlock();
+	GetAisMutex()->Unlock();
 	
 }
 

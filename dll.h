@@ -42,7 +42,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
-	void SendSignal(int type, int id);
+	void SendSignal(int type, void *ptr);
 	void SendDataSignal(SData *data);
 	void SetDisplaySignalType(int type);
 	void SetDeviceId(int id);

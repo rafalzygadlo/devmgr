@@ -40,12 +40,12 @@
 #define MAX_INVALID_NMEA			2
 
 // sygna³y do display
-#define SERIAL_SIGNAL_RECONNECT		1	// sygna³ urzadzenia o ponownym polaczeniu
-#define SERIAL_SIGNAL_ONDATA		2	// sygna³ z portu o danych
-#define SERIAL_SIGNAL_NEW_SIGNAL	3	// linia nowego typu dostêpna
-#define SERIAL_SIGNAL_NO_SIGNAL		4	// polaczony ale brak sygnalu
-#define SERIAL_SIGNAL_NMEA_LINE		5	// nmea line
-#define SERIAL_SIGNAL_CONNECTED		6
+#define SIGNAL_RECONNECT			1	// sygna³ urzadzenia o ponownym polaczeniu
+#define SIGNAL_ONDATA				2	// sygna³ z portu o danych
+#define SIGNAL_NEW_SIGNAL			3	// linia nowego typu dostêpna
+#define SIGNAL_NO_SIGNAL			4	// polaczony ale brak sygnalu
+#define SIGNAL_NMEA_LINE			5	// nmea line
+#define	SIGNAL_CONNECTED			6
 #define CLEAR_DISPLAY				7	// wyczyszczenie kontrolek nie u¿ywamy narazie
 #define INIT_SIGNAL					8	// zainicjowanie kontrolek
 #define ADD_DEVICE					9	// dodanie urz¹dzenia
