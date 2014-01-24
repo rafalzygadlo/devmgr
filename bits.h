@@ -11,8 +11,8 @@
  * This file is Copyright (c)2010 by the GPSD project
  * BSD terms apply: see the file COPYING in the distribution root for details.
  */
-#ifndef _GPSD_BITS_H_
-#define _GPSD_BITS_H_
+#ifndef _BITS_H_
+#define _BITS_H_
 
 #include <stdint.h>
 
@@ -54,4 +54,4 @@ extern void putbed64(char *, int, double);
 extern uint64_t ubits(unsigned char buf[], unsigned int, unsigned int, bool);
 extern int64_t sbits(signed char buf[], unsigned int, unsigned int, bool);
 
-#endif /* _GPSD_BITS_H_ */
+#endif 

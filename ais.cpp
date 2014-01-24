@@ -4,6 +4,18 @@
 
 std::vector <ais_t*> vAist;
 
+size_t ais_get_item_count()
+{
+	size_t len = 0;
+	len = vAist.size();
+	return len;
+}
+
+ais_t *ais_get_item(size_t idx)
+{
+	return vAist[idx];
+}
+
 void ais_free_list()
 {
 	for(size_t  i = 0; i < vAist.size(); i++)
@@ -30,6 +42,7 @@ ais_t *ais_msg_exists(int mmsi)
 
 bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
+	
 	ais_t *ais;
 	int mmsi;
 	mmsi = (int)UBITS(8, 30);
@@ -73,9 +86,10 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	break;
 		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
 		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
+		case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
 
-		//default:
-			//fprintf(stdout,"%d\n",type);
+		default:
+			fprintf(stdout,"UNKNOWN %d\n",type);
 	}
 		
 	if(add)
@@ -936,20 +950,20 @@ void ais_message_23(unsigned char *bits,  ais_t *ais)
 void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 {
 
-//	switch (UBITS(38, 2)) 
-//	{
+	switch (UBITS(38, 2)) 
+	{
 		/* save incoming 24A shipname/MMSI pairs in a circular queue */	
-		//case 0:
-	    //{
+		case 0:
+	    {
 			//struct ais_type24a_t *saveptr = &type24_queue->ships[type24_queue->index];
 			//saveptr->mmsi = ais->mmsi;
 			//UCHARS(40, saveptr->shipname);
 			//++type24_queue->index;
 			//type24_queue->index %= MAX_TYPE24_INTERLEAVE;
-	    //}
+	    }
 	    //ais->type24.a.spare	= UBITS(160, 8);
 
-	    //UCHARS(40, ais->type24.shipname);
+	    UCHARS(40, ais->type24.shipname);
 	    //ais->type24.part = part_a;
 	    //return;
 		//case 1:
@@ -999,9 +1013,9 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 			//ais->type24.part = part_b;
 			//return;
 	
-	//default:
-	  //  return;
-	//}
+	default:
+	   return;
+	}
 
 }
 

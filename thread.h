@@ -1,5 +1,5 @@
-#ifndef __THREAD
-#define __THREAD
+#ifndef __THREAD_H
+#define __THREAD_H
 
 #include <wx/wx.h>
 #include "dll.h"

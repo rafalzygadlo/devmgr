@@ -1,5 +1,5 @@
-#ifndef __INFO
-#define __INFO
+#ifndef __INFO_H
+#define __INFO_H
 
 #include <wx/wx.h>
 #include <vector>

@@ -46,7 +46,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
-	AddExecuteFunction("devmgr_OnData",OnData);
+	
+	AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -59,8 +60,7 @@ CMapPlugin::~CMapPlugin()
 	m_Devices->Clear();
 	delete m_Devices;
 	delete m_DisplaySignal;
-	FreeSignalMutex();
-	FreeAisMutex();
+	FreeMutex();
 }
 
 void CMapPlugin::WriteConfig()
@@ -347,7 +347,8 @@ void CMapPlugin::Kill(void)
 	
 	//m_SearchThread->Stop();
 	//delete m_SearchThread;
-	
+	SendSignal(CLEAR_AIS_LIST,NULL);
+
 	for(size_t i = 0; i < m_Devices->size(); i++)
 	{
 		CReader *ptr = (CReader*)m_Devices->Item(i);
@@ -466,6 +467,17 @@ void *CMapPlugin::OnData(void *NaviMapIOApiPtr, void *Params)
 	
 	return NULL;
 }
+
+void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	//SFunctionData *Data = (SFunctionData*)Params;
+	
+	ThisPtr->SendSignal(SIGNAL_NEW_AIS_OBJECT,NULL);
+		
+	return NULL;
+}
+
 
 SData *CMapPlugin::GetData()
 {

@@ -1,5 +1,5 @@
-#ifndef __PARSER
-#define __PARSER
+#ifndef __PARSER_H
+#define __PARSER_H
 
 #include <wx/wx.h>
 #include <vector>
@@ -26,7 +26,8 @@ class CParser
 	void SetFunction(int id_function, double *values);
 	void Reset(float *tab);
 	double DD( float DM );
-	void Ais(char *str);
+	void AisParse(char *str);
+	bool Ais(char *str);
 	void AisFragments(char *val);
 	void AisFragmentNumber(char *val);
 	void AisSequentialMessageId(char *val);

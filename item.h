@@ -1,5 +1,5 @@
-#ifndef __ITEM
-#define __ITEM
+#ifndef __ITEM_H
+#define __ITEM_H
 
 #include <wx/wx.h>
 #include <wx/treectrl.h>

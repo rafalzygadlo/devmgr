@@ -1,5 +1,5 @@
-#ifndef __CONF
-#define __CONF
+#ifndef __CONF_H
+#define __CONF_H
 #include <wx/wx.h>
 
 #define COMMENT
@@ -45,14 +45,16 @@
 #define SIGNAL_NEW_SIGNAL			3	// linia nowego typu dostêpna
 #define SIGNAL_NO_SIGNAL			4	// polaczony ale brak sygnalu
 #define SIGNAL_NMEA_LINE			5	// nmea line
-#define	SIGNAL_CONNECTED			6
-#define CLEAR_DISPLAY				7	// wyczyszczenie kontrolek nie u¿ywamy narazie
-#define INIT_SIGNAL					8	// zainicjowanie kontrolek
-#define ADD_DEVICE					9	// dodanie urz¹dzenia
-#define REMOVE_DEVICE				10	// usuwanie urzadzenia
-#define START_DEVICE				11  // sygnal startu urzadzenia
-#define STOP_DEVICE					12	// sygnal zatrzymania urzadzenia
-#define DATA_SIGNAL					13	// sygna³ danych
+#define SIGNAL_NEW_AIS_OBJECT		6
+#define	SIGNAL_CONNECTED			7
+#define CLEAR_DISPLAY				8	// wyczyszczenie kontrolek nie u¿ywamy narazie
+#define INIT_SIGNAL					9	// zainicjowanie kontrolek
+#define ADD_DEVICE					10	// dodanie urz¹dzenia
+#define REMOVE_DEVICE				11	// usuwanie urzadzenia
+#define START_DEVICE				12  // sygnal startu urzadzenia
+#define STOP_DEVICE					13	// sygnal zatrzymania urzadzenia
+#define DATA_SIGNAL					14	// sygna³ danych
+#define CLEAR_AIS_LIST				15	// set item count na 0
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
@@ -100,6 +102,8 @@
 #define MSG_DEVICE_TYPE_SOCKET		35
 #define MSG_DEVICE_TYPE_SERIAL		36
 #define MSG_HOST					37
+#define MSG_AIS_TARGETS				38
+#define MSG_MMSI					39
 
 #define MAX_DATA_POSITIONS	10
 #define WORK_WIZARD 0
@@ -125,11 +129,13 @@
 
 #define AIS_PARTS 7 // czesci wiadomosci
 
+#define MARKER_LENGTH 5
+#define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
 typedef struct SData 
 {
 	int		id;
-	char	marker[5 + 1];	// id definicji danych
-	char	value[64 + 1];
+	char	marker[MARKER_LENGTH + 1];	// id definicji danych
+	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183’s 82
 
 } SData;
 
@@ -139,7 +145,6 @@ typedef struct SFunctionData
 	double	values[6];
 
 } SFunctionData;
-
 
 
 // globalne identyfikatory eventów

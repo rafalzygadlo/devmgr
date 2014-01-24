@@ -1,5 +1,5 @@
-#ifndef __AIS
-#define __AIS
+#ifndef __AIS_H
+#define __AIS_H
 
 #include "bits.h"
 #include <stdlib.h>
@@ -1025,6 +1025,8 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 void ais_free_list();
+size_t ais_get_item_count();
+ais_t *ais_get_item(size_t idx);
 
 void ais_message_1(unsigned char *bits, ais_t *ais);
 void ais_message_4(unsigned char *bits, ais_t *ais);

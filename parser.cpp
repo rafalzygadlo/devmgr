@@ -102,7 +102,10 @@ void CParser::Parse( char *line)
 					if( MarkerValue != NULL ) 
 					{
 						size_t MarkerValueSize = strlen( MarkerValue );
+						if(MarkerValueSize > MAX_VALUE_LENGTH)
+							break;
 						memcpy(m_Data.value + WriteStrPor, MarkerValue, MarkerValueSize );
+						
 						WriteStrPor += MarkerValueSize;
 						ValidData = true;
 					}
@@ -110,16 +113,10 @@ void CParser::Parse( char *line)
 			}
 							
 			FreeStrList( StrList, Size );
-			 
-			CSignals signals;
-			SSignals *s = signals.GetById(m_Data.id);
-			
-			CSIDS sids;
-			
+						
 			switch(m_Data.id)
 			{				
-				case AIS_MESSAGE: Ais(line); break;
-			
+				case AIS_MESSAGE: AisParse(line); break;
 			}
 			
 			if( ValidData )
@@ -134,8 +131,14 @@ void CParser::Parse( char *line)
 
 	}
 }
+void CParser::AisParse(char *line)
+{
+	if(Ais(line))
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnNewAisObject",NULL);
+		
+}
 
-void CParser::Ais(char *line)
+bool CParser::Ais(char *line)
 {
 	
 	int str_size;
@@ -145,7 +148,7 @@ void CParser::Ais(char *line)
 	{
 		fprintf(stdout,"%d\n",str_size);
 		FreeStrList( StrList, str_size );
-		return;
+		return false;
 	}
 
 	int fn = 0;
@@ -174,7 +177,7 @@ void CParser::Ais(char *line)
 			m_FragmentCount = 0;
 			m_MessageId = -1;
 			FreeStrList( StrList, str_size );
-			return;
+			return false;
 		}
 		
 		m_MessageId = mid;
@@ -191,7 +194,7 @@ void CParser::Ais(char *line)
 			m_MessageId = -1;
 			FreeStrList( last, last_size );
 			FreeStrList( StrList, str_size );
-			return;
+			return false;
 		}
 		
 		FreeStrList( last, last_size );
@@ -208,23 +211,27 @@ void CParser::Ais(char *line)
 	}
 		
 
-	GetAisMutex()->Lock();
+	GetMutex()->Lock();
 	
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
 	m_Bitlen -= pad;
 	
 	FreeStrList( StrList, str_size );
 	
+	bool new_data  = false;
+	
 	if(decode)
 	{
-		ais_binary_decode(m_Bits,m_Bitlen);
+		new_data = ais_binary_decode(m_Bits,m_Bitlen);
 		free(m_Bits);
 		m_Bits = NULL;
 		m_Bitlen = 0;
 		m_OldLen = 0;
 	}
 	
-	GetAisMutex()->Unlock();
+	GetMutex()->Unlock();
+
+	return new_data;
 	
 }
 

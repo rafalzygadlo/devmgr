@@ -1,5 +1,5 @@
-#ifndef __DEVICECONFIG
-#define __DEVICECONFIG
+#ifndef __CONFIG_H
+#define __CONFIG_H
 
 #include <wx/wx.h>
 #include <wx/hyperlink.h>

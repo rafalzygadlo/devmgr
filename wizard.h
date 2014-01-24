@@ -1,5 +1,5 @@
-#ifndef __WIZARD
-#define __WIZARD
+#ifndef __WIZARD_H
+#define __WIZARD_H
 
 #include <wx/wx.h>
 #include "conf.h"

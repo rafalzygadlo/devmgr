@@ -1,5 +1,5 @@
-#ifndef SEARCHER_H
-#define SEARCHER_H
+#ifndef __SEARCHER_H
+#define __SEARCHER_H
 
 #if defined(_LINUX32) || defined(_LINUX64)
 #include <pthread.h>

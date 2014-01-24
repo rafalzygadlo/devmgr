@@ -1,5 +1,5 @@
-#ifndef __DLL
-#define __DLL
+#ifndef __DLL_H
+#define __DLL_H
 
 #include "NaviMapIOApi.h"
 #include <wx/fileconf.h>
@@ -95,6 +95,7 @@ public:
 	static void *GetParentPtr(void *NaviMapIOApiPtr, void *Params);
 	static void *AddDevice(void *NaviMapIOApiPtr, void *Params);
 	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
+	static void *OnNewAisObject(void *NaviMapIOApiPtr, void *Params);	// nowe dane do tablicy ais
 	static void *OnData(void *NaviMapIOApiPtr, void *Params); // dane
 	
 };	

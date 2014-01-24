@@ -1,5 +1,5 @@
-#ifndef __TOOLS
-#define __TOOLS
+#ifndef __TOOLS_H
+#define __TOOLS_H
 
 #include <wx/wx.h>
 #include "NaviBroker.h"
@@ -7,10 +7,8 @@
 
 wxString GetProductInfo();
 wxString GetProductName();
-wxMutex *GetAisMutex();
-wxMutex *GetSignalMutex();
-void FreeAisMutex();
-void FreeSignalMutex();
+wxMutex *GetMutex();
+void FreeMutex();
 wxString GetPluginConfigPath();								
 wxString GetWorkDir(void);
 void PrintInfo(CNaviBroker *Broker,wchar_t *text);	// drukuj info na mapie

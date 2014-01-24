@@ -1,5 +1,5 @@
-#ifndef __SERIAL
-#define __SERIAL
+#ifndef __READER_H
+#define __READER_H
 
 #include <wx/wx.h>
 #include "serial_port.h"
