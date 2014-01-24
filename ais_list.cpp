@@ -26,7 +26,8 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 
 CAisList::~CAisList()
 {
-
+	m_Timer->Stop();
+	delete m_Timer;
 }
 
 void CAisList::OnTimer(wxTimerEvent &event)
