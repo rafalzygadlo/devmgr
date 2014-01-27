@@ -60,28 +60,55 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 		
 	m_DevicesList = NULL;
 	m_AisList = NULL;
+	m_Data = NULL;
 
-	ArrayOfTypes.Add(_("Device Manager - Configurator"));
-	ArrayOfTypes.Add(_("Ais Targets list"));
-	ArrayOfTypes.Add(_("Speed"));
-	ArrayOfTypes.Add(_("Date"));
-	ArrayOfTypes.Add(_("Time"));
-	ArrayOfTypes.Add(_("Fix"));
-	ArrayOfTypes.Add(_("Direction"));
-	ArrayOfTypes.Add(_("Longitude"));
-	ArrayOfTypes.Add(_("Latitude"));
-	ArrayOfTypes.Add(_("PDOP"));
-	ArrayOfTypes.Add(_("HDOP"));
-	ArrayOfTypes.Add(_("VDOP"));
-	ArrayOfTypes.Add(_("Quality"));
-	ArrayOfTypes.Add(_("Sattelites"));
-	ArrayOfTypes.Add(_("Status"));
+	m_Menu = new wxMenu();
+		
+	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
+	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets list"));
+		
+
+	CProtocol Protocol;
+	int counter = 0;
+
+	SDevices *device = Protocol.GetDevice(0);
+	
+	SDefinition *Definition;
+	Protocol.GetDefinitionById(device->id,counter,*&Definition);
+
+	for(size_t i = 0; i < counter; i++)
+	{
+		int len;
+		SSignals *signal_s = Protocol.GetSignalsById(Definition[i].id_signal);
+		wxString name(signal_s->name,wxConvUTF8);
+		m_Menu->AppendRadioItem(2 + signal_s->id + ID_MENU_BEGIN, name);
+		
+	}
+	
+	delete Definition;
+	
+
+	
+	//ArrayOfTypes.Add(_("Speed"));
+	//ArrayOfTypes.Add(_("Date"));
+	//ArrayOfTypes.Add(_("Time"));
+	//ArrayOfTypes.Add(_("Fix"));
+	//ArrayOfTypes.Add(_("Direction"));
+	//ArrayOfTypes.Add(_("Longitude"));
+	//ArrayOfTypes.Add(_("Latitude"));
+	//ArrayOfTypes.Add(_("PDOP"));
+	//ArrayOfTypes.Add(_("HDOP"));
+	//ArrayOfTypes.Add(_("VDOP"));
+	//ArrayOfTypes.Add(_("Quality"));
+	//ArrayOfTypes.Add(_("Sattelites"));
+	//ArrayOfTypes.Add(_("Status"));
 
 
 }
 
 CDisplayPlugin::~CDisplayPlugin()
 {
+	delete m_Menu;
 	//RemoveControl(m_ControlType);
 }
 
@@ -146,23 +173,19 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 	}
 	
 	m_ControlType = event.GetId(); // ustawiamy po zbudowaniu gui
-	m_Caption = ArrayOfTypes[GetControlType()];
+	//m_Caption = ArrayOfTypes[GetControlType()];
 
 }
 
 void CDisplayPlugin::OnMenu(wxContextMenuEvent &event)
 {
 	
-	wxMenu *Menu = new wxMenu();
-	
-	for(int i = 0; i < ArrayOfTypes.size(); i++)
-		Menu->AppendRadioItem(i + ID_MENU_BEGIN ,ArrayOfTypes[i]);
 	
 	if(m_ControlType != -1)
-		Menu->Check(m_ControlType, true);
+		m_Menu->Check(m_ControlType, true);
 	
-	PopupMenu(Menu);
-	delete Menu;
+	PopupMenu(m_Menu);
+	//delete Menu;
 	
 }
 
@@ -179,88 +202,62 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
 	if(SignalID->GetSignalID() == NDS_DEVICE_MANAGER)
 	{
-		
-		m_Reader = (CReader*)SignalID->GetData();
 		m_SignalType = SignalID->GetTag();
 		InitDisplay();
+		// kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
 		
-		GetSignal();    // kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
-		
-		return false;
+		if(!GetGUIControl(SignalID))
+		{
+			if(GetSignal(SignalID))
+				return true;	// dla sygnalow danych uruchom watki dla rysowania kontrolek
+		}
+	
 	}
 	
 	return false;
 }
 
-void CDisplayPlugin::GetSignal()
+bool CDisplayPlugin::GetGUIControl(CDisplaySignal *sig)
 {
 	// kontrolki GUI
+	bool result = false;
+	
 	switch(m_ControlType)
 	{
-		case CONTROL_DEVICES_LIST:	SetDevicesListSignal(m_SignalType,m_Reader);	break;
-		case CONTROL_AIS_LIST:		SetAisListSignal(m_SignalType);					break;
+		case CONTROL_DEVICES_LIST:	SetDevicesListSignal(m_SignalType,sig);	result = true; break;
+		case CONTROL_AIS_LIST:		SetAisListSignal(m_SignalType);			result = true; break;
+	}
 
-	}
-	
-	switch(m_SignalType)
-	{
-		case CLEAR_DISPLAY: 			ClearDisplay(); 	break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
-		case INIT_SIGNAL:				InitDisplay();		break;		// inicjuje listê urzadzeñ
-	}
-	
+	return result;
 }
 
-void CDisplayPlugin::SetDevicesListSignal(int type, CReader *reader)
+
+bool CDisplayPlugin::GetSignal(CDisplaySignal *sig)
+{
+	bool result = false;
+		
+	switch(m_SignalType)
+	{
+		case CLEAR_DISPLAY: 			ClearDisplay(); break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
+		case INIT_SIGNAL:				InitDisplay();	break;		// inicjuje listê urzadzeñ
+		case DATA_SIGNAL:				result = true;	break;		// sygna³ danych w strukturze
+	}
+	
+	return result;
+}
+
+void CDisplayPlugin::SetDevicesListSignal(int type, CDisplaySignal *sig)
 {
 	if(m_DevicesList)
-		m_DevicesList->SetSignal(type,reader);
+	{
+		m_DevicesList->SetSignal(type,(CReader*)sig->GetData());
+	}
 }
 
 void CDisplayPlugin::SetAisListSignal(int type)
 {
 	if(m_AisList)
 		m_AisList->SetSignal(type);
-}
-
-
-
-void CDisplayPlugin::OnNMEALine()
-{
-	//CReader *reader = m_MapPlugin->GetReader(m_DeviceId);
-	//SetLoggerEvent();
-}
-
-void CDisplayPlugin::OnData()
-{
-	//SData *data = m_MapPlugin->GetData();
-	//fprintf(stdout,"%d %s\n",data->id,data->marker);
-}
-
-void CDisplayPlugin::StartDevice()
-{
-	//SetIconEvent(ICON_STOP);
-	//ShowInfoPanel(true);  // refresh panela
-}
-
-void CDisplayPlugin::StopDevice()
-{
-	//SetIconEvent(ICON_START);
-	//ShowInfoPanel(true); // refresh panela
-}
-
-void CDisplayPlugin::OnConnected()
-{
-	//SetTextEvent(TEXT_OK);
-}
-
-void CDisplayPlugin::OnNoSignal()
-{
-	//SetTextEvent(TEXT_ERROR);
-}
-
-void CDisplayPlugin::OnReconnect()
-{
-	//SetTextEvent(TEXT_ERROR);
 }
 
 void CDisplayPlugin::ClearDisplay()
@@ -281,178 +278,77 @@ void CDisplayPlugin::InitDisplay()
 	{
 		m_FirstTime = false;
 		this->Enable();
-//		SetDevices();
 	}
 
 }
 
-void CDisplayPlugin::AddDevice()
+void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 {
-	int id = m_MapPlugin->GetDevicesCount() - 1;
-	//AddTreeItem(id);	
-}
-
-void CDisplayPlugin::RemoveDevice()
-{
-//	SetDevices();
-}
-
-
-/*
-void CDisplayPlugin::AddTreeItem(int item_id)
-{
-
-	CReader *ptr = m_MapPlugin->GetReader(item_id);
-	wxString port(ptr->GetPortName(),wxConvUTF8);
-	wxString host(ptr->GetHost(),wxConvUTF8);
-	int icon_id = ICON_START;
-	bool running = false;
+	//if(IsDrawning)
+//		return;
 	
-	if(ptr->IsRunning())
+	//IsDrawning = true;
+	
+	Caption = caption;
+	int Size;
+	
+	wxFont Font;
+	if(GetWidth() < GetHeight())
+		Size = GetWidth() / 2;
+	else
+		Size = GetHeight() / 2;
+	
+	wxSize FontSize;
+
+	Font.SetPointSize( GetHeight() / 4 * 2 ) ;
+	dc.SetTextForeground(wxColor(0,0,0));  
+	dc.SetFont( Font );
+
+	FontSize = dc.GetTextExtent(text);
+
+	if( FontSize.GetWidth() > GetWidth() ) 
 	{
-		icon_id = ICON_STOP;
-		running = true;
-	}
-	
-	wxTreeItemId id;
-
-	if(ptr->GetConnectionType() == CONNECTION_TYPE_SERIAL)
-		id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s:%d] %s"),port.wc_str(),ptr->GetBaudRate(),ptr->GetDeviceName().wc_str()),icon_id);
-	if(ptr->GetConnectionType() == CONNECTION_TYPE_SOCKET)
-		id = m_Devices->AppendItem(m_Root,wxString::Format(_("[%s:%d] %s"),host,ptr->GetPort(), ptr->GetDeviceName().wc_str()),icon_id);
-
-	CItem *Item = new CItem();
-	Item->SetReader(ptr);
-	m_Devices->SetItemData(id,Item);
-
-}
-
-void CDisplayPlugin::OnSetIcon(wxCommandEvent &event)
-{
-
-	CReader *ptr = (CReader*)event.GetClientData();
-	wxTreeItemIdValue cookie;
-	
-	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
-	
-	while(id.IsOk())
-	{
-		
-		CItem *item  = (CItem*)m_Devices->GetItemData(id);
-		CReader *reader = item->GetReader();
-		if(ptr == reader)
-			m_Devices->SetItemImage(id,event.GetInt(), wxTreeItemIcon_Normal);
-				
-		id = m_Devices->GetNextChild(id,cookie);
-
-	}
-	
-}
-
-void CDisplayPlugin::SetIconEvent(int icon_id)
-{
-	wxCommandEvent evt(EVT_SET_ICON,ID_ICON);
-	evt.SetClientData(m_Reader);
-	evt.SetInt(icon_id);
-	wxPostEvent(this,evt);
-}
-
-void CDisplayPlugin::OnSetText(wxCommandEvent &event)
-{
-	
-	CReader *ptr = (CReader*)event.GetClientData();
-	wxTreeItemIdValue cookie;
-		
-	wxTreeItemId id = m_Devices->GetFirstChild(m_Root,cookie);	
-	
-	while(id.IsOk())
-	{
-		
-		CItem *item  = (CItem*)m_Devices->GetItemData(id);
-		if(item == NULL)
-			return;
-		
-		CSerial *reader = item->GetReader();
-		if(ptr == reader)
+		do 
 		{
-			if(event.GetInt())
-				m_Devices->SetItemTextColour(id,*wxRED);
+			Font.SetPointSize( Font.GetPointSize() - 1 );
+			dc.SetFont( Font );
+			if(dc.IsOk())
+				FontSize = dc.GetTextExtent(text);
 			else
-				m_Devices->SetItemTextColour(id,wxSYS_COLOUR_WINDOWTEXT);
-		}
+				int a =0;
 		
-		id = m_Devices->GetNextChild(id,cookie);
-
+		} while ( FontSize.GetWidth() > GetWidth() );
 	}
+
+	dc.DrawText( text, (int)GetWidth()/2 - FontSize.GetWidth()/2, (int)GetHeight() * 0.625 - FontSize.GetHeight() / 2 );
+	//IsDrawning = false;
 	
 }
-
-void CDisplayPlugin::SetTextEvent(int icon_id)
+int CDisplayPlugin::GetControlId()
 {
-	wxCommandEvent evt(EVT_SET_TEXT,ID_TEXT);
-	evt.SetClientData(m_Reader);
-	evt.SetInt(icon_id);
-	wxPostEvent(this,evt);
-}
-
-void CDisplayPlugin::OnSetLogger(wxCommandEvent &event)
-{
-	SetLogger(event.GetString());
-}
-
-void CDisplayPlugin::SetLoggerEvent()
-{
-		
-	wxCommandEvent evt(EVT_SET_LOGGER,ID_LOGGER);
-	evt.SetString(wxString::Format(_("[%d]: %d\n"),m_DeviceId,m_SignalType));
-	
-	if(m_SignalType == SIGNAL_NMEA_LINE)
-	{
-		CReader *ptr = m_Reader;
-		wxString buf(ptr->GetLineBuffer(),wxConvUTF8);
-		evt.SetString(buf);
-	
-	}
-	
-	evt.SetInt(m_DeviceId);
-    wxPostEvent(this,evt);
-	
-}
-void CDisplayPlugin::SetLogger(wxString txt)
-{
-	//GetMutex()->Lock();
-	m_Logger->SetValue(txt);
-	//GetMutex()->Unlock();
-}
-
-void CDisplayPlugin::SetDevices() 
-{
-
-	m_Devices->DeleteChildren(m_Root);
-	
-	for(size_t i = 0; i < m_MapPlugin->GetDevicesCount(); i++)
-		AddTreeItem(i);
-	
-	m_Devices->ExpandAll();
-
-}
-*/
-
-void CDisplayPlugin::SetDevicesData()
-{
-
+	return m_ControlType - 2 - ID_MENU_BEGIN;
 }
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {
+	if(m_Data)
+	{
+		if(m_Data->id == GetControlId())
+		{	
+			wxString a(m_Data->marker,wxConvUTF8);
+			wxString b(m_Data->value,wxConvUTF8);
+			DrawData(dc,a,b);
+		}
+		//fprintf(stdout,"%s %s\n",m_Data->marker,m_Data->value);
+	}
 
 }
 
 void CDisplayPlugin::OnWork(CDisplaySignal *Signal) 
 {
-		
+	m_Data = (SData*)Signal->GetData();	
 	Refresh();
-	wxMilliSleep(50);
+	wxMilliSleep(150);
 
 }
 

@@ -77,7 +77,10 @@ void CParser::Parse( char *line)
 		if( (MemPos( (const unsigned char*)line, (int)strlen((char*)line), (const unsigned char*)DataDefinition.marker, (int)strlen( DataDefinition.marker ), 0 ) != -1 ) ) 
 		{	// linia zawiera dane, które nale¿y wyci¹æ
 
-			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition.marker );	
+			char *ValidLine = GetSentenceFromLine((char*)line, DataDefinition.marker );
+			if(ValidLine == NULL)
+				return;
+			
 			int Size;
 			char **StrList = ExplodeStr(ValidLine, ",", &Size);
 			free( ValidLine );
@@ -123,7 +126,7 @@ void CParser::Parse( char *line)
 			{
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
 				// ustawia funkcje definiowane w protocole
-				//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnData",&m_Data);
+				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&m_Data);
 				SetValidData();
 			}
 			

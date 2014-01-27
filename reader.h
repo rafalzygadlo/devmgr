@@ -63,7 +63,8 @@ public:
 	char *GetBuffer();
 	char *GetLineBuffer();
 	void SetLineEvent();
-
+	void SetCheckCRC(bool val);
+	
 	
 	virtual void OnConnect();
 	virtual void OnConnected();

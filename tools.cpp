@@ -127,7 +127,7 @@ CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool
 	ptr->SetRunOnStart(run);
 	ptr->SetParseLine(true);
 	ptr->SetDefinition();
-	
+	ptr->SetCheckCRC(true);
 	return ptr;
 
 }
@@ -143,7 +143,7 @@ CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, b
 	ptr->SetRunOnStart(run);
 	ptr->SetParseLine(true);
 	ptr->SetDefinition();
-
+	ptr->SetCheckCRC(true);
 	return ptr;
 
 }
@@ -212,6 +212,9 @@ char *GetSentenceFromLine(const char *line, const char *identyfier)
 
 	int IdentSuplement = 5 - (int)strlen(identyfier);	// uzupe³nienie wycinania w przypadku gdy nie podano identyfikatora w ca³oœci (5 znaków)
 	int ValidSentenceLen = (int)strlen(line) - ((int)strlen(identyfier) + 2) - 3 - IdentSuplement;
+	if(ValidSentenceLen < 0)
+		return NULL;
+	
 	char *ValidSentence = (char*)malloc( ValidSentenceLen + 1 );
 
 	memcpy( ValidSentence, line + strlen(identyfier) + 2 + IdentSuplement, ValidSentenceLen );

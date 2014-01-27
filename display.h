@@ -36,9 +36,11 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	int m_ControlType;
 	wxString m_Caption;
 	wxArrayString ArrayOfTypes;
-	CReader *m_Reader;
 	wxBoxSizer *m_MainSizer;
-		
+	SData *m_Data;
+	wxMutex mutex;
+	wxMenu *m_Menu;
+
 	int GetControlType();
 	wxString GetCaption();
 	void SetDevicesData();
@@ -53,7 +55,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveControl(int type);
 	void FreeDevicesList();
 	void FreeAisList();
-	void SetDevicesListSignal(int type, CReader *reader);
+	void SetDevicesListSignal(int type, CDisplaySignal *sig);
 	void SetAisListSignal(int type);
 	void RemoveDevice();
 	void Stop();
@@ -64,9 +66,15 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void AddTreeItem(int item_id);
 	void SetIconEvent(int icon_id);
 	void SetTextEvent(int icon_id);
-	void GetSignal();
+	bool GetGUIControl(CDisplaySignal *sig);
+	bool GetSignal(CDisplaySignal *sig);
 	void StartDevice();
 	void StopDevice();
+	void DataSignal(CDisplaySignal *sig);
+	void DrawData(wxGCDC &dc, wxString caption, wxString text);
+	int GetControlId();
+
+
 	void OnData();
 	void OnNMEALine();
 	void OnConnected();

@@ -208,6 +208,16 @@ char *CReader::GetLineBuffer()
 
 }
 
+void CReader::SetCheckCRC(bool val)
+{
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET:	return SocketPtr->SetCheckCRC(val);
+		case CONNECTION_TYPE_SERIAL:	return SerialPtr->SetCheckCRC(val);
+	}
+
+}
+
 void CReader::SetLineEvent()
 {
 	m_LineEvent = !m_LineEvent;
@@ -253,17 +263,18 @@ void CReader::OnBeforeMainLoop()
 
 void CReader::OnLine( char *buffer, int length)
 {
-	if(m_LineEvent)
-	{
-		m_SignalType = SIGNAL_NMEA_LINE;
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this); // zaburza przeplyw sygnalow
-	}
+	//if(m_LineEvent)
+	//{
+		//m_SignalType = SIGNAL_NMEA_LINE;
+		//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this); // zaburza przeplyw sygnalow
+	//}
 	
-	Parse(buffer);	
+	//Parse(buffer);	
 }
 
 void CReader::OnNMEALine( char *buffer, int length)
 {
+	Parse(buffer);	
 	// narazie przeniesiono do OnLine
 }
 

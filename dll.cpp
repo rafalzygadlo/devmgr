@@ -41,7 +41,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Data = NULL;
 	m_Devices = new wxArrayPtrVoid();
 	
-	//AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
+	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
@@ -458,7 +458,7 @@ void *CMapPlugin::OnFunctionData(void *NaviMapIOApiPtr, void *Params)
 	return NULL;
 }
 
-void *CMapPlugin::OnData(void *NaviMapIOApiPtr, void *Params)
+void *CMapPlugin::OnDeviceData(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
 	SData *Data = (SData*)Params;
@@ -485,9 +485,8 @@ SData *CMapPlugin::GetData()
 }
 
 void CMapPlugin::SetData(SData *value)
-{
-	m_Data = value;
-	SendSignal(DATA_SIGNAL,NULL);
+{	
+	SendSignal(DATA_SIGNAL,value);
 }
 
 void CMapPlugin::SetFunctionData(SFunctionData *data)
