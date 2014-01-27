@@ -33,6 +33,7 @@ CAisList::~CAisList()
 void CAisList::OnTimer(wxTimerEvent &event)
 {
 	SetList();
+	//fprintf(stdout,"%d\n",c);
 }
 
 void CAisList::SetSignal(int signal)

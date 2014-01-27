@@ -151,7 +151,7 @@ bool CParser::Ais(char *line)
 	
 	if(str_size != AIS_PARTS)
 	{
-		fprintf(stdout,"%d\n",str_size);
+		fprintf(stdout,"%d %s\n",str_size,line);
 		FreeStrList( StrList, str_size );
 		return false;
 	}

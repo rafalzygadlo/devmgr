@@ -297,4 +297,5 @@ void CReader::OnNoSignal()
 
 void CReader::OnData( char *buffer, int length)
 {
+	fprintf(stdout,"%s",buffer);
 }
