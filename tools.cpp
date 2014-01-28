@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][39] = 
+const wxChar *nvLanguage[2][80] = 
 { 
 	/*EN*/
 	{
@@ -51,6 +51,47 @@ const wxChar *nvLanguage[2][39] =
 		_("Serial Connection"),
 		_("Host"),
 		_("Ais Targets"),
+		_("MMSI"),
+		_("Ship Name"),
+
+		_("Position Report"),								//1
+		_("Position Report"),								//2
+		_("Position Report"),								//3
+		_("Base Station Report UTC/Date Response "),		//4
+		_("Ship static and voyage related data"),			//5
+		_("Addressed Binary Message"),						//6
+		_("Binary acknowledge. Safety Related Acknowledge"),//7
+		_("Binary Broadcast Message"),						//8
+		_("Standard SAR Aircraft Position Report"),			//9
+		_("UTC/Date inquiry"),								//10
+		_("Base Station Report UTC/Date Response"),			//11
+		_("Safety Related Message"),						//12
+		_("Binary acknowledge. Safety Related Acknowledge"),//13
+		_("Safety Related Broadcast Message"),				//14
+		_("Interrogation"),									//15
+		_("Assigned Mode Command"),							//16
+		_("GNSS Broadcast Binary Message"),					//17
+		_("Standard Class B CS Position Report"),			//18
+		_("Extended Class B CS Position Report"),			//19
+		_("Data Link Management Message"),					//20
+		_("Aid-to-Navigation Report"),						//21
+		_("Channel Management"),							//22
+		_("Group Assignment Command"),						//23
+		_("Class B CS Static Data Report"),					//24
+		_("Binary Message, Single Slot"),					//25
+		_("Binary Message, Multiple Slot"),					//26
+		_("Long Range AIS Broadcast message"),				//27
+
+		_("Accuracy"),
+		_("True"),
+		_("False"),
+		_("N/A"),
+		_("COG"),
+		_("Heading"),
+		_("Latitude"),
+		_("Longitude"),
+		_("Maneuver"),
+
 
 	},
 	

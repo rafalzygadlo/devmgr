@@ -104,6 +104,46 @@
 #define MSG_HOST					37
 #define MSG_AIS_TARGETS				38
 #define MSG_MMSI					39
+#define MSG_SHIPNAME				40
+
+#define MSG_AIS_1_NAME				41
+#define MSG_AIS_2_NAME				42
+#define MSG_AIS_3_NAME				43
+#define MSG_AIS_4_NAME				44
+#define MSG_AIS_5_NAME				45
+#define MSG_AIS_6_NAME				46
+#define MSG_AIS_7_NAME				47
+#define MSG_AIS_8_NAME				48
+#define MSG_AIS_9_NAME				49
+#define MSG_AIS_10_NAME				50
+#define MSG_AIS_11_NAME				51
+#define MSG_AIS_12_NAME				52
+#define MSG_AIS_13_NAME				53
+#define MSG_AIS_14_NAME				54
+#define MSG_AIS_15_NAME				55
+#define MSG_AIS_16_NAME				56
+#define MSG_AIS_17_NAME				57
+#define MSG_AIS_18_NAME				58
+#define MSG_AIS_19_NAME				59
+#define MSG_AIS_20_NAME				60
+#define MSG_AIS_21_NAME				61
+#define MSG_AIS_22_NAME				62
+#define MSG_AIS_23_NAME				63
+#define MSG_AIS_24_NAME				64
+#define MSG_AIS_25_NAME				65
+#define MSG_AIS_26_NAME				66
+#define MSG_AIS_27_NAME				67
+#define MSG_ACCURACY				68
+#define MSG_TRUE					69
+#define MSG_FALSE					70
+#define MSG_NA						71
+#define MSG_COG						72
+#define MSG_HEADING					73
+#define MSG_LAT						74
+#define MSG_LON						75
+#define MSG_MANEUVER				76
+#define MSG_RADIO					77
+
 
 #define MAX_DATA_POSITIONS	10
 #define WORK_WIZARD 0

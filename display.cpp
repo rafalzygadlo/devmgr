@@ -66,8 +66,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 		
 	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
 	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets list"));
-		
-
+	
 	CProtocol Protocol;
 	int counter = 0;
 
@@ -82,13 +81,10 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 		SSignals *signal_s = Protocol.GetSignalsById(Definition[i].id_signal);
 		wxString name(signal_s->name,wxConvUTF8);
 		m_Menu->AppendRadioItem(2 + signal_s->id + ID_MENU_BEGIN, name);
-		
 	}
 	
 	delete Definition;
-	
-
-	
+		
 	//ArrayOfTypes.Add(_("Speed"));
 	//ArrayOfTypes.Add(_("Date"));
 	//ArrayOfTypes.Add(_("Time"));
@@ -284,11 +280,7 @@ void CDisplayPlugin::InitDisplay()
 
 void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 {
-	//if(IsDrawning)
-//		return;
-	
-	//IsDrawning = true;
-	
+		
 	Caption = caption;
 	int Size;
 	
@@ -321,7 +313,7 @@ void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 	}
 
 	dc.DrawText( text, (int)GetWidth()/2 - FontSize.GetWidth()/2, (int)GetHeight() * 0.625 - FontSize.GetHeight() / 2 );
-	//IsDrawning = false;
+	
 	
 }
 int CDisplayPlugin::GetControlId()

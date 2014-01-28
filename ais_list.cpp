@@ -20,8 +20,8 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 	m_Display = display;
 	GetPanel();
 	m_Timer = new wxTimer(this,ID_TIMER);
-	m_Timer->Start(5000);
-
+	m_Timer->Start(2000);
+	SetList();
 }
 
 CAisList::~CAisList()
@@ -32,16 +32,13 @@ CAisList::~CAisList()
 
 void CAisList::OnTimer(wxTimerEvent &event)
 {
-	int c = ais_get_item_count();
-	fprintf(stdout,"%d\n",c);
-	m_List->SetItemCount(c);
+	SetList();
 }
 
 void CAisList::SetSignal(int signal)
 {
 	switch(signal)
 	{
-		case SIGNAL_NEW_AIS_OBJECT :	SetList();		break;
 		case CLEAR_AIS_LIST:			ClearList();	break;
 	}
 }
@@ -53,7 +50,8 @@ void CAisList::ClearList()
 
 void CAisList::SetList()
 {
-	
+	int c = ais_get_item_count();
+	m_List->SetItemCount(c);
 }
 
 void CAisList::GetPanel()
@@ -70,14 +68,14 @@ void CAisList::GetPanel()
 	
 	m_List = new CListCtrl(Page1,m_Display,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;
-	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);	
-	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
-	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(2,item);
+	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);
+	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
+	item.SetWidth(100);	item.SetText(GetMsg(MSG_SHIPNAME));	m_List->InsertColumn(2,item);
 	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
-	Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,5);
+	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
+	Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
 
 
 	this->SetSizer(m_Sizer);
-	
-	
+
 }

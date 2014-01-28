@@ -5,8 +5,11 @@
 #include <wx/listctrl.h>
 #include "NaviBroker.h"
 #include "display.h"
+#include "ais_dialog.h"
+#include "ais.h"
 
 class CDisplayPlugin;
+class CAisDialog;
 class CListCtrl: public wxListCtrl
 {
 	//wxImageList *ImageListSmall;
@@ -22,7 +25,10 @@ class CListCtrl: public wxListCtrl
 	//wxMenu *Menu;
 	wxListItemAttr selected, installed, queued, selected_and_installed, selected_and_queued, error;
 	CDisplayPlugin *Plugin;	
-		
+	CAisDialog *AisDialog;
+	void PrintMsg(ais_t *ais, int type);
+
+	
 	wxString CatalogPath;
 	void MenuInstalled();
 	void MenuVisible();

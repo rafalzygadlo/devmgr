@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <wx/wx.h>
 
-#define AIS_MSG_1	1
-#define AIS_MSG_2	2
+#define AIS_MESSAGES_LENGTH	27
 
 #define BITS_PER_BYTE	8
 #define UBITS(s, l)	ubits((unsigned char *)bits, s, l, false)
@@ -86,6 +86,7 @@ struct ais_t
     //unsigned int	type;		/* message type */
     unsigned int    repeat;		/* Repeat indicator */
     unsigned int	mmsi;		/* MMSI */
+	bool			valid[27];
     //union {
 	/* Types 1-3 Common navigation info */
 	struct {
@@ -1020,6 +1021,7 @@ struct ais_t
     //};
 };
 
+
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
 bool ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
@@ -1027,6 +1029,14 @@ void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to)
 void ais_free_list();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
+wxString print_msg_1(ais_t *ais);
+wxString print_msg_4(ais_t *ais);
+wxString print_msg_5(ais_t *ais);
+float get_lon_lat(int val);
+float get_cog(unsigned int v);
+wxString get_value_as_string(bool v);
+wxString get_value_as_string(unsigned int v , bool check_na, int na_v );
+wxString get_value_as_string(float v , bool check_na, int na_v);
 
 void ais_message_1(unsigned char *bits, ais_t *ais);
 void ais_message_4(unsigned char *bits, ais_t *ais);

@@ -6,6 +6,7 @@
 #include <wx/mstream.h>
 #include "ais.h"
 
+
 DEFINE_EVENT_TYPE(EVT_SET_ITEM)
 
 BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
@@ -214,9 +215,47 @@ void CListCtrl::OnActivate(wxListEvent &event)
 {
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-//	CNaviGeometry *Geometry = CatalogGeometryGroup->GetGeometry(n_item);
+	ais_t *ais = ais_get_item(n_item);
+
+	AisDialog = new CAisDialog();
+
+
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
+	{
+		if(ais->valid[i])
+		{
+			PrintMsg(ais,i);
+		}
 	
-	//Plugin->ShowProperties(Geometry);
+	}
+	
+	AisDialog->ShowModal();
+	delete AisDialog;
+}
+
+void CListCtrl::PrintMsg(ais_t *ais, int type)
+{
+
+	switch(type)
+	{
+		case AIS_MSG_1:	
+		case AIS_MSG_2:	
+		case AIS_MSG_3:	
+			AisDialog->SetText(print_msg_1(ais));
+		break;
+
+		case AIS_MSG_4:
+			AisDialog->SetText(print_msg_4(ais));
+		break;
+
+		case AIS_MSG_5:
+			AisDialog->SetText(print_msg_5(ais));
+		break;
+	
+	}
+	
+	
+
 }
 
 void CListCtrl::ClearList()
@@ -267,6 +306,13 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	wxString name;	
 	
 	ais_t *ais = ais_get_item(item);		
+	wxString mes;
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
+	{
+		if(ais->valid[i])
+			mes.Append(wxString::Format(_("[%d]"),i));
+	}
+	
 	if(ais->type5.valid)
 	{
 		wxString name5(ais->type5.shipname,wxConvUTF8);
@@ -287,10 +333,11 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	switch (column)
 	{
-		case 0:	str = wxString::Format(_("%d"),ais->mmsi);					break;
-		case 1:	str = wxString::Format(_("%s"),name.wc_str());				break;
-		case 2: str = wxString::Format(_("%4.2f"),(float)(ais->type1.lat/10000));	break;
-		case 3: str = wxString::Format(_("%4.2f"),(float)(ais->type1.lon/10000));	break;
+		case 0:	str = mes;																break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);								break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());							break;
+		case 3: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lat));	break;
+		case 4: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lon));	break;
 	}
 
 	return str;

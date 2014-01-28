@@ -4,6 +4,45 @@
 
 std::vector <ais_t*> vAist;
 
+wchar_t *ais_msg_1_html = 
+	L"<table> \
+	<tr><td>%d<td></tr> \
+	";
+	
+/*	
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	<tr><td>%s<td><td>%d</td></tr> \
+	</table>";
+	*/
+
+void ais_sort()
+{
+	size_t len = vAist.size();
+	
+	for(size_t i = 0; i < len; i++)
+	{	
+//		for(size_t j = 0; j < len - 1; j++)
+//		{
+//			if(strcmp(vAist[j]-> Devices[j].name,Devices[j + 1].name) > 0)
+//			{
+//				SDevices tmp;
+//				tmp = Devices[j];
+//				Devices[j] = Devices[j + 1];
+//				Devices[j + 1] = tmp;
+//			}
+			
+//		}
+	}
+}
+
 size_t ais_get_item_count()
 {
 	size_t len = 0;
@@ -60,6 +99,7 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 	uint64_t type =	UBITS(0, 6);
 	ais->mmsi = (int)UBITS(8, 30);
     ais->repeat = (int)UBITS(6, 2);
+	ais->valid[type] = true;
 
 	switch(type)
 	{
@@ -86,7 +126,7 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	break;
 		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
 		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
-		case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
+		//case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
@@ -105,6 +145,7 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 /* Position Report */
 void ais_message_1(unsigned char *bits, ais_t *ais)
 {
+	
 	ais->type1.valid = true;
 	ais->type1.status = (int)UBITS(38, 4);
 	ais->type1.turn = (int)SBITS(42, 8);
@@ -290,22 +331,21 @@ void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais)
 				ais->type6.dac1fid32.day	= (int)UBITS(92, 5);
 	#define ARRAY_BASE 97
 	#define ELEMENT_SIZE 93
-		/*
-		for (int u = 0; ARRAY_BASE + (ELEMENT_SIZE*u) <= bitlen; u++) 
+		int u = 0;
+		for (u = 0; ARRAY_BASE + (ELEMENT_SIZE*u) <= bitlen; u++) 
 		{
 		    int a = ARRAY_BASE + (ELEMENT_SIZE*u);
-			struct tidal_t *tp = ais->type6.dac1fid32.tidals[u];
-		    tp->lat	= SBITS(a + 0, 27);
-		    tp->lon	= SBITS(a + 27, 28);
-		    tp->from_hour	= UBITS(a + 55, 5);
-		    tp->from_min	= UBITS(a + 60, 6);
-		    tp->to_hour	= UBITS(a + 66, 5);
-		    tp->to_min	= UBITS(a + 71, 6);
-		    tp->cdir	= UBITS(a + 77, 9);
-		    tp->cspeed	= UBITS(a + 86, 7);
+			ais->type6.dac1fid32.tidals[u].lat		= SBITS(a + 0, 27);
+		    ais->type6.dac1fid32.tidals[u].lon		= SBITS(a + 27, 28);
+		    ais->type6.dac1fid32.tidals[u].from_hour= UBITS(a + 55, 5);
+		    ais->type6.dac1fid32.tidals[u].from_min	= UBITS(a + 60, 6);
+		    ais->type6.dac1fid32.tidals[u].to_hour	= UBITS(a + 66, 5);
+		    ais->type6.dac1fid32.tidals[u].to_min	= UBITS(a + 71, 6);
+		    ais->type6.dac1fid32.tidals[u].cdir		= UBITS(a + 77, 9);
+		    ais->type6.dac1fid32.tidals[u].cspeed	= UBITS(a + 86, 7);
 		}
 		ais->type6.dac1fid32.ntidals = u;
-		*/
+		
 #undef ARRAY_BASE
 #undef ELEMENT_SIZE
 		
@@ -964,11 +1004,11 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 	    //ais->type24.a.spare	= UBITS(160, 8);
 
 	    UCHARS(40, ais->type24.shipname);
-	    //ais->type24.part = part_a;
-	    //return;
-		//case 1:
+//	    ais->type24.part = part_a;
+	    return;
+		case 1:
 	    
-			//ais->type24.shiptype = UBITS(40, 8);
+			ais->type24.shiptype = UBITS(40, 8);
 			/*
 			* In ITU-R 1371-4, there are new model and serial fields
 			* carved out of the right-hand end of vendorid, which is
@@ -980,10 +1020,10 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 			* and older implementations will have garbafe in the
 			* model and serial fields.
 			*/
-			//UCHARS(48, ais->type24.vendorid);
-			//ais->type24.model = UBITS(66, 4);
-			//ais->type24.serial = UBITS(70, 20);
-			//UCHARS(90, ais->type24.callsign);
+			UCHARS(48, ais->type24.vendorid);
+			ais->type24.model = UBITS(66, 4);
+			ais->type24.serial = UBITS(70, 20);
+			UCHARS(90, ais->type24.callsign);
 			
 			//if (AIS_AUXILIARY_MMSI(ais->mmsi)) 
 			//{
@@ -1010,8 +1050,8 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 			//}
 
 			/* no match, return Part B */
-			//ais->type24.part = part_b;
-			//return;
+//			ais->type24.part = part_b;
+			return;
 	
 	default:
 	   return;
@@ -1086,4 +1126,83 @@ void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen)
 	
     }
 	
+}
+
+float get_cog(unsigned int v)
+{
+	return (float)(v * 0.1); 
+}
+
+float get_lon_lat(int val)
+{
+	return (float)(val /10000) /60;
+}
+
+wxString get_value_as_string(bool v)
+{
+	if(v)
+		return GetMsg(MSG_TRUE);
+	else
+		return GetMsg(MSG_FALSE);
+}
+
+wxString get_value_as_string(unsigned int v , bool check_na = false, int na_v = -1)
+{
+	if(check_na)
+	{
+		if(v == na_v)
+			return GetMsg(MSG_NA);
+	}
+	
+	return wxString::Format(_("%d"),v);
+
+}
+
+wxString get_value_as_string(float v , bool check_na = false, int na_v = -1)
+{
+	if(check_na)
+	{
+		if(v == na_v)
+			return GetMsg(MSG_NA);
+	}
+	
+	return wxString::Format(_("%4.2f"),v);
+
+}
+
+
+wxString print_msg_1(ais_t *ais)
+{
+	wxString str;
+	str.Append(_("<table border=1 width=100%%>"));
+	str.Append(wxString::Format(_("<tr><td><b>%s</b></td></font></tr>"),GetMsg(MSG_AIS_1_NAME)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_ACCURACY),get_value_as_string(ais->type1.accuracy)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_COG),get_value_as_string(get_cog(ais->type1.course), true, AIS_COURSE_NOT_AVAILABLE)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_HEADING),get_value_as_string(ais->type1.heading, true, AIS_HEADING_NOT_AVAILABLE)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LAT),get_value_as_string(get_lon_lat(ais->type1.lat),true,AIS_LAT_NOT_AVAILABLE)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LON),get_value_as_string(get_lon_lat(ais->type1.lon),true,AIS_LON_NOT_AVAILABLE)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_MANEUVER),get_value_as_string(ais->type1.maneuver)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_RADIO),get_value_as_string(ais->type1.radio)));
+	
+	
+	str.Append(_("</table><hr>"));
+	return str;
+}
+
+wxString print_msg_4(ais_t *ais)
+{
+	wxString str;
+	str.Append(_("<table border=1>"));
+	str.Append(wxString::Format(_("<tr><td>%s</td></tr>"),GetMsg(MSG_AIS_4_NAME)));
+	str.Append(_("</table><hr>"));
+	return str;
+}
+
+wxString print_msg_5(ais_t *ais)
+{
+	wxString str;
+	str.Append(_("<table border=1>"));
+	str.Append(wxString::Format(_("<tr><td>%s</td></tr>"),GetMsg(MSG_AIS_5_NAME)));
+	str.Append(_("</table><hr>"));
+	return str;
 }
