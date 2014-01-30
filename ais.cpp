@@ -4,24 +4,199 @@
 
 std::vector <ais_t*> vAist;
 
-wchar_t *ais_msg_1_html = 
-	L"<table> \
-	<tr><td>%d<td></tr> \
-	";
+const wchar_t *nvDTE[2][2] = 
+{ 
+	{
+		L"Data terminal ready", 
+		L"Not ready (default)",
+	},
 	
-/*	
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	<tr><td>%s<td><td>%d</td></tr> \
-	</table>";
-	*/
+	{
+	
+	}
+};
+
+const wchar_t *nvShipTypes[2][100] = 
+{ 
+	{
+		L"Not available (default)",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Wing in ground (WIG), all ships of this type",
+		L"Wing in ground (WIG), Hazardous category A",
+		L"Wing in ground (WIG), Hazardous category B",
+		L"Wing in ground (WIG), Hazardous category C",
+		L"Wing in ground (WIG), Hazardous category D",
+		L"Wing in ground (WIG), Reserved for future use",
+		L"Wing in ground (WIG), Reserved for future use",
+		L"Wing in ground (WIG), Reserved for future use",
+		L"Wing in ground (WIG), Reserved for future use",
+		L"Wing in ground (WIG), Reserved for future use",
+		L"Fishing",
+		L"Towing",
+		L"Towing: length exceeds 200m or breadth exceeds 25m",
+		L"Dredging or underwater ops",
+		L"Diving ops",
+		L"Military ops",
+		L"Sailing",
+		L"Pleasure Craft",
+		L"Reserved",
+		L"Reserved",
+		L"High speed craft (HSC), all ships of this type",
+		L"High speed craft (HSC), Hazardous category A",
+		L"High speed craft (HSC), Hazardous category B",
+		L"High speed craft (HSC), Hazardous category C",
+		L"High speed craft (HSC), Hazardous category D",
+		L"High speed craft (HSC), Reserved for future use",
+		L"High speed craft (HSC), Reserved for future use",
+		L"High speed craft (HSC), Reserved for future use",
+		L"High speed craft (HSC), Reserved for future use",
+		L"High speed craft (HSC), No additional information",
+		L"Pilot Vessel",
+		L"Search and Rescue vessel",
+		L"Tug",
+		L"Port Tender",
+		L"Anti-pollution equipment",
+		L"Law Enforcement",
+		L"Spare - Local Vessel",
+		L"Spare - Local Vessel",
+		L"Medical Transport",
+		L"Noncombatant ship according to RR Resolution No. 18",
+		L"Passenger, all ships of this type",
+		L"Passenger, Hazardous category A",
+		L"Passenger, Hazardous category B",
+		L"Passenger, Hazardous category C",
+		L"Passenger, Hazardous category D",
+		L"Passenger, Reserved for future use",
+		L"Passenger, Reserved for future use",
+		L"Passenger, Reserved for future use",
+		L"Passenger, Reserved for future use",
+		L"Passenger, No additional information",
+		L"Cargo, all ships of this type",
+		L"Cargo, Hazardous category A",
+		L"Cargo, Hazardous category B",
+		L"Cargo, Hazardous category C",
+		L"Cargo, Hazardous category D",
+		L"Cargo, Reserved for future use",
+		L"Cargo, Reserved for future use",
+		L"Cargo, Reserved for future use",
+		L"Cargo, Reserved for future use",
+		L"Cargo, No additional information",
+		L"Tanker, all ships of this type",
+		L"Tanker, Hazardous category A",
+		L"Tanker, Hazardous category B",
+		L"Tanker, Hazardous category C",
+		L"Tanker, Hazardous category D",
+		L"Tanker, Reserved for future use",
+		L"Tanker, Reserved for future use",
+		L"Tanker, Reserved for future use",
+		L"Tanker, Reserved for future use",
+		L"Tanker, No additional information",
+		L"Other Type, all ships of this type",
+		L"Other Type, Hazardous category A",
+		L"Other Type, Hazardous category B",
+		L"Other Type, Hazardous category C",
+		L"Other Type, Hazardous category D",
+		L"Other Type, Reserved for future use",
+		L"Other Type, Reserved for future use",
+		L"Other Type, Reserved for future use",
+		L"Other Type, Reserved for future use",
+		L"Other Type, no additional information",
+	},
+		
+	{
+	}
+
+};
+
+const wchar_t *nvEPFDFixTypes[2][16] = 
+{ 
+	{
+		L"Undefined (default)",
+		L"GPS",
+		L"GLONASS",
+		L"Combined GPS/GLONASS",
+		L"Loran-C",
+		L"Chayka",
+		L"Integrated navigation system",
+		L"Surveyed",
+		L"Galileo",
+		L"Undefined (default)",
+		L"Undefined (default)",
+		L"Undefined (default)",
+		L"Undefined (default)",
+		L"Undefined (default)",
+		L"Undefined (default)",
+		L"Undefined (default)",
+	},
+	
+	{
+
+	}
+};
+
+const wchar_t *nvManeuverIndicator[2][3] = 
+{ 
+	//EN
+	{
+		L"N/A",
+		L"No special maneuver",
+		L"Special maneuver (such as regional passing arrangement)",
+	},
+	
+	{
+
+
+	}
+
+};
+
+const wchar_t *nvNavigationStatus[2][16] = 
+{
+	//EN
+	{
+		L"Under way using engine",
+		L"At anchor",
+		L"Not under command",
+		L"Restricted manoeuverability",
+		L"Constrained by her draught",
+		L"Moored",
+		L"Aground",
+		L"Engaged in Fishing",
+		L"Under way sailing",
+		L"Reserved for future amendment of Navigational Status for HSC",
+		L"Reserved for future amendment of Navigational Status for WIG",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"Reserved for future use",
+		L"N/A",
+
+	},
+	
+	{
+	
+	}
+
+};
+
 
 void ais_sort()
 {
@@ -127,6 +302,7 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
 		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
 		//case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
+		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	break;
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
@@ -146,7 +322,6 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 void ais_message_1(unsigned char *bits, ais_t *ais)
 {
 	
-	ais->type1.valid = true;
 	ais->type1.status = (int)UBITS(38, 4);
 	ais->type1.turn = (int)SBITS(42, 8);
 	ais->type1.speed = (int)UBITS(50, 10);
@@ -170,7 +345,6 @@ void ais_message_4(unsigned char *bits, ais_t *ais)
 {
 	 
 	//PERMISSIVE_LENGTH_CHECK(168)
-	ais->type4.valid = true;	
 	ais->type4.year		= (int)UBITS(38, 14);
 	ais->type4.month	= (int)UBITS(52, 4);
 	ais->type4.day		= (int)UBITS(56, 5);
@@ -200,8 +374,7 @@ void ais_message_5(unsigned char *bits, size_t bitlen, ais_t *ais)
 	    if (bitlen < 420)
 			return;
 	}
-	
-	ais->type5.valid = true;
+
 	ais->type5.ais_version  = (int)UBITS(38, 2);
 	ais->type5.imo          = (int)UBITS(40, 30);
 	UCHARS(70, ais->type5.callsign);
@@ -232,8 +405,7 @@ void ais_message_6(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 	    return;
 	}
-	
-	ais->type6.valid = true;
+
 	ais->type6.seqno          = (int)UBITS(38, 2);
 	ais->type6.dest_mmsi      = (int)UBITS(40, 30);
 	ais->type6.retransmit     = UBITS(70, 1)!=0;
@@ -371,7 +543,6 @@ void ais_message_7(unsigned char *bits, size_t bitlen, ais_t *ais)
 	    else
 			mmsi[u] = 0;
 	
-	ais->type7.valid = true;
 	ais->type7.mmsi1 = mmsi[0];
 	ais->type7.mmsi2 = mmsi[1];
 	ais->type7.mmsi3 = mmsi[2];
@@ -685,8 +856,6 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 	/* land here if we failed to match a known DAC/FID */
 	if (!structured)
 	    (void)memcpy(ais->type8.bitdata, (char *)bits + (56 / BITS_PER_BYTE), (ais->type8.bitcount + 7) / 8);
-	else
-		ais->type8.valid = true;
 
 }
 
@@ -695,7 +864,6 @@ void ais_message_9(unsigned char *bits, ais_t *ais)
 {
 
 	//PERMISSIVE_LENGTH_CHECK(168);
-	ais->type9.valid = true;
 	ais->type9.alt = (int)UBITS(38, 12);
 	ais->type9.speed = (int)UBITS(50, 10);
 	ais->type9.accuracy	= (bool)UBITS(60, 1);
@@ -716,7 +884,6 @@ void ais_message_9(unsigned char *bits, ais_t *ais)
 void ais_message_10(unsigned char *bits, ais_t *ais)
 {
 	//PERMISSIVE_LENGTH_CHECK(72);
-	ais->type10.valid = true;
 	//ais->type10.spare        = UBITS(38, 2);
 	ais->type10.dest_mmsi      = (int)UBITS(40, 30);
 	//ais->type10.spare2       = UBITS(70, 2);
@@ -730,7 +897,7 @@ void ais_message_12(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 	    return;
 	}
-	ais->type12.valid = true;
+	
 	ais->type12.seqno          = (int)UBITS(38, 2);
 	ais->type12.dest_mmsi      = (int)UBITS(40, 30);
 	ais->type12.retransmit     = (bool)UBITS(70, 1);
@@ -748,7 +915,6 @@ void ais_message_14(unsigned char *bits, size_t bitlen, ais_t *ais)
 	    return;
 	}
 	//ais->type14.spare          = UBITS(38, 2);
-	ais->type14.valid = true;
 	ENDCHARS(40, ais->type14.text);
 }
 
@@ -759,7 +925,7 @@ void ais_message_15(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 	    return;
 	}
-	ais->type15.valid = true;
+	
 	//(void)memset(&ais->type15, '\0', sizeof(ais->type15));
 	//ais->type14.spare         = UBITS(38, 2);
 	ais->type15.mmsi1		= (int)UBITS(40, 30);
@@ -794,7 +960,6 @@ void ais_message_16(unsigned char *bits, size_t bitlen, ais_t *ais)
 		return;
 	}
 	
-	ais->type16.valid = true;
 	ais->type16.mmsi1		= (int)UBITS(40, 30);
 	ais->type16.offset1		= (int)UBITS(70, 12);
 	ais->type16.increment1	= (int)UBITS(82, 10);
@@ -817,7 +982,7 @@ void ais_message_17(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 	    return;
 	}
-	ais->type17.valid		= true;
+	
 	//ais->type17.spare     = UBITS(38, 2);
 	ais->type17.lon			= UBITS(40, 18);
 	ais->type17.lat			= UBITS(58, 17);
@@ -832,7 +997,6 @@ void ais_message_18(unsigned char *bits, ais_t *ais)
 {
 
 //	PERMISSIVE_LENGTH_CHECK(168)
-	ais->type18.valid		= true;
 	ais->type18.reserved	= UBITS(38, 8);
 	ais->type18.speed		= UBITS(46, 10);
 	ais->type18.accuracy	= UBITS(56, 1)!=0;
@@ -856,7 +1020,6 @@ void ais_message_18(unsigned char *bits, ais_t *ais)
 void ais_message_19(unsigned char *bits, ais_t *ais)
 {
 	//PERMISSIVE_LENGTH_CHECK(312)
-	ais->type19.valid		= true;
 	ais->type19.reserved     = UBITS(38, 8);
 	ais->type19.speed        = UBITS(46, 10);
 	ais->type19.accuracy     = UBITS(56, 1)!=0;
@@ -888,9 +1051,7 @@ void ais_message_20(unsigned char *bits, size_t bitlen, ais_t *ais)
 		return;
 	}
 	
-	ais->type20.valid		= true;
 	//ais->type20.spare		= UBITS(38, 2);
-	ais->type20.valid		= true;
 	ais->type20.offset1		= UBITS(40, 12);
 	ais->type20.number1		= UBITS(52, 4);
 	ais->type20.timeout1	= UBITS(56, 3);
@@ -917,8 +1078,7 @@ void ais_message_21(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 		return;
 	}
-	
-	ais->type21.valid		= true;
+		
 	ais->type21.aid_type = UBITS(38, 5);
 	from_sixbit((unsigned char *)bits,43, 20, ais->type21.name);
 	ais->type21.accuracy     = UBITS(163, 1);
@@ -944,7 +1104,7 @@ void ais_message_21(unsigned char *bits, size_t bitlen, ais_t *ais)
 /* Channel Management */
 void ais_message_22(unsigned char *bits,  ais_t *ais)
 {
-	ais->type22.valid		= true;
+	
 	ais->type22.channel_a    = UBITS(40, 12);
 	ais->type22.channel_b    = UBITS(52, 12);
 	ais->type22.txrx         = UBITS(64, 4);
@@ -973,7 +1133,6 @@ void ais_message_22(unsigned char *bits,  ais_t *ais)
 /* Group Assignment Command */
 void ais_message_23(unsigned char *bits,  ais_t *ais)
 {
-	ais->type23.valid		= true;
 	ais->type23.ne_lon		= SBITS(40, 18);
 	ais->type23.ne_lat      = SBITS(58, 17);
 	ais->type23.sw_lon      = SBITS(75, 18);
@@ -1059,6 +1218,42 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 
 }
 
+/* Binary Message, Single Slot */
+void ais_message_25(unsigned char *bits, size_t bitlen, ais_t *ais)
+{
+
+	/* this check and the following one reject line noise */
+	if (bitlen < 40 || bitlen > 168) 
+	{
+	    return;
+	}
+	
+	ais->type25.addressed	= (bool)UBITS(38, 1);
+	ais->type25.structured	= (bool)UBITS(39, 1);
+	if (bitlen < (unsigned)(40 + (16 * ais->type25.structured) + (30 * ais->type25.addressed)))
+	{
+		return;
+	}
+	
+	if (ais->type25.addressed)
+	    ais->type25.dest_mmsi   = UBITS(40, 30);
+	if (ais->type25.structured)
+	    ais->type25.app_id      = UBITS(40 + ais->type25.addressed * 30,16);
+	/*
+	 * Not possible to do this right without machinery we
+	 * don't yet have.  The problem is that if the addressed
+	 * bit is on, the bitfield start won't be on a byte
+	 * boundary. Thus the formulas below (and in message type 26)
+	 * will work perfectly for broadcast messages, but for addressed
+	 * messages the retrieved data will be led by the 30 bits of
+	 * the destination MMSI
+	 */
+	ais->type25.bitcount       = bitlen - 40 - 16 * ais->type25.structured;
+	/* bit 40 is exactly 5 bytes in; 2 bytes is 16 bits */
+	(void)memcpy(ais->type25.bitdata, (char *)bits+5 + 2 * ais->type25.structured, (ais->type25.bitcount + 7) / 8);
+	
+}
+
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to)
 /* beginning at bitvec bit start, unpack count sixbit characters */
 {
@@ -1128,9 +1323,33 @@ void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen)
 	
 }
 
+float get_draught(unsigned int v)
+{
+	return (float)(v / 10);
+}
+
+float get_speed(unsigned int v)
+{
+	return (float)(v * 0.1);
+}
+
 float get_cog(unsigned int v)
 {
-	return (float)(v * 0.1); 
+	return (float)(v * 0.1);
+}
+
+wxString get_turn(int v)
+{
+	switch(v)
+	{	
+		case AIS_TURN_HARD_LEFT:		return GetMsg(MSG_TURN_HARD_LEFT);		
+		case AIS_TURN_HARD_RIGHT:		return GetMsg(MSG_TURN_HARD_RIGHT);		
+		case AIS_TURN_LEFT:				return GetMsg(MSG_TURN_LEFT);			
+		case AIS_TURN_RIGHT:			return GetMsg(MSG_TURN_RIGHT);			
+		case AIS_TURN_NOT_AVAILABLE:	return GetMsg(MSG_NA);					
+		default:						return GetMsg(MSG_NA);
+	}
+
 }
 
 float get_lon_lat(int val)
@@ -1146,6 +1365,25 @@ wxString get_value_as_string(bool v)
 		return GetMsg(MSG_FALSE);
 }
 
+wxString get_value_as_string(char *v)
+{
+	wxString str(v,wxConvUTF8);
+	return str;
+}
+
+
+wxString get_value_as_string(int v , bool check_na = false, int na_v = -1)
+{
+	if(check_na)
+	{
+		if(v == na_v)
+			return GetMsg(MSG_NA);
+	}
+	
+	return wxString::Format(_("%d"),v);
+
+}
+
 wxString get_value_as_string(unsigned int v , bool check_na = false, int na_v = -1)
 {
 	if(check_na)
@@ -1157,6 +1395,7 @@ wxString get_value_as_string(unsigned int v , bool check_na = false, int na_v = 
 	return wxString::Format(_("%d"),v);
 
 }
+
 
 wxString get_value_as_string(float v , bool check_na = false, int na_v = -1)
 {
@@ -1170,39 +1409,187 @@ wxString get_value_as_string(float v , bool check_na = false, int na_v = -1)
 
 }
 
+wxString GetHtmlHeader(int type)
+{
+	wxString msg;
+	
+	switch(type)
+	{
+		case AIS_MSG_1: msg = GetMsg(MSG_AIS_1_NAME); break;
+		case AIS_MSG_2: msg = GetMsg(MSG_AIS_2_NAME); break;
+		case AIS_MSG_3: msg = GetMsg(MSG_AIS_3_NAME); break;
+		case AIS_MSG_4: msg = GetMsg(MSG_AIS_4_NAME); break;
+		case AIS_MSG_5: msg = GetMsg(MSG_AIS_5_NAME); break;
+		case AIS_MSG_6: msg = GetMsg(MSG_AIS_6_NAME); break;
+		case AIS_MSG_7: msg = GetMsg(MSG_AIS_7_NAME); break;
+		case AIS_MSG_8: msg = GetMsg(MSG_AIS_8_NAME); break;
+		case AIS_MSG_9: msg = GetMsg(MSG_AIS_9_NAME); break;
+		case AIS_MSG_10: msg = GetMsg(MSG_AIS_10_NAME); break;
+		case AIS_MSG_11: msg = GetMsg(MSG_AIS_11_NAME); break;
+		case AIS_MSG_12: msg = GetMsg(MSG_AIS_12_NAME); break;
+		case AIS_MSG_13: msg = GetMsg(MSG_AIS_13_NAME); break;
+		case AIS_MSG_14: msg = GetMsg(MSG_AIS_14_NAME); break;
+		case AIS_MSG_15: msg = GetMsg(MSG_AIS_15_NAME); break;
+		case AIS_MSG_16: msg = GetMsg(MSG_AIS_16_NAME); break;
+		case AIS_MSG_17: msg = GetMsg(MSG_AIS_17_NAME); break;
+		case AIS_MSG_18: msg = GetMsg(MSG_AIS_18_NAME); break;
+		case AIS_MSG_19: msg = GetMsg(MSG_AIS_19_NAME); break;
+		case AIS_MSG_20: msg = GetMsg(MSG_AIS_20_NAME); break;
+		case AIS_MSG_21: msg = GetMsg(MSG_AIS_21_NAME); break;
+		case AIS_MSG_22: msg = GetMsg(MSG_AIS_22_NAME); break;
+		case AIS_MSG_23: msg = GetMsg(MSG_AIS_23_NAME); break;
+		case AIS_MSG_24: msg = GetMsg(MSG_AIS_24_NAME); break;
+		case AIS_MSG_25: msg = GetMsg(MSG_AIS_25_NAME); break;
+		case AIS_MSG_26: msg = GetMsg(MSG_AIS_26_NAME); break;
+		case AIS_MSG_27: msg = GetMsg(MSG_AIS_27_NAME); break;
+	}
 
-wxString print_msg_1(ais_t *ais)
+	wxString str;
+	str.Append(wxString::Format(_("<a name=\"#a\">%d%s</a><br>"),type,msg.wc_str()));
+	str.Append(_("<table border=0 cellpadding=4 cellspacing=0>"));
+	str.Append(wxString::Format(_("<tr><td colspan=2><b>%s</b></td></tr>"),msg.wc_str()));
+	
+	return str;
+}
+wxString GetHtmlFooter()
 {
 	wxString str;
-	str.Append(_("<table border=1 width=100%%>"));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td></font></tr>"),GetMsg(MSG_AIS_1_NAME)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_ACCURACY),get_value_as_string(ais->type1.accuracy)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_COG),get_value_as_string(get_cog(ais->type1.course), true, AIS_COURSE_NOT_AVAILABLE)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_HEADING),get_value_as_string(ais->type1.heading, true, AIS_HEADING_NOT_AVAILABLE)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LAT),get_value_as_string(get_lon_lat(ais->type1.lat),true,AIS_LAT_NOT_AVAILABLE)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LON),get_value_as_string(get_lon_lat(ais->type1.lon),true,AIS_LON_NOT_AVAILABLE)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_MANEUVER),get_value_as_string(ais->type1.maneuver)));
-	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_RADIO),get_value_as_string(ais->type1.radio)));
-	
-	
 	str.Append(_("</table><hr>"));
 	return str;
 }
 
-wxString print_msg_4(ais_t *ais)
+wxString PrintHtmlAnchors(ais_t *msg)
 {
 	wxString str;
-	str.Append(_("<table border=1>"));
-	str.Append(wxString::Format(_("<tr><td>%s</td></tr>"),GetMsg(MSG_AIS_4_NAME)));
-	str.Append(_("</table><hr>"));
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
+	{
+		if(msg->valid[i])
+			str.Append(wxString::Format(_("<a href=\"#a\">%d%s</a><br>"),i,GetMsg(MSG_AIS_1_NAME + i - 1) ));
+
+	}
+	
+	return str;
+	
+}
+
+wxString PrintHtmlMsg(ais_t *msg, int type)
+{
+	wxString str;
+	wxArrayString ar;
+	
+	switch(type)
+	{
+		case AIS_MSG_1:	
+		case AIS_MSG_2:	
+		case AIS_MSG_3:	ar = PrepareMsg_1(msg->type1); break;
+		case AIS_MSG_4:	ar = PrepareMsg_4(msg->type4); break;
+		case AIS_MSG_5:	ar = PrepareMsg_5(msg->type5); break;
+	}
+			
+	str.Append(GetHtmlHeader(type));
+		
+	for(size_t i = 0; i < ar.size(); i+=2)
+	{
+		str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),ar.Item(i),ar.Item(i + 1)));
+	}
+	
+	str.Append(GetHtmlFooter());	
+
 	return str;
 }
 
-wxString print_msg_5(ais_t *ais)
+wxArrayString PrepareMsg_1(ais_t::msg1 msg)
 {
-	wxString str;
-	str.Append(_("<table border=1>"));
-	str.Append(wxString::Format(_("<tr><td>%s</td></tr>"),GetMsg(MSG_AIS_5_NAME)));
-	str.Append(_("</table><hr>"));
-	return str;
+	wxArrayString ar;
+	
+	ar.Add(GetMsg(MSG_ACCURACY));			ar.Add(get_value_as_string(msg.accuracy));
+	ar.Add(GetMsg(MSG_COG));				ar.Add(get_value_as_string(get_cog(msg.course), true, AIS_COURSE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HEADING));			ar.Add(get_value_as_string(msg.heading, true, AIS_HEADING_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LAT));				ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,AIS_LAT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LON));				ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,AIS_LON_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_MANEUVER));			ar.Add(GetManeuverIndicator(msg.maneuver));
+	ar.Add(GetMsg(MSG_RADIO));				ar.Add(get_value_as_string(msg.radio));
+	ar.Add(GetMsg(MSG_RAIM));				ar.Add(get_value_as_string(msg.raim));
+	ar.Add(GetMsg(MSG_SECOND));				ar.Add(get_value_as_string(msg.second,true,AIS_SEC_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SPEED));				ar.Add(get_value_as_string(get_speed(msg.speed),true,AIS_SPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_NAVIGATION_STATUS));	ar.Add(GetNavigationStatus(msg.status));
+
+	return ar;
+}
+
+
+wxArrayString PrepareMsg_4(ais_t::msg4 msg)
+{
+	wxArrayString ar;
+
+	ar.Add(GetMsg(MSG_ACCURACY));	ar.Add(get_value_as_string(msg.accuracy));
+	ar.Add(GetMsg(MSG_RAIM));		ar.Add(get_value_as_string(msg.raim));
+	ar.Add(GetMsg(MSG_RADIO));		ar.Add(get_value_as_string(msg.radio));
+	ar.Add(GetMsg(MSG_YEAR));		ar.Add(get_value_as_string(msg.year,true,AIS_YEAR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_MONTH));		ar.Add(get_value_as_string(msg.month,true,AIS_MONTH_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DAY));		ar.Add(get_value_as_string(msg.day,true,AIS_DAY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HOUR));		ar.Add(get_value_as_string(msg.hour,true,AIS_HOUR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_MINUTE));		ar.Add(get_value_as_string(msg.minute,true,AIS_MINUTE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SECONDS));	ar.Add(get_value_as_string(msg.second,true,AIS_SECOND_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,AIS_LAT_NOT_AVAILABLE).wc_str());
+	ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,AIS_LON_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_EPFD));		ar.Add(get_value_as_string(GetEPFDFixTypes(msg.epfd)));
+
+	return ar;
+
+}
+
+wxArrayString PrepareMsg_5(ais_t::msg5 msg)
+{
+	wxArrayString ar;
+
+	ar.Add(GetMsg(MSG_AIS_VERSION));	ar.Add(get_value_as_string(msg.ais_version));
+	ar.Add(GetMsg(MSG_CALLSIGN));		ar.Add(get_value_as_string(msg.callsign));
+	ar.Add(GetMsg(MSG_SHIPNAME));		ar.Add(get_value_as_string(msg.shipname));
+	ar.Add(GetMsg(MSG_ETA_MONTH));		ar.Add(get_value_as_string(msg.month,true,AIS_MONTH_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_ETA_DAY));		ar.Add(get_value_as_string(msg.day,true,AIS_DAY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_ETA_HOUR));		ar.Add(get_value_as_string(msg.hour,true,AIS_HOUR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_ETA_MINUTE));		ar.Add(get_value_as_string(msg.minute,true,AIS_MINUTE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_IMO_NUMBER));		ar.Add(get_value_as_string(msg.imo));
+	ar.Add(GetMsg(MSG_DESTINATION));	ar.Add(get_value_as_string(msg.destination));
+	ar.Add(GetMsg(MSG_SHIP_TYPE));		ar.Add(GetShipType(msg.shiptype));
+	ar.Add(GetMsg(MSG_TO_BOW));			ar.Add(get_value_as_string(msg.to_bow));
+	ar.Add(GetMsg(MSG_TO_STERN));		ar.Add(get_value_as_string(msg.to_stern));
+	ar.Add(GetMsg(MSG_TO_PORT));		ar.Add(get_value_as_string(msg.to_port));
+	ar.Add(GetMsg(MSG_TO_STARBOARD));	ar.Add(get_value_as_string(msg.to_starboard));
+	
+	ar.Add(GetMsg(MSG_LENGTH_WIDTH));	ar.Add(wxString::Format(_("%sx%s m"), get_value_as_string(msg.to_bow + msg.to_stern), get_value_as_string(msg.to_port + msg.to_starboard)) );
+			
+	
+	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(msg.draught));
+	ar.Add(GetMsg(MSG_DTE));			ar.Add(GetDTE(msg.dte));
+	ar.Add(GetMsg(MSG_EPFD));			ar.Add(GetEPFDFixTypes(msg.epfd));
+		
+	return ar;
+
+}
+
+const wchar_t *GetDTE(int id)
+{
+	return nvDTE[GetLanguageId()][id];
+}
+
+const wchar_t *GetShipType(int id)
+{
+	return nvShipTypes[GetLanguageId()][id];
+}
+
+const wchar_t *GetEPFDFixTypes(int id)
+{
+	return nvEPFDFixTypes[GetLanguageId()][id];
+}
+
+const wchar_t *GetNavigationStatus(int id)
+{
+	return nvNavigationStatus[GetLanguageId()][id];
+}
+
+const wchar_t *GetManeuverIndicator(int id)
+{
+	return nvManeuverIndicator[GetLanguageId()][id];
 }

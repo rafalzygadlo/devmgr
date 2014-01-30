@@ -2,24 +2,24 @@
 #include <wx/notebook.h>
 #include "conf.h"
 #include "tools.h"
-#include "ais_dialog.h"
+#include "ais_messages.h"
 
-BEGIN_EVENT_TABLE(CAisDialog,wxDialog)
+BEGIN_EVENT_TABLE(CAisMessages,wxPanel)
 
 END_EVENT_TABLE()
 
 
-CAisDialog::CAisDialog() 
-:wxDialog(NULL,wxID_ANY,wxEmptyString, wxDefaultPosition,wxDefaultSize)
+CAisMessages::CAisMessages(wxWindow *parent, CMapPlugin *plugin)
+:wxPanel(parent)
 {	
 	GetPanel();
 }
 
-CAisDialog::~CAisDialog()
+CAisMessages::~CAisMessages()
 {
 }
 
-void CAisDialog::GetPanel()
+void CAisMessages::GetPanel()
 {
 
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
@@ -29,7 +29,7 @@ void CAisDialog::GetPanel()
 	wxPanel *Page1 = new wxPanel(Notebook);
 	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(Page1Sizer);
-	Notebook->AddPage(Page1,GetMsg(MSG_AIS_TARGETS));
+	Notebook->AddPage(Page1,GetMsg(MSG_AIS_MESSAGES));
 
 	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
@@ -37,7 +37,7 @@ void CAisDialog::GetPanel()
 	this->SetSizer(m_Sizer);
 
 }
-void CAisDialog::SetText(wxString text)
+void CAisMessages::SetText(wxString text)
 {
 	m_Html->AppendToPage(text);
 

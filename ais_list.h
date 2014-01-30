@@ -6,18 +6,15 @@
 #include "NaviDisplayApi.h"
 #include "dll.h"
 #include "listctrl.h"
+#include <wx/html/htmlwin.h>
 
-#ifdef _WIN32
-	#include <windows.h>
-	#include <crtdbg.h>
-#endif
 
 class CMapPlugin;
 class CDisplayPlugin;
 class CListCtrl;
 class CAisList : public wxPanel
 {
-	
+	wxHtmlWindow *m_Html;
 	CNaviBroker *m_Broker;
 	CDisplayPlugin *m_Display;
 	CListCtrl *m_List;
@@ -32,6 +29,8 @@ public:
 	CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display);
 	~CAisList();
 	void SetSignal(int signal);
+	void SetHtml(wxString html);
+	void ClearHtml();
 
 	enum 
 	{

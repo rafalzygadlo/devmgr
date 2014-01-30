@@ -16,29 +16,8 @@
 //DEFINE_EVENT_TYPE(EVT_SET_TEXT)
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
-	//EVT_TREE_ITEM_MENU(ID_TREE, CDisplayPlugin::OnTreeMenu)
-	//EVT_TREE_SEL_CHANGED(ID_TREE, CDisplayPlugin::OnTreeSelChanged)
-	//EVT_MENU(ID_STOP,CDisplayPlugin::OnStop)
-	//EVT_MENU(ID_START,CDisplayPlugin::OnStart)
-	//EVT_MENU(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
-	//EVT_MENU(ID_UNINSTALL,CDisplayPlugin::OnUninstall)
-	//EVT_MENU(ID_NEW_DEVICE,CDisplayPlugin::OnNewDevice)
-	//EVT_MENU(ID_DEVICE_WIZARD,CDisplayPlugin::OnDeviceWizard)
-	//EVT_MENU(ID_STATUS,CDisplayPlugin::OnStatus)
-	//EVT_MENU(ID_START,CDisplayPlugin::OnStart)
-	
-	//EVT_HYPERLINK(ID_STOP,CDisplayPlugin::OnStop)
-	//EVT_HYPERLINK(ID_START,CDisplayPlugin::OnStart)
-//	EVT_HYPERLINK(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
-	//EVT_HYPERLINK(ID_MONITOR,CDisplayPlugin::OnMonitor)
-	
 	EVT_MENU_RANGE(ID_MENU_BEGIN,ID_MENU_END,CDisplayPlugin::OnMenuRange)
 	EVT_CONTEXT_MENU(CDisplayPlugin::OnMenu)
-
-	//EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDisplayPlugin::OnSetLogger)
-	//EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDisplayPlugin::OnSetIcon)
-	//EVT_COMMAND(ID_TEXT,EVT_SET_TEXT,CDisplayPlugin::OnSetText)
-	//EVT_TOOL(ID_TOOL_STOP,
 END_EVENT_TABLE()
 
 
@@ -50,22 +29,24 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Broker = NULL;
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
+	m_MapPlugin = NULL;
 	SetDoubleBuffered(true);
 		
 	this->Disable();
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	
-	m_ControlType = -1;
+	m_ControlType = CONTROL_DEVICES_LIST;
 		
 	m_DevicesList = NULL;
 	m_AisList = NULL;
 	m_Data = NULL;
+	m_GUI = false;
 
 	m_Menu = new wxMenu();
-		
 	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
-	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets list"));
+	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets"));
+	m_Menu->AppendRadioItem(2 + ID_MENU_BEGIN ,_("Ais Message Info"));
 	
 	CProtocol Protocol;
 	int counter = 0;
@@ -84,22 +65,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	}
 	
 	delete Definition;
-		
-	//ArrayOfTypes.Add(_("Speed"));
-	//ArrayOfTypes.Add(_("Date"));
-	//ArrayOfTypes.Add(_("Time"));
-	//ArrayOfTypes.Add(_("Fix"));
-	//ArrayOfTypes.Add(_("Direction"));
-	//ArrayOfTypes.Add(_("Longitude"));
-	//ArrayOfTypes.Add(_("Latitude"));
-	//ArrayOfTypes.Add(_("PDOP"));
-	//ArrayOfTypes.Add(_("HDOP"));
-	//ArrayOfTypes.Add(_("VDOP"));
-	//ArrayOfTypes.Add(_("Quality"));
-	//ArrayOfTypes.Add(_("Sattelites"));
-	//ArrayOfTypes.Add(_("Status"));
-
-
+	
 }
 
 CDisplayPlugin::~CDisplayPlugin()
@@ -115,6 +81,7 @@ int CDisplayPlugin::GetControlType()
 
 void  CDisplayPlugin::GetDevicesList()
 {
+	m_GUI = true;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_DevicesList = new CDevicesList(this,m_MapPlugin);
 	MainSizer->Add(m_DevicesList,1,wxALL|wxEXPAND);
@@ -124,6 +91,7 @@ void  CDisplayPlugin::GetDevicesList()
 
 void  CDisplayPlugin::GetAisList()
 {
+	m_GUI = true;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_AisList = new CAisList(this,m_MapPlugin,this);
 	MainSizer->Add(m_AisList,1,wxALL|wxEXPAND);
@@ -139,6 +107,7 @@ void CDisplayPlugin::RemoveControl(int type)
 		case CONTROL_AIS_LIST:		FreeAisList();		break;
 	}
 }
+
 
 void CDisplayPlugin::FreeDevicesList()
 {
@@ -159,7 +128,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 		wxMessageBox(_("The same type of control ?"));
 		return;
 	}
-	
+	m_GUI = false;
 	RemoveControl(m_ControlType);
 		
 	switch(event.GetId())
@@ -175,8 +144,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 
 void CDisplayPlugin::OnMenu(wxContextMenuEvent &event)
 {
-	
-	
+		
 	if(m_ControlType != -1)
 		m_Menu->Check(m_ControlType, true);
 	
@@ -199,47 +167,48 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 	if(SignalID->GetSignalID() == NDS_DEVICE_MANAGER)
 	{
 		m_SignalType = SignalID->GetTag();
-		InitDisplay();
+		if(m_MapPlugin != NULL)
+			InitDisplay();
 		// kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
 		
-		if(!GetGUIControl(SignalID))
+		
+		GetSignal(SignalID);
+		
+		GetGUIControl(SignalID);
+		
+		if(!m_GUI) // kontrolka typu gui sygnal refresh nie wysylany
 		{
-			if(GetSignal(SignalID))
+			if(m_SignalType ==  DATA_SIGNAL)		// sygna³ danych w strukturze
 				return true;	// dla sygnalow danych uruchom watki dla rysowania kontrolek
 		}
-	
+		
 	}
 	
 	return false;
 }
 
-bool CDisplayPlugin::GetGUIControl(CDisplaySignal *sig)
+void CDisplayPlugin::GetGUIControl(CDisplaySignal *sig)
 {
 	// kontrolki GUI
-	bool result = false;
-	
+		
 	switch(m_ControlType)
 	{
-		case CONTROL_DEVICES_LIST:	SetDevicesListSignal(m_SignalType,sig);	result = true; break;
-		case CONTROL_AIS_LIST:		SetAisListSignal(m_SignalType);			result = true; break;
+		case CONTROL_DEVICES_LIST:	SetDevicesListSignal(m_SignalType,sig);	break;
+		case CONTROL_AIS_LIST:		SetAisListSignal(m_SignalType);			break;
 	}
 
-	return result;
 }
 
 
-bool CDisplayPlugin::GetSignal(CDisplaySignal *sig)
+void CDisplayPlugin::GetSignal(CDisplaySignal *sig)
 {
-	bool result = false;
 		
 	switch(m_SignalType)
 	{
-		case CLEAR_DISPLAY: 			ClearDisplay(); break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
-		case INIT_SIGNAL:				InitDisplay();	break;		// inicjuje listê urzadzeñ
-		case DATA_SIGNAL:				result = true;	break;		// sygna³ danych w strukturze
+		case CLEAR_DISPLAY:		ClearDisplay(); break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
+		case INIT_SIGNAL:		InitDisplay();	break;		// inicjuje listê urzadzeñ
 	}
-	
-	return result;
+
 }
 
 void CDisplayPlugin::SetDevicesListSignal(int type, CDisplaySignal *sig)
@@ -273,6 +242,7 @@ void CDisplayPlugin::InitDisplay()
 	if(m_FirstTime)
 	{
 		m_FirstTime = false;
+		GetDevicesList();
 		this->Enable();
 	}
 
@@ -323,16 +293,16 @@ int CDisplayPlugin::GetControlId()
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {
-	if(m_Data)
-	{
-		if(m_Data->id == GetControlId())
-		{	
-			wxString a(m_Data->marker,wxConvUTF8);
-			wxString b(m_Data->value,wxConvUTF8);
-			DrawData(dc,a,b);
-		}
+	//if(m_Data)
+	//{
+		//if(m_Data->id == GetControlId())
+		//{	
+			//wxString a(m_Data->marker,wxConvUTF8);
+			//wxString b(m_Data->value,wxConvUTF8);
+			//DrawData(dc,a,b);
+		//}
 		//fprintf(stdout,"%s %s\n",m_Data->marker,m_Data->value);
-	}
+	//}
 
 }
 

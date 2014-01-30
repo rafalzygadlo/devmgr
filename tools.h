@@ -17,13 +17,15 @@ void FreeStrList(char **list, int length);
 time_t GetUTCTimeNow(void);
 char *GetSentenceFromLine(const char *line, const char *identyfier);
 int MemPos(const unsigned char *Memory, int MemorySize, const unsigned char *Search, int SearchSize, int StartAt = 0 );
-wxString GetMsg(int id);
+const wchar_t *GetMsg(int id);
 bool SetGlobalPrioryty(int fid);
 bool Set_RMC_COG();
 bool Set_VTG_COG();
 bool Check_HDT();
+int GetLanguageId();
 CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool run);
 CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, bool run);
+double _nvToRad( double angle );
 // funkcje protokolu
 
 #endif

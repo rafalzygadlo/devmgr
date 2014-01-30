@@ -12,24 +12,17 @@ DEFINE_EVENT_TYPE(EVT_SET_ITEM)
 BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	EVT_LIST_ITEM_ACTIVATED(ID_LIST,CListCtrl::OnActivate)
 	EVT_CONTEXT_MENU(CListCtrl::OnContextMenu)
-	EVT_MENU(ID_QUEUE_CHART,CListCtrl::OnChartQueue)
-	EVT_MENU(ID_PROPERTIES,CListCtrl::OnProperties)
-	EVT_MENU(ID_DELETE_FROM_QUEUE,CListCtrl::OnDeleteFromQueue)
-	EVT_MENU(ID_DELETE_FROM_INSTALLED,CListCtrl::OnDeleteFromInstalled)
-	EVT_MENU(ID_OPEN_CHART,CListCtrl::OnOpenChart)
 	EVT_LIST_ITEM_SELECTED(ID_LIST,CListCtrl::OnSelected)
-	EVT_LIST_ITEM_ACTIVATED(ID_LIST,CListCtrl::OnActivate)
 	//EVT_PAINT(CListCtrl::OnPaint)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
 END_EVENT_TABLE()
  
-CListCtrl::CListCtrl( wxWindow *Parent,CDisplayPlugin *DspPlugin, int style )
+CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
 :wxListCtrl( Parent, ID_LIST, wxDefaultPosition, wxDefaultSize, style )
 {
-	ThisPtr = this;
-	//Menu = NULL;
-	Plugin = DspPlugin;
+	
+	_AisList = AisList;
 		
 	error.SetTextColour(*wxRED);
 	
@@ -70,6 +63,7 @@ CListCtrl::~CListCtrl()
 	//delete ImageListSmall;
 }
 
+
 void CListCtrl::OnSetItem(wxCommandEvent &event)
 {
 	int i = event.GetInt();
@@ -109,153 +103,44 @@ void CListCtrl::Menu()
 	delete Menu;
 }
 
-
-void CListCtrl::OnOpenChart(wxCommandEvent &event)
-{
-	long n_item = -1;
-	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-	
-	if(n_item == -1)
-		return;
-
-//	CNaviGeometry *Installed = Plugin->IsInstalled(Geometry);
-		
-}
-
-void CListCtrl::OnProperties(wxCommandEvent  &event)
-{
-	long n_item = -1;
-	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-	//	Plugin->ShowProperties(Geometry);	
-}
-
-void CListCtrl::OnDeleteFromQueue(wxCommandEvent &event)
-{
-	
-	long n_item = -1;
-	Disable();
-	wxArrayPtrVoid GeometryList;
-	
-	for(;;)
-	{
-		n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-		if (n_item < 0)	break;
-	}
-	
-//	for(size_t i =0; i < GeometryList.size(); i++)
-//		Plugin->RemoveQueueGeometry((CNaviGeometry*)GeometryList.Item(i));
-	
-	Enable();
-	//Plugin->SendQueueInsertSignal();
-}
-
-void CListCtrl::OnChartQueue(wxCommandEvent &event)
-{	
-	
-	long n_item = -1;
-//	wchar_t *name,*type,*edtn,*updn;
-	
-	for(;;)
-	{
-		n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-        if (n_item < 0)	break;
-		//Plugin->AddToQueue(Geometry);
-	}
-	
-//	Plugin->SendQueueInsertSignal();
-
-}
-
-
-
-void CListCtrl::OnDeleteFromInstalled(wxCommandEvent &event)
-{
-
-	long n_item = -1;
-	Disable();
-	wxArrayPtrVoid GeometryList;
-	
-	for(;;)
-	{
-		n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-		if (n_item < 0)	break;
-		
-	}
-	
-	//for(size_t i =0; i < GeometryList.size(); i++)
-		//Plugin->RemoveInstalledGeometry((CNaviGeometry*)GeometryList.Item(i));
-	
-	
-	Enable();
-	//Plugin->SendLibraryInsertSignal();
-		
-}
-
 void CListCtrl::OnSelected(wxListEvent &event)
-{
-	
-	long n_item = -1;
-	for(;;)
-	{
-		n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
-
-        if (n_item < 0)	break;
-		
-		//if(GetMutex()->TryLock())
-			//break;
-		//Plugin->SetSelectedGeometryLine(Geometry);
-		//GetMutex()->Unlock();
-	}
-	
-		
-}
-
-void CListCtrl::OnActivate(wxListEvent &event)
 {
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	ais_t *ais = ais_get_item(n_item);
-
-	AisDialog = new CAisDialog();
-
-
+	_AisList->ClearHtml();
+	
+	_AisList->SetHtml(PrintHtmlAnchors(ais));
+	
 	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
 	{
 		if(ais->valid[i])
 		{
-			PrintMsg(ais,i);
+			_AisList->SetHtml(PrintHtmlMsg(ais,i));
 		}
 	
 	}
-	
-	AisDialog->ShowModal();
-	delete AisDialog;
+
 }
 
-void CListCtrl::PrintMsg(ais_t *ais, int type)
+
+void CListCtrl::OnActivate(wxListEvent &event)
 {
-
-	switch(type)
+/*
+	long n_item = -1;
+	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	ais_t *ais = ais_get_item(n_item);
+	
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
 	{
-		case AIS_MSG_1:	
-		case AIS_MSG_2:	
-		case AIS_MSG_3:	
-			AisDialog->SetText(print_msg_1(ais));
-		break;
-
-		case AIS_MSG_4:
-			AisDialog->SetText(print_msg_4(ais));
-		break;
-
-		case AIS_MSG_5:
-			AisDialog->SetText(print_msg_5(ais));
-		break;
+		if(ais->valid[i])
+		{
+			_AisList->ClearHtml();
+			_AisList->SetHtml(PrintHtmlMsg(ais,i));
+		}
 	
 	}
-	
-	
-
+*/
 }
 
 void CListCtrl::ClearList()
@@ -313,19 +198,19 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 			mes.Append(wxString::Format(_("[%d]"),i));
 	}
 	
-	if(ais->type5.valid)
+	if(ais->valid[AIS_MSG_5])
 	{
 		wxString name5(ais->type5.shipname,wxConvUTF8);
 		name = name5;
 	}
 	
-	if(ais->type19.valid)
+	if(ais->valid[AIS_MSG_19])
 	{
 		wxString name19(ais->type5.shipname,wxConvUTF8);
 		name = name19;
 	}
 	
-	if(ais->type24.valid)
+	if(ais->valid[AIS_MSG_24])
 	{
 		wxString name24(ais->type5.shipname,wxConvUTF8);
 		name = name24;
@@ -333,11 +218,11 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	switch (column)
 	{
-		case 0:	str = mes;																break;
-		case 1:	str = wxString::Format(_("%d"),ais->mmsi);								break;
-		case 2:	str = wxString::Format(_("%s"),name.wc_str());							break;
-		case 3: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lat));	break;
-		case 4: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lon));	break;
+		case 0:	str = mes;															break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);							break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());						break;
+		case 3: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lat));		break;
+		case 4: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lon));		break;
 	}
 
 	return str;
@@ -476,6 +361,7 @@ int CListCtrl::OnGetItemImage(long item) const
 {
 	Parent = parent;
 }
+ 
  /*
 bool myCompareClass::operator() (CNaviGeometry *g1, CNaviGeometry *g2) 
 { 
@@ -498,6 +384,5 @@ bool myCompareClass::operator() (CNaviGeometry *g1, CNaviGeometry *g2)
 	 }
     
   }
-
-  
+    
   */

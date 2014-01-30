@@ -5,14 +5,15 @@
 #include <wx/listctrl.h>
 #include "NaviBroker.h"
 #include "display.h"
-#include "ais_dialog.h"
 #include "ais.h"
+#include "ais_list.h"
 
 class CDisplayPlugin;
-class CAisDialog;
+class CAisList;
 class CListCtrl: public wxListCtrl
 {
 	//wxImageList *ImageListSmall;
+	CAisList *_AisList;
 	bool Order;
 	const char *SelectedColumn;
 	CMyFrame *Frame;
@@ -25,7 +26,6 @@ class CListCtrl: public wxListCtrl
 	//wxMenu *Menu;
 	wxListItemAttr selected, installed, queued, selected_and_installed, selected_and_queued, error;
 	CDisplayPlugin *Plugin;	
-	CAisDialog *AisDialog;
 	void PrintMsg(ais_t *ais, int type);
 
 	
@@ -34,15 +34,8 @@ class CListCtrl: public wxListCtrl
 	void MenuVisible();
 	void Menu();
 	void OnActivate(wxListEvent &event);
-	//void OnEraseBackground(wxEraseEvent &event);
-	void OnProperties(wxCommandEvent &event);
-	void OnContextMenu(wxContextMenuEvent &event);
-	void OnChartQueue(wxCommandEvent &event);
 	void OnSelected(wxListEvent &event);
-	//void OnPaint(wxPaintEvent &event);
-	void OnDeleteFromQueue(wxCommandEvent &event);
-	void OnDeleteFromInstalled(wxCommandEvent &event);
-	void OnOpenChart(wxCommandEvent &event);
+	void OnContextMenu(wxContextMenuEvent &event);
 	void OnSetItem(wxCommandEvent &event);
 	void OnColClick(wxListEvent& event);
 	long GetLastSelectedItem();
@@ -57,8 +50,8 @@ class CListCtrl: public wxListCtrl
 
 public:
 	
-	
-	CListCtrl(wxWindow *Parent, CDisplayPlugin *DspPlugin, int style);
+		
+	CListCtrl( wxWindow *Parent, CAisList *AisList, int style );
 	~CListCtrl();
 
 	void ClearList();
@@ -67,7 +60,7 @@ public:
 	const char *GetSelectedColumn();
 	bool GetSortOrder();
 	void SetList();
-	
+		
 	DECLARE_EVENT_TABLE();
 
 	enum

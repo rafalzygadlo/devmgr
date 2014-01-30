@@ -28,8 +28,11 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	CMapPlugin *m_MapPlugin;
 	wxString m_Name;
 	int m_SignalType;
+	bool m_GUI;
+	
 	CDevicesList *m_DevicesList;
 	CAisList *m_AisList;
+	
 	bool m_FirstTime;
 	wxBoxSizer *m_Sizer;
 	wxPanel *m_SignalsPanel;
@@ -55,6 +58,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveControl(int type);
 	void FreeDevicesList();
 	void FreeAisList();
+	void FreeAisMessages();
 	void SetDevicesListSignal(int type, CDisplaySignal *sig);
 	void SetAisListSignal(int type);
 	void RemoveDevice();
@@ -66,8 +70,8 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void AddTreeItem(int item_id);
 	void SetIconEvent(int icon_id);
 	void SetTextEvent(int icon_id);
-	bool GetGUIControl(CDisplaySignal *sig);
-	bool GetSignal(CDisplaySignal *sig);
+	void GetGUIControl(CDisplaySignal *sig);
+	void GetSignal(CDisplaySignal *sig);
 	void StartDevice();
 	void StopDevice();
 	void DataSignal(CDisplaySignal *sig);

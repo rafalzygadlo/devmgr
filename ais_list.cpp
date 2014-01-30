@@ -54,6 +54,16 @@ void CAisList::SetList()
 	m_List->SetItemCount(c);
 }
 
+void CAisList::SetHtml(wxString html)
+{
+	m_Html->AppendToPage(html);
+}
+
+void CAisList::ClearHtml()
+{
+	m_Html->SetPage(wxEmptyString);
+}
+
 void CAisList::GetPanel()
 {
 		
@@ -66,7 +76,7 @@ void CAisList::GetPanel()
 	Page1->SetSizer(Page1Sizer);
 	Notebook->AddPage(Page1,GetMsg(MSG_AIS_TARGETS));
 	
-	m_List = new CListCtrl(Page1,m_Display,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
+	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);
 	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
@@ -74,8 +84,10 @@ void CAisList::GetPanel()
 	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
 	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
 	Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
-
-
+	
+	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
+	
 	this->SetSizer(m_Sizer);
 
 }

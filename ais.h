@@ -89,10 +89,12 @@ struct ais_t
 	bool			valid[27];
     //union {
 	/* Types 1-3 Common navigation info */
-	struct {
-		bool valid;
-	    unsigned int status;		/* navigation status */
+	struct msg1{
+		unsigned int status;		/* navigation status */
 	    signed turn;			/* rate of turn */
+
+#define AIS_TURN_LEFT	-126
+#define AIS_TURN_RIGHT	126
 #define AIS_TURN_HARD_LEFT	-127
 #define AIS_TURN_HARD_RIGHT	127
 #define AIS_TURN_NOT_AVAILABLE	128
@@ -120,9 +122,8 @@ struct ais_t
 	    unsigned int radio;		/* radio status bits */
 	} type1;
 	/* Type 4 - Base Station Report & Type 11 - UTC and Date Response */
-	struct {
-		bool valid;
-	    unsigned int year;			/* UTC year */
+	struct msg4 {
+		unsigned int year;			/* UTC year */
 #define AIS_YEAR_NOT_AVAILABLE	0
 	    unsigned int month;			/* UTC month */
 #define AIS_MONTH_NOT_AVAILABLE	0
@@ -143,8 +144,7 @@ struct ais_t
 	    unsigned int radio;		/* radio status bits */
 	} type4;
 	/* Type 5 - Ship static and voyage related data */
-	struct {
-		bool valid;
+	struct msg5{
 	    unsigned int ais_version;	/* AIS version level */
 	    unsigned int imo;		/* IMO identification */
 	    char callsign[7+1];		/* callsign */
@@ -166,8 +166,7 @@ struct ais_t
 	    //unsigned int spare;	spare bits */
 	} type5;
 	/* Type 6 - Addressed Binary Message */
-	struct {
-		bool valid;
+	struct mmsg6{
 	    unsigned int seqno;		/* sequence number */
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    bool retransmit;		/* retransmit flag */
@@ -433,7 +432,6 @@ struct ais_t
 	} type6;
 	/* Type 7 - Binary Acknowledge */
 	struct {
-		bool valid;
 	    unsigned int mmsi1;
 	    unsigned int mmsi2;
 	    unsigned int mmsi3;
@@ -442,7 +440,6 @@ struct ais_t
 	} type7;
 	/* Type 8 - Broadcast Binary Message */
 	struct {
-		bool valid;
 	    unsigned int dac;       	/* Designated Area Code */
 	    unsigned int fid;       	/* Functional ID */
 #define AIS_TYPE8_BINARY_MAX	952	/* 952 bits */
@@ -741,7 +738,6 @@ struct ais_t
 	} type8;
 	/* Type 9 - Standard SAR Aircraft Position Report */
 	struct {
-		bool valid;
 	    unsigned int alt;		/* altitude in meters */
 #define AIS_ALT_NOT_AVAILABLE	4095
 #define AIS_ALT_HIGH    	4094	/* 4094 meters or higher */
@@ -762,14 +758,12 @@ struct ais_t
 	} type9;
 	/* Type 10 - UTC/Date Inquiry */
 	struct {
-		bool valid;
 	    //unsigned int spare;
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    //unsigned int spare2;
 	} type10;
 	/* Type 12 - Safety-Related Message */
 	struct {
-		bool valid;
 	    unsigned int seqno;		/* sequence number */
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    bool retransmit;		/* retransmit flag */
@@ -779,14 +773,12 @@ struct ais_t
 	} type12;
 	/* Type 14 - Safety-Related Broadcast Message */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 #define AIS_TYPE14_TEXT_MAX	161	/* 952 bits of six-bit, plus NUL */
 	    char text[AIS_TYPE14_TEXT_MAX];
 	} type14;
 	/* Type 15 - Interrogation */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int mmsi1;
 	    unsigned int type1_1;
@@ -802,7 +794,6 @@ struct ais_t
 	} type15;
 	/* Type 16 - Assigned Mode Command */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int mmsi1;
 	    unsigned int offset1;
@@ -813,7 +804,6 @@ struct ais_t
 	} type16;
 	/* Type 17 - GNSS Broadcast Binary Message */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 #define AIS_GNSS_LATLON_DIV	600.0
 	    int lon;			/* longitude */
@@ -825,7 +815,6 @@ struct ais_t
 	} type17;
 	/* Type 18 - Standard Class B CS Position Report */
 	struct {
-		bool valid;
 	    unsigned int reserved;	/* altitude in meters */
 	    unsigned int speed;		/* speed over ground in deciknots */
 	    bool accuracy;		/* position accuracy */
@@ -848,7 +837,6 @@ struct ais_t
 	} type18;
 	/* Type 19 - Extended Class B CS Position Report */
 	struct {
-		bool valid;
 	    unsigned int reserved;	/* altitude in meters */
 	    unsigned int speed;		/* speed over ground in deciknots */
 	    bool accuracy;		/* position accuracy */
@@ -872,7 +860,6 @@ struct ais_t
 	} type19;
 	/* Type 20 - Data Link Management Message */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int offset1;	/* TDMA slot offset */
 	    unsigned int number1;	/* number of xlots to allocate */
@@ -893,7 +880,6 @@ struct ais_t
 	} type20;
 	/* Type 21 - Aids to Navigation Report */
 	struct {
-		bool valid;
 	    unsigned int aid_type;	/* aid type */
 	    char name[35];		/* name of aid to navigation */
 	    bool accuracy;		/* position accuracy */
@@ -914,7 +900,6 @@ struct ais_t
 	} type21;
 	/* Type 22 - Channel Management */
 	struct {
-		bool valid;
 	    //unsigned int spare;	spare bit(s) */
 	    unsigned int channel_a;	/* Channel A number */
 	    unsigned int channel_b;	/* Channel B number */
@@ -940,8 +925,7 @@ struct ais_t
 	} type22;
 	/* Type 23 - Group Assignment Command */
 	struct {
-		bool valid;
-	    int ne_lon;			/* NE corner longitude */
+		int ne_lon;			/* NE corner longitude */
 	    int ne_lat;			/* NE corner latitude */
 	    int sw_lon;			/* SW corner longitude */
 	    int sw_lat;			/* SW corner latitude */
@@ -956,7 +940,6 @@ struct ais_t
 	} type23;
 	/* Type 24 - Class B CS Static Data Report */
 	struct {
-		bool valid;
 	    char shipname[AIS_SHIPNAME_MAXLEN+1];	/* vessel name */
 	    enum {
 		both,
@@ -980,7 +963,6 @@ struct ais_t
 	} type24;
 	/* Type 25 - Addressed Binary Message */
 	struct {
-		bool valid;
 	    bool addressed;		/* addressed-vs.broadcast flag */
 	    bool structured;		/* structured-binary flag */
 	    unsigned int dest_mmsi;	/* destination MMSI */
@@ -991,7 +973,6 @@ struct ais_t
 	} type25;
 	/* Type 26 - Addressed Binary Message */
 	struct {
-		bool valid;
 	    bool addressed;		/* addressed-vs.broadcast flag */
 	    bool structured;		/* structured-binary flag */
 	    unsigned int dest_mmsi;	/* destination MMSI */
@@ -1003,7 +984,6 @@ struct ais_t
 	} type26;
 	/* Type 27 - Long Range AIS Broadcast message */
 	struct {
-		bool valid;
 	    bool accuracy;		/* position accuracy */
 	    bool raim;			/* RAIM flag */
 	    unsigned int status;	/* navigation status */
@@ -1022,6 +1002,22 @@ struct ais_t
 };
 
 
+const wchar_t *GetEPFDFixTypes(int id);
+const wchar_t *GetManeuverIndicator(int id);
+const wchar_t *GetNavigationStatus(int id);
+const wchar_t *GetShipType(int id);
+const wchar_t *GetDTE(int id);
+
+wxArrayString PrepareMsg_1(ais_t::msg1 msg);
+wxArrayString PrepareMsg_4(ais_t::msg4 msg);
+wxArrayString PrepareMsg_5(ais_t::msg5 msg);
+
+wxString PrintHtmlMsg(ais_t *msg, int type);
+wxString PrintHtmlAnchors(ais_t *msg);
+wxString GetHtmlHeader(int type);
+wxString GetHtmlFooter();
+
+
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
 bool ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
@@ -1029,14 +1025,17 @@ void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to)
 void ais_free_list();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
-wxString print_msg_1(ais_t *ais);
-wxString print_msg_4(ais_t *ais);
-wxString print_msg_5(ais_t *ais);
+
+float get_speed(unsigned int v);
 float get_lon_lat(int val);
 float get_cog(unsigned int v);
+wxString get_turn(int v);
+
 wxString get_value_as_string(bool v);
 wxString get_value_as_string(unsigned int v , bool check_na, int na_v );
+wxString get_value_as_string(int v , bool check_na, int na_v );
 wxString get_value_as_string(float v , bool check_na, int na_v);
+wxString get_value_as_string(char *v);
 
 void ais_message_1(unsigned char *bits, ais_t *ais);
 void ais_message_4(unsigned char *bits, ais_t *ais);
@@ -1058,6 +1057,6 @@ void ais_message_21(unsigned char *bits, size_t bitlen, ais_t *ais);
 void ais_message_22(unsigned char *bits, ais_t *ais);
 void ais_message_23(unsigned char *bits, ais_t *ais);
 void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais);
-
+void ais_message_25(unsigned char *bits, size_t bitlen, ais_t *ais);
 
 #endif

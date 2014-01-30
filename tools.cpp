@@ -8,7 +8,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
-const wxChar *nvLanguage[2][80] = 
+const wchar_t *nvLanguage[2][183] = 
 { 
 	/*EN*/
 	{
@@ -52,7 +52,7 @@ const wxChar *nvLanguage[2][80] =
 		_("Host"),
 		_("Ais Targets"),
 		_("MMSI"),
-		_("Ship Name"),
+		_("Vessel Name"),
 
 		_("Position Report"),								//1
 		_("Position Report"),								//2
@@ -82,16 +82,50 @@ const wxChar *nvLanguage[2][80] =
 		_("Binary Message, Multiple Slot"),					//26
 		_("Long Range AIS Broadcast message"),				//27
 
-		_("Accuracy"),
-		_("True"),
-		_("False"),
-		_("N/A"),
-		_("COG"),
-		_("Heading"),
+		_("Position Accuracy"),					
+		_("True"),						
+		_("False"),						
+		_("N/A"),							
+		_("Course Over Ground (COG)"),
+		_("True Heading (HDG)"),
 		_("Latitude"),
 		_("Longitude"),
-		_("Maneuver"),
-
+		_("Maneuver Indicator"),
+		_("Radio status"),
+		_("RAIM flag"),
+		_("Second of UTC timestamp"),
+		_("Speed"),
+		_("Navigation Status"),
+		_("Rate of Turn (ROT)"),
+		_("Turning left at more than 5deg/30s (No TI available)"),
+		_("Turning right at more than 5deg/30s (No TI available)"),
+		_("Turning left at up to 708 degrees per minute or higher"),
+		_("Turning right at up to 708 degrees per minute or higher"),
+		_("Year (UTC)"),
+		_("Month (UTC)"),
+		_("Day (UTC)"),
+		_("Hour (UTC)"),
+		_("Minute (UTC)"),        
+		_("Second (UTC)"),
+		_("EPFD Fix Types"),
+		_("Ais version"),
+		_("Callsign"),
+		_("ETA Month (UTC)"),
+		_("ETA Day (UTC)"),
+		_("ETA Hour (UTC)"),
+		_("ETA Minute (UTC)"),
+		_("Destination"),
+		_("Ship type"),
+		_("IMO Number"),
+		_("Dimension to Bow"),
+		_("Dimension to Stern"),
+		_("Dimension to Port"),
+		_("Dimension to Starboard"),
+		_("Draught"),
+		_("DTE"),
+		_("Length/Width"),
+		_("Messages"),
+		
 
 	},
 	
@@ -103,6 +137,16 @@ const wxChar *nvLanguage[2][80] =
 
 };
 
+double _nvToRad( double angle ) 
+{
+	return angle * nvPI / 180.0f;
+}
+
+int GetLanguageId()
+{
+	return GlobalLanguageID;
+}
+
 wxString GetProductInfo()
 {
 	return wxString::Format(_("%s %s\n%s"),_(PRODUCT_NAME),_(PRODUCT_VERSION),_(PRODUCT_COPYRIGHT));
@@ -113,7 +157,7 @@ wxString GetProductName()
 	return wxString::Format(_("%s %s"),_(PRODUCT_NAME),_(PRODUCT_VERSION));
 }
 
-wxString GetMsg(int id)
+const wchar_t *GetMsg(int id)
 {
 	return nvLanguage[GlobalLanguageID][id];
 }

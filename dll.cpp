@@ -8,6 +8,7 @@
 #include "devices.h"
 #include "protocol.h"
 #include "ais.h"
+#include "GeometryTools.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -343,7 +344,7 @@ void CMapPlugin::Kill(void)
 		
 	m_NeedExit = true;
 	WriteConfig();
-	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE)));
+	//CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE)));
 	
 	//m_SearchThread->Stop();
 	//delete m_SearchThread;
@@ -495,8 +496,8 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 	{
 		case 0: m_Broker->SetShip(m_Broker->GetParentPtr(),data->values);	break;
 	}
+	
 }
-
 
 int CMapPlugin::GetDisplaySignalType()
 {
