@@ -176,6 +176,9 @@
 #define MSG_DTE						108
 #define MSG_LENGTH_WIDTH			109
 #define MSG_AIS_MESSAGES			110
+#define MSG_GO_TOP					111
+#define MSG_DAC						112
+#define MSG_FID						113
 
 
 #define MAX_DATA_POSITIONS	10
@@ -196,19 +199,19 @@
 #define AIS_FRAGMENT_COUNTER	1
 #define AIS_DATA				5
 
-//#define AIS_FRAGMENTS				34
-//#define AIS_FRAGMENT_NUMBER			35
-//#define AIS_SEQUENTIAL_MESSAGE_ID	36
-
 #define AIS_PARTS 7 // czesci wiadomosci
 
 #define MARKER_LENGTH 5
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
+
+#define TICKER_SLEEP	1000
+
 typedef struct SData 
 {
 	int		id;
 	char	marker[MARKER_LENGTH + 1];	// id definicji danych
 	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183’s 82
+	float	interval;
 
 } SData;
 

@@ -41,6 +41,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_EnableControls = false;
 	m_Data = NULL;
 	m_Devices = new wxArrayPtrVoid();
+	m_ShipStateExist = false;
+	m_Ticker = new CTicker(this);
+	m_Ticker->Start();
 	
 	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
@@ -194,6 +197,25 @@ void CMapPlugin::ReadSocketConfig(int index)
 }
 
 
+void CMapPlugin::OnTickerStart()
+{
+
+}
+
+void CMapPlugin::OnTickerStop()
+{
+
+}
+
+void CMapPlugin::OnTickerTick()
+{
+	if(m_ShipStateExist)
+	{
+		m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);	
+		fprintf(stdout,"%f %f",m_GlobalShipState[0],m_GlobalShipState[0]);
+	}
+}
+
 CNaviBroker *CMapPlugin::GetBroker()
 {
     return m_Broker;
@@ -340,6 +362,8 @@ void CMapPlugin::Run(void *Params)
 
 void CMapPlugin::Kill(void)
 {
+	m_Ticker->Stop();
+	delete m_Ticker;
 	m_EnableControls = false;
 		
 	m_NeedExit = true;
@@ -494,10 +518,14 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 {
 	switch(data->id_function)
 	{
-		case 0: m_Broker->SetShip(m_Broker->GetParentPtr(),data->values);	break;
+		case 0: 
+			m_ShipStateExist = true;
+			memcpy(m_GlobalShipState,data->values,sizeof(data->values));
+		break;
 	}
 	
 }
+
 
 int CMapPlugin::GetDisplaySignalType()
 {

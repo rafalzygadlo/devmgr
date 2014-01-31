@@ -125,6 +125,9 @@ const wchar_t *nvLanguage[2][183] =
 		_("DTE"),
 		_("Length/Width"),
 		_("Messages"),
+		_("Top"),
+		_("Designated Area Code"),
+		_("Functional ID"),
 		
 
 	},

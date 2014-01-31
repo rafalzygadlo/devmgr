@@ -6,6 +6,7 @@
 #include "conf.h"
 #include "protocol.h"
 #include "NaviMapIOApi.h"
+#include "NaviArray.h"
 
 class CParser
 {
@@ -18,6 +19,7 @@ class CParser
 	unsigned char *m_Bits;
 	size_t m_Bitlen, m_OldLen;
 	CFunctions Functions;
+	CNaviArray <CNaviArray <SData>*> DataList;
 	
 	char ConvertChar(char data);
 	char *ConvertStr(char *str, int id_signal);

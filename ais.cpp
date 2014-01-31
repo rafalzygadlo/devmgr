@@ -785,7 +785,8 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 	{
 	    switch (ais->type8.fid) 
 		{
-			case 21:	/* Inland ship static and voyage related data */
+			//case 21:	/* Inland ship static and voyage related data */
+			case 10:	/* Inland ship static and voyage related data */
 				UCHARS(56, ais->type8.dac200fid10.vin);
 				ais->type8.dac200fid10.length	= (int)UBITS(104, 13);
 				ais->type8.dac200fid10.beam	= (int)UBITS(117, 10);
@@ -1445,9 +1446,8 @@ wxString GetHtmlHeader(int type)
 	}
 
 	wxString str;
-	str.Append(wxString::Format(_("<a name=\"#a\">%d%s</a><br>"),type,msg.wc_str()));
 	str.Append(_("<table border=0 cellpadding=4 cellspacing=0>"));
-	str.Append(wxString::Format(_("<tr><td colspan=2><b>%s</b></td></tr>"),msg.wc_str()));
+	str.Append(wxString::Format(_("<tr><td colspan=2><b><a name=\"%d\">%s</a></b></td></tr>"),type,msg.wc_str()));
 	
 	return str;
 }
@@ -1461,13 +1461,16 @@ wxString GetHtmlFooter()
 wxString PrintHtmlAnchors(ais_t *msg)
 {
 	wxString str;
+	str.Append(_("<table>"));
+	
 	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
 	{
 		if(msg->valid[i])
-			str.Append(wxString::Format(_("<a href=\"#a\">%d%s</a><br>"),i,GetMsg(MSG_AIS_1_NAME + i - 1) ));
+			str.Append(wxString::Format(_("<tr><td><a href=\"#%d\">%s</a></td></tr>"),i,GetMsg(MSG_AIS_1_NAME + i - 1) ));
 
 	}
 	
+	str.Append(_("</table>"));
 	return str;
 	
 }
@@ -1484,15 +1487,18 @@ wxString PrintHtmlMsg(ais_t *msg, int type)
 		case AIS_MSG_3:	ar = PrepareMsg_1(msg->type1); break;
 		case AIS_MSG_4:	ar = PrepareMsg_4(msg->type4); break;
 		case AIS_MSG_5:	ar = PrepareMsg_5(msg->type5); break;
+		
+		
+		case AIS_MSG_8:	ar = PrepareMsg_8(msg->type8); break;
 	}
-			
+	
 	str.Append(GetHtmlHeader(type));
 		
 	for(size_t i = 0; i < ar.size(); i+=2)
 	{
 		str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),ar.Item(i),ar.Item(i + 1)));
 	}
-	
+	str.Append(wxString::Format(_("<tr><td><a href='#top'>%s</a></td></tr>"),GetMsg(MSG_GO_TOP)));
 	str.Append(GetHtmlFooter());	
 
 	return str;
@@ -1560,7 +1566,6 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg)
 	
 	ar.Add(GetMsg(MSG_LENGTH_WIDTH));	ar.Add(wxString::Format(_("%sx%s m"), get_value_as_string(msg.to_bow + msg.to_stern), get_value_as_string(msg.to_port + msg.to_starboard)) );
 			
-	
 	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(msg.draught));
 	ar.Add(GetMsg(MSG_DTE));			ar.Add(GetDTE(msg.dte));
 	ar.Add(GetMsg(MSG_EPFD));			ar.Add(GetEPFDFixTypes(msg.epfd));
@@ -1568,6 +1573,24 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg)
 	return ar;
 
 }
+
+wxArrayString PrepareMsg_8(ais_t::msg8 msg)
+{
+	wxArrayString ar;
+	ar.Add(GetMsg(MSG_DAC));	ar.Add(get_value_as_string(msg.dac));
+	ar.Add(GetMsg(MSG_FID));	ar.Add(get_value_as_string(msg.fid));
+	
+	//switch(msg.dac1fid11.)
+	//{
+	//}
+
+
+	msg.dac;
+	
+
+	return ar;
+}
+
 
 const wchar_t *GetDTE(int id)
 {

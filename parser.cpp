@@ -126,6 +126,7 @@ void CParser::Parse( char *line)
 			{
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
 				// ustawia funkcje definiowane w protocole
+//				SetValuesArray(m_Data);
 				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&m_Data);
 				SetValidData();
 			}
@@ -134,6 +135,7 @@ void CParser::Parse( char *line)
 
 	}
 }
+
 void CParser::AisParse(char *line)
 {
 	if(Ais(line))
@@ -246,7 +248,6 @@ char *CParser::ConvertStr(char *str, int id_signal)
 		case AIS_MESSAGE: return str;
 	}
 
-
 	if(str == NULL)
 		return NULL;
 	
@@ -327,7 +328,6 @@ void CParser::SetValidData()
 
 			if(funcd->id_signal == id_signal)
 			{
-				//Reset(funcs->values);
 				if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
 				{
 					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
@@ -343,13 +343,7 @@ void CParser::SetValidData()
 
 void CParser::Reset(float *tab)
 {
-	//tab[0] = NAVI_UNDEFINED;
-	//tab[1] = NAVI_UNDEFINED;
-	//tab[2] = NAVI_UNDEFINED;
-	//tab[3] = NAVI_UNDEFINED;
-	//tab[4] = NAVI_UNDEFINED;
-	//tab[5] = NAVI_UNDEFINED;
-				
+	
 }
 
 void CParser::SetFunction(int id_function, double *values)

@@ -15,6 +15,7 @@
 #endif
 #include "reader.h"
 #include "conf.h"
+#include "ticker.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +28,7 @@ class CMapPlugin :public CNaviMapIOApi
 {
 	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
+	bool m_ShipStateExist;
 	bool m_NeedExit;
 	wxFileConfig *m_FileConfig;
 	wxString m_ConfigPath;
@@ -38,7 +40,9 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
 	SData *m_Data;
-		
+	double m_GlobalShipState[6];
+	CTicker *m_Ticker;
+
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
@@ -81,6 +85,10 @@ public:
 	int GetDisplaySignalType();
 	int GetDeviceId();
 	bool GetEnableControlsFlag();
+
+	void OnTickerStart();
+	void OnTickerStop();
+	void OnTickerTick();
 	
 	virtual void Run(void *Params);
 	virtual void Kill(void);

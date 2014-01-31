@@ -166,7 +166,7 @@ struct ais_t
 	    //unsigned int spare;	spare bits */
 	} type5;
 	/* Type 6 - Addressed Binary Message */
-	struct mmsg6{
+	struct msg6{
 	    unsigned int seqno;		/* sequence number */
 	    unsigned int dest_mmsi;	/* destination MMSI */
 	    bool retransmit;		/* retransmit flag */
@@ -431,7 +431,7 @@ struct ais_t
 	    //};
 	} type6;
 	/* Type 7 - Binary Acknowledge */
-	struct {
+	struct msg7{
 	    unsigned int mmsi1;
 	    unsigned int mmsi2;
 	    unsigned int mmsi3;
@@ -439,7 +439,7 @@ struct ais_t
 	    /* spares ignored, they're only padding here */
 	} type7;
 	/* Type 8 - Broadcast Binary Message */
-	struct {
+	struct msg8{
 	    unsigned int dac;       	/* Designated Area Code */
 	    unsigned int fid;       	/* Functional ID */
 #define AIS_TYPE8_BINARY_MAX	952	/* 952 bits */
@@ -1011,6 +1011,7 @@ const wchar_t *GetDTE(int id);
 wxArrayString PrepareMsg_1(ais_t::msg1 msg);
 wxArrayString PrepareMsg_4(ais_t::msg4 msg);
 wxArrayString PrepareMsg_5(ais_t::msg5 msg);
+wxArrayString PrepareMsg_8(ais_t::msg8 msg);
 
 wxString PrintHtmlMsg(ais_t *msg, int type);
 wxString PrintHtmlAnchors(ais_t *msg);
