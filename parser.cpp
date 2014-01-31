@@ -328,11 +328,11 @@ void CParser::SetValidData()
 
 			if(funcd->id_signal == id_signal)
 			{
-				if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
-				{
+				//if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
+				//{
 					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
 					SetFunction(funcd->id,funcs->values);
-				}
+				//}
 			}
 
 		}
