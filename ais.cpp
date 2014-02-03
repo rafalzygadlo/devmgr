@@ -204,13 +204,13 @@ const wchar_t *nvEPFDFixTypes[2][16] =
 		L"Integrated navigation system",
 		L"Surveyed",
 		L"Galileo",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
 	},
 	
 	{
@@ -327,7 +327,6 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 	int mmsi;
 	mmsi = (int)UBITS(8, 30);
 	bool add = false;
-		
 	ais = ais_msg_exists(mmsi);
 	
 	if(!ais)
@@ -340,7 +339,9 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 	uint64_t type =	UBITS(0, 6);
 	ais->mmsi = (int)UBITS(8, 30);
     ais->repeat = (int)UBITS(6, 2);
-	ais->valid[type] = true;
+	
+	if(type <= AIS_MESSAGES_LENGTH)
+		ais->valid[type] = true;
 
 	switch(type)
 	{
@@ -372,6 +373,7 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
+			
 	}
 		
 	if(add)
@@ -1400,9 +1402,14 @@ float get_length(unsigned int v)
 	return (float)(v / 10);
 }
 
-float get_draught(unsigned int v)
+float get_draught_msg5(unsigned int v)
 {
 	return (float)(v / 10);
+}
+
+float get_draught_msg8(unsigned int v)
+{
+	return (float)(v / 100);
 }
 
 float get_speed(unsigned int v)
@@ -1417,7 +1424,7 @@ float get_cog(unsigned int v)
 
 float get_lon_lat(int val)
 {
-	return (float)(val /10000) /60;
+	return (float)(val / AIS_LATLON_DIV);
 }
 
 wxString get_value_as_string(bool v)
@@ -1627,11 +1634,8 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg)
 	ar.Add(GetMsg(MSG_TO_STERN));		ar.Add(get_value_as_string(msg.to_stern));
 	ar.Add(GetMsg(MSG_TO_PORT));		ar.Add(get_value_as_string(msg.to_port));
 	ar.Add(GetMsg(MSG_TO_STARBOARD));	ar.Add(get_value_as_string(msg.to_starboard));
-	
-
 	ar.Add(GetMsg(MSG_LENGTH_WIDTH));	ar.Add(wxString::Format(_("%sx%s m"), get_value_as_string(msg.to_bow + msg.to_stern), get_value_as_string(msg.to_port + msg.to_starboard)) );
-			
-	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(get_draught(msg.draught),true,AIS_DRAUGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(get_draught_msg5(msg.draught),true,AIS_DRAUGHT_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_DTE));			ar.Add(GetDTE(msg.dte));
 	ar.Add(GetMsg(MSG_EPFD));			ar.Add(GetEPFDFixTypes(msg.epfd));
 		
@@ -1650,7 +1654,7 @@ wxArrayString PrepareMsg_8(ais_t::msg8 msg)
 		switch(msg.fid)
 		{
 	
-			case 11: break;
+			case 11: ar = PrepareMsg_8_1_11(msg.dac1fid11);	break;
 			case 13: break;
 			case 15: break;
 			case 16: break;
@@ -1666,19 +1670,44 @@ wxArrayString PrepareMsg_8(ais_t::msg8 msg)
 	{
 		switch(msg.fid)
 		{
-		
-			
-			case 10: 
-				ar = PrepareMsg_8_200_10(msg.dac200fid10);
-			break;
+			case 10: ar = PrepareMsg_8_200_10(msg.dac200fid10);	break;
 			case 23: break;
 			case 24: break;
 			case 40: break; 
-		
-		
 		}
 	
 	}
+
+	return ar;
+}
+
+wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg)
+{
+	wxArrayString ar;
+		
+	ar.Add(GetMsg(MSG_LON));						ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,DAC1FID11_LON_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LAT));						ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,DAC1FID11_LAT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DAY));						ar.Add(get_value_as_string(msg.day,true,AIS_DAY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HOUR));						ar.Add(get_value_as_string(msg.hour,true,AIS_HOUR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_MINUTE));						ar.Add(get_value_as_string(msg.minute,true,AIS_MINUTE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_AVERAGE_WIND_SPEED));			ar.Add(get_value_as_string(msg.wspeed,true,DAC1FID11_WSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_GUST_SPEED));					ar.Add(get_value_as_string(msg.wgust,true,DAC1FID11_WSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WIND_DIR));					ar.Add(get_value_as_string(msg.wdir,true,DAC1FID11_WDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WIND_GUST_DIR));				ar.Add(get_value_as_string(msg.wgustdir,true,DAC1FID11_WDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_AIR_TMP));					ar.Add(get_value_as_string(msg.airtemp,true,DAC1FID11_AIRTEMP_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HUMIDITY));					ar.Add(get_value_as_string(msg.humidity,true,DAC1FID11_HUMIDITY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DEWPOINT));					ar.Add(get_value_as_string(msg.dewpoint,true,DAC1FID11_DEWPOINT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_PRESSURE));					ar.Add(get_value_as_string(msg.pressure,true,DAC1FID11_PRESSURE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_PRESSURE_TENDENCY));			ar.Add(get_value_as_string(msg.pressuretend,true,DAC1FID11_PRESSURETREND_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_H_VISIBILTY));				ar.Add(get_value_as_string(msg.visibility,true,DAC1FID11_VISIBILITY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WATER_LEVEL));				ar.Add(get_value_as_string(msg.waterlevel,true,DAC1FID11_WATERLEVEL_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WATER_LEVEL_TREND));			ar.Add(get_value_as_string(msg.leveltrend,true,DAC1FID11_WATERLEVELTREND_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_SPEED));		ar.Add(get_value_as_string(msg.cspeed,true,DAC1FID11_CSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_DIRECTION));	ar.Add(get_value_as_string(msg.cdir,true,DAC1FID11_CDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_SPEED));		ar.Add(get_value_as_string(msg.cspeed2,true,DAC1FID11_CSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_HEIGHT));				ar.Add(get_value_as_string(msg.waveheight,true,DAC1FID11_WAVEHEIGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_PERIOD));				ar.Add(get_value_as_string(msg.waveperiod,true,DAC1FID11_WAVEPERIOD_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_DIR));					ar.Add(get_value_as_string(msg.wavedir,true,DAC1FID11_WAVEDIR_NOT_AVAILABLE));
 
 	return ar;
 }
@@ -1692,7 +1721,7 @@ wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
 	ar.Add(GetMsg(MSG_BEAM));					ar.Add(get_value_as_string(get_beam(msg.beam),true,DAC200FID10_BEAM_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_TYPE));					ar.Add(get_value_as_string(msg.type));
 	ar.Add(GetMsg(MSG_HAZARD));					ar.Add(GetHazardousCargo(msg.hazard));
-	ar.Add(GetMsg(MSG_DRAUGHT));				ar.Add(get_value_as_string(get_draught(msg.draught),true,DAC200FID10_DRAUGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DRAUGHT));				ar.Add(get_value_as_string(get_draught_msg8(msg.draught),true,DAC200FID10_DRAUGHT_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_LOADED_UNLOADED));		ar.Add(GetLoaded(msg.loaded));
 	ar.Add(GetMsg(MSG_SPEED_INF_QUALITY));		ar.Add(GetSpeedQuality(msg.speed_q));
 	ar.Add(GetMsg(MSG_COURSE_INF_QUALITY));		ar.Add(GetCourseQuality(msg.course_q));
@@ -1701,6 +1730,8 @@ wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
 	return ar;
 
 }
+
+
 
 const wchar_t *GetTurn(int v)
 {

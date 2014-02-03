@@ -86,7 +86,7 @@ struct ais_t
     //unsigned int	type;		/* message type */
     unsigned int    repeat;		/* Repeat indicator */
     unsigned int	mmsi;		/* MMSI */
-	bool			valid[27];
+	bool			valid[28];  //zaczynamy od 1
     //union {
 	/* Types 1-3 Common navigation info */
 	struct msg1{
@@ -517,7 +517,7 @@ struct ais_t
 		 * Trial message, not to be used after January 2013
 		 * Replaced by IMO289 (DAC 1, FID 31)
 		 */
-		struct {
+		struct msg8_1_11{
 #define DAC1FID11_LATLON_SCALE			1000
 		    int lon;			/* longitude in minutes * .001 */
 #define DAC1FID11_LON_NOT_AVAILABLE		0xFFFFFF
@@ -1023,6 +1023,7 @@ wxArrayString PrepareMsg_1(ais_t::msg1 msg);
 wxArrayString PrepareMsg_4(ais_t::msg4 msg);
 wxArrayString PrepareMsg_5(ais_t::msg5 msg);
 wxArrayString PrepareMsg_8(ais_t::msg8 msg);
+wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg);
 wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg);
 
 wxString PrintHtmlMsg(ais_t *msg, int type);
@@ -1044,8 +1045,6 @@ float get_lon_lat(int val);
 float get_cog(unsigned int v);
 float get_length(unsigned int v);
 float get_beam(unsigned int v);
-
-
 
 wxString get_value_as_string(bool v);
 wxString get_value_as_string(unsigned int v , bool check_na, int na_v );
