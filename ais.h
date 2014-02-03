@@ -160,6 +160,7 @@ struct ais_t
 	    unsigned int day;		/* UTC day */
 	    unsigned int hour;		/* UTC hour */
 	    unsigned int minute;	/* UTC minute */
+#define AIS_DRAUGHT_NOT_AVAILABLE 0
 	    unsigned int draught;	/* draft in meters */
 	    char destination[20+1];	/* ship destination */
 	    unsigned int dte;		/* data terminal enable */
@@ -447,12 +448,16 @@ struct ais_t
 	    //union {
 		char bitdata[(AIS_TYPE8_BINARY_MAX + 7) / 8];
 		/* Inland static ship and voyage-related data */
-		struct {
+		struct msg8_200_10{
 		    char vin[8+1];	/* European Vessel ID */
+#define DAC200FID10_LENGTH_NOT_AVAILABLE	0
 		    unsigned int length;	/* Length of ship */
+#define DAC200FID10_BEAM_NOT_AVAILABLE	0
 		    unsigned int beam;	/* Beam of ship */
 		    unsigned int type;	/* Ship/combination type */
+#define DAC200FID10_HAZARD_NOT_AVAILABLE	5
 		    unsigned int hazard;	/* Hazardous cargo */
+#define DAC200FID10_DRAUGHT_NOT_AVAILABLE	0
 		    unsigned int draught;	/* Draught */
 		    unsigned int loaded;	/* Loaded/Unloaded */
 		    bool speed_q;	/* Speed inf. quality */
@@ -1007,11 +1012,18 @@ const wchar_t *GetManeuverIndicator(int id);
 const wchar_t *GetNavigationStatus(int id);
 const wchar_t *GetShipType(int id);
 const wchar_t *GetDTE(int id);
+const wchar_t *GetLoaded(int id);
+const wchar_t *GetSpeedQuality(int id);
+const wchar_t *GetHeadingQuality(int id);
+const wchar_t *GetCourseQuality(int id);
+const wchar_t *GetHazardousCargo(int id);
+const wchar_t *GetTurn(int v);
 
 wxArrayString PrepareMsg_1(ais_t::msg1 msg);
 wxArrayString PrepareMsg_4(ais_t::msg4 msg);
 wxArrayString PrepareMsg_5(ais_t::msg5 msg);
 wxArrayString PrepareMsg_8(ais_t::msg8 msg);
+wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg);
 
 wxString PrintHtmlMsg(ais_t *msg, int type);
 wxString PrintHtmlAnchors(ais_t *msg);
@@ -1030,7 +1042,10 @@ ais_t *ais_get_item(size_t idx);
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
 float get_cog(unsigned int v);
-wxString get_turn(int v);
+float get_length(unsigned int v);
+float get_beam(unsigned int v);
+
+
 
 wxString get_value_as_string(bool v);
 wxString get_value_as_string(unsigned int v , bool check_na, int na_v );

@@ -179,7 +179,15 @@
 #define MSG_GO_TOP					111
 #define MSG_DAC						112
 #define MSG_FID						113
-
+#define MSG_VIN						114
+#define MSG_LENGTH					115
+#define MSG_BEAM					116
+#define MSG_TYPE					117
+#define MSG_HAZARD					118
+#define MSG_LOADED_UNLOADED			119
+#define MSG_SPEED_INF_QUALITY		120
+#define MSG_COURSE_INF_QUALITY		121
+#define MSG_HEADING_INF_QUALITY		122
 
 #define MAX_DATA_POSITIONS	10
 #define WORK_WIZARD 0

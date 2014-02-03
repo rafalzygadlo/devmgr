@@ -4,6 +4,72 @@
 
 std::vector <ais_t*> vAist;
 
+const wchar_t *nvHazardousCargo[2][6] = 
+{
+	{
+		L"Cones/Lights 0",
+		L"Cones/Lights 1",
+		L"Cones/Lights 2",
+		L"Cones/Lights 3",
+		L"B-Flag",
+		L"N/A",
+	},
+
+	{
+	}
+
+};
+
+
+
+const wchar_t *nvSpeedQuality[2][4] = 
+{ 
+	{
+		L"Low/GNSS", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvCourseQuality[2][4] = 
+{ 
+	{
+		L"Low/GNSS", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvHeadingQuality[2][4] = 
+{ 
+	{
+		L"Low", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvLoaded[2][4] = 
+{ 
+	{
+		L"N/A",
+		L"Loaded",
+		L"Unloaded",
+		L"N/A",
+	},
+	
+	{
+	
+	}
+};
+
+
 const wchar_t *nvDTE[2][2] = 
 { 
 	{
@@ -19,7 +85,7 @@ const wchar_t *nvDTE[2][2] =
 const wchar_t *nvShipTypes[2][100] = 
 { 
 	{
-		L"Not available (default)",
+		L"N/A",
 		L"Reserved for future use",
 		L"Reserved for future use",
 		L"Reserved for future use",
@@ -129,7 +195,7 @@ const wchar_t *nvShipTypes[2][100] =
 const wchar_t *nvEPFDFixTypes[2][16] = 
 { 
 	{
-		L"Undefined (default)",
+		L"N/A",
 		L"GPS",
 		L"GLONASS",
 		L"Combined GPS/GLONASS",
@@ -1324,6 +1390,16 @@ void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen)
 	
 }
 
+float get_beam(unsigned int v)
+{
+	return (float)(v / 10);
+}
+
+float get_length(unsigned int v)
+{
+	return (float)(v / 10);
+}
+
 float get_draught(unsigned int v)
 {
 	return (float)(v / 10);
@@ -1337,20 +1413,6 @@ float get_speed(unsigned int v)
 float get_cog(unsigned int v)
 {
 	return (float)(v * 0.1);
-}
-
-wxString get_turn(int v)
-{
-	switch(v)
-	{	
-		case AIS_TURN_HARD_LEFT:		return GetMsg(MSG_TURN_HARD_LEFT);		
-		case AIS_TURN_HARD_RIGHT:		return GetMsg(MSG_TURN_HARD_RIGHT);		
-		case AIS_TURN_LEFT:				return GetMsg(MSG_TURN_LEFT);			
-		case AIS_TURN_RIGHT:			return GetMsg(MSG_TURN_RIGHT);			
-		case AIS_TURN_NOT_AVAILABLE:	return GetMsg(MSG_NA);					
-		default:						return GetMsg(MSG_NA);
-	}
-
 }
 
 float get_lon_lat(int val)
@@ -1519,6 +1581,8 @@ wxArrayString PrepareMsg_1(ais_t::msg1 msg)
 	ar.Add(GetMsg(MSG_SECOND));				ar.Add(get_value_as_string(msg.second,true,AIS_SEC_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_SPEED));				ar.Add(get_value_as_string(get_speed(msg.speed),true,AIS_SPEED_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_NAVIGATION_STATUS));	ar.Add(GetNavigationStatus(msg.status));
+	ar.Add(GetMsg(MSG_TURN));				ar.Add(GetTurn(msg.status));
+	
 
 	return ar;
 }
@@ -1539,7 +1603,7 @@ wxArrayString PrepareMsg_4(ais_t::msg4 msg)
 	ar.Add(GetMsg(MSG_SECONDS));	ar.Add(get_value_as_string(msg.second,true,AIS_SECOND_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,AIS_LAT_NOT_AVAILABLE).wc_str());
 	ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,AIS_LON_NOT_AVAILABLE));
-	ar.Add(GetMsg(MSG_EPFD));		ar.Add(get_value_as_string(GetEPFDFixTypes(msg.epfd)));
+	ar.Add(GetMsg(MSG_EPFD));		ar.Add(GetEPFDFixTypes(msg.epfd));
 
 	return ar;
 
@@ -1564,9 +1628,10 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg)
 	ar.Add(GetMsg(MSG_TO_PORT));		ar.Add(get_value_as_string(msg.to_port));
 	ar.Add(GetMsg(MSG_TO_STARBOARD));	ar.Add(get_value_as_string(msg.to_starboard));
 	
+
 	ar.Add(GetMsg(MSG_LENGTH_WIDTH));	ar.Add(wxString::Format(_("%sx%s m"), get_value_as_string(msg.to_bow + msg.to_stern), get_value_as_string(msg.to_port + msg.to_starboard)) );
 			
-	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(msg.draught));
+	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(get_draught(msg.draught),true,AIS_DRAUGHT_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_DTE));			ar.Add(GetDTE(msg.dte));
 	ar.Add(GetMsg(MSG_EPFD));			ar.Add(GetEPFDFixTypes(msg.epfd));
 		
@@ -1580,17 +1645,102 @@ wxArrayString PrepareMsg_8(ais_t::msg8 msg)
 	ar.Add(GetMsg(MSG_DAC));	ar.Add(get_value_as_string(msg.dac));
 	ar.Add(GetMsg(MSG_FID));	ar.Add(get_value_as_string(msg.fid));
 	
-	//switch(msg.dac1fid11.)
-	//{
-	//}
-
-
-	msg.dac;
+	if(msg.dac == 1)
+	{
+		switch(msg.fid)
+		{
 	
+			case 11: break;
+			case 13: break;
+			case 15: break;
+			case 16: break;
+			case 17: break;
+			case 19: break;
+			case 27: break;
+			case 29: break;
+			case 31: break;
+		}
+	}
+
+	if(msg.dac == 200)
+	{
+		switch(msg.fid)
+		{
+		
+			
+			case 10: 
+				ar = PrepareMsg_8_200_10(msg.dac200fid10);
+			break;
+			case 23: break;
+			case 24: break;
+			case 40: break; 
+		
+		
+		}
+	
+	}
 
 	return ar;
 }
 
+wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
+{
+	wxArrayString ar;
+
+	ar.Add(GetMsg(MSG_VIN));					ar.Add(get_value_as_string(msg.vin));
+	ar.Add(GetMsg(MSG_LENGTH));					ar.Add(get_value_as_string(get_length(msg.length),true,DAC200FID10_LENGTH_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_BEAM));					ar.Add(get_value_as_string(get_beam(msg.beam),true,DAC200FID10_BEAM_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_TYPE));					ar.Add(get_value_as_string(msg.type));
+	ar.Add(GetMsg(MSG_HAZARD));					ar.Add(GetHazardousCargo(msg.hazard));
+	ar.Add(GetMsg(MSG_DRAUGHT));				ar.Add(get_value_as_string(get_draught(msg.draught),true,DAC200FID10_DRAUGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LOADED_UNLOADED));		ar.Add(GetLoaded(msg.loaded));
+	ar.Add(GetMsg(MSG_SPEED_INF_QUALITY));		ar.Add(GetSpeedQuality(msg.speed_q));
+	ar.Add(GetMsg(MSG_COURSE_INF_QUALITY));		ar.Add(GetCourseQuality(msg.course_q));
+	ar.Add(GetMsg(MSG_HEADING_INF_QUALITY));	ar.Add(GetHeadingQuality(msg.course_q));
+
+	return ar;
+
+}
+
+const wchar_t *GetTurn(int v)
+{
+	switch(v)
+	{	
+		case AIS_TURN_HARD_LEFT:		return GetMsg(MSG_TURN_HARD_LEFT);		
+		case AIS_TURN_HARD_RIGHT:		return GetMsg(MSG_TURN_HARD_RIGHT);		
+		case AIS_TURN_LEFT:				return GetMsg(MSG_TURN_LEFT);			
+		case AIS_TURN_RIGHT:			return GetMsg(MSG_TURN_RIGHT);			
+		case AIS_TURN_NOT_AVAILABLE:	return GetMsg(MSG_NA);					
+		default:						return GetMsg(MSG_NA);
+	}
+
+}
+
+
+const wchar_t *GetHazardousCargo(int id)
+{
+	return nvHazardousCargo[GetLanguageId()][id];
+}
+
+const wchar_t *GetSpeedQuality(int id)
+{
+	return nvSpeedQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetHeadingQuality(int id)
+{
+	return nvHeadingQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetCourseQuality(int id)
+{
+	return nvCourseQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetLoaded(int id)
+{
+	return nvLoaded[GetLanguageId()][id];
+}
 
 const wchar_t *GetDTE(int id)
 {

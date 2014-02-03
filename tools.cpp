@@ -128,7 +128,15 @@ const wchar_t *nvLanguage[2][183] =
 		_("Top"),
 		_("Designated Area Code"),
 		_("Functional ID"),
-		
+		_("European Vessel ID"),
+		_("Length of ship"),
+		_("Beam of ship"),
+		_("Ship/combination type"),
+		_("Hazardous cargo"),
+		_("Loaded/Unloaded"),
+		_("Speed inf. quality"),
+		_("Course inf. quality"),
+		_("Heading inf. quality"),
 
 	},
 	
