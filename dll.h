@@ -105,6 +105,7 @@ public:
 	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
 	static void *OnNewAisObject(void *NaviMapIOApiPtr, void *Params);	// nowe dane do tablicy ais
 	static void *OnData(void *NaviMapIOApiPtr, void *Params); // dane
+	static void *GetAisItems(void *NaviMapIOApiPtr, void *Params); // lista obiektow ais
 	
 };	
 

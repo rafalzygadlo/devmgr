@@ -219,11 +219,6 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	wxString lon(_("N/A"));
 	wxString lat(_("N/A"));
-	if(ais->type1.valid)
-	{
-		lat = wxString::Format(_("%4.2f"),(float)(ais->type1.lat/10000)/60);
-		lon = wxString::Format(_("%4.2f"),(float)(ais->type1.lon/10000)/60);
-	}
 	
 	switch (column)
 	{

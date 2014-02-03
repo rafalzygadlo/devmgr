@@ -8,7 +8,7 @@
 #include "devices.h"
 #include "protocol.h"
 #include "ais.h"
-#include "GeometryTools.h"
+//#include "GeometryTools.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -52,6 +52,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	
 	AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
+	AddExecuteFunction("devmgr_GetAisItems",GetAisItems);
+	
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -503,6 +505,17 @@ void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
 	return NULL;
 }
 
+
+void *CMapPlugin::GetAisItems(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	//SFunctionData *Data = (SFunctionData*)Params;
+	
+	Params = (void*)&ais_get_items();
+	//ThisPtr->GetAisItemsFunc()
+		
+	return NULL;
+}
 
 SData *CMapPlugin::GetData()
 {
