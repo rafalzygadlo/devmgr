@@ -399,7 +399,6 @@ bool Check_HDT()
 		m_HDT_Exists = false;
 		return false;
 	}else{
-		//fprintf(stdout,"FORM HDT\n");
 		return true;
 	}
 }
@@ -410,10 +409,8 @@ bool Set_VTG_COG()
 	
 	if(m_HDT_Exists)
 		return false;
-	else{
-		//fprintf(stdout,"FORM VTG\n");
+	else
 		return true;
-	}
 }
 
 bool Set_RMC_COG()
@@ -422,8 +419,6 @@ bool Set_RMC_COG()
 
 	if(m_HDT_Exists)
 		return false;
-	else{
-		//fprintf(stdout,"FORM COG\n");
+	else
 		return true;
-	}
 }

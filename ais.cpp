@@ -2,7 +2,8 @@
 #include "tools.h"
 #include <stdio.h>
 
-std::vector <ais_t*> vAist;
+CNaviArray <ais_t*> vAisData;
+CNaviArray <nvAisData*> vAisBuffer;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -266,7 +267,7 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 void ais_sort()
 {
-	size_t len = vAist.size();
+	size_t len = vAisData.Length();
 	
 	for(size_t i = 0; i < len; i++)
 	{	
@@ -284,40 +285,68 @@ void ais_sort()
 	}
 }
 
+void *ais_get_buffer()
+{
+	return (void*)&vAisBuffer;
+}
+
 size_t ais_get_item_count()
 {
-	size_t len = 0;
-	len = vAist.size();
-	return len;
+	return vAisData.Length();
 }
 
 ais_t *ais_get_item(size_t idx)
 {
-	return vAist[idx];
+	GetMutex()->Lock();
+	ais_t *ais = vAisData.Get(idx);
+	GetMutex()->Unlock();
+
+	return ais;
 }
 
 void ais_free_list()
 {
-	for(size_t  i = 0; i < vAist.size(); i++)
+	for(size_t  i = 0; i < vAisData.Length(); i++)
 	{
-		ais_t *ais = vAist[i];
-		free(ais);
+		free(vAisData.Get(i));
 	}
 	
-	vAist.clear();
+	vAisData.Clear();
 }
+
+void ais_free_buffer()
+{
+	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
+	{
+		free(vAisBuffer.Get(i));
+	}
+	
+	vAisBuffer.Clear();
+}
+
 
 ais_t *ais_msg_exists(int mmsi)
 {
-	for(size_t  i = 0; i < vAist.size(); i++)
+	for(size_t  i = 0; i < vAisData.Length(); i++)
 	{
-		ais_t *ais = vAist[i];
+		ais_t *ais = vAisData.Get(i);
 		if(ais->mmsi == mmsi)
 			return ais;
 	}
 
 	return NULL;
+}
 
+nvAisData *ais_buffer_exists(int mmsi)
+{
+	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
+	{
+		nvAisData *ptr = vAisBuffer.Get(i);
+		if(ptr->mmsi == mmsi)
+			return ptr;
+	}
+
+	return NULL;
 }
 
 bool ais_binary_decode(unsigned char *bits, size_t bitlen)
@@ -343,45 +372,135 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 	if(type <= AIS_MESSAGES_LENGTH)
 		ais->valid[type] = true;
 
+	if(ais_decode(bits,bitlen,ais,type))
+	{
+		ais_prepare_buffer(ais);
+		if(add)
+		{
+			vAisData.Append(ais);
+			return true;
+		}
+	}else{
+		
+		if(add)
+			free(ais);
+	}
+	
+	return false;
+}
+
+bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
+{
+	bool result = false;
+	
 	switch(type)
 	{
 		case AIS_MSG_1:		
 		case AIS_MSG_2:		
-		case AIS_MSG_3:		ais_message_1(bits,ais);			break;
+		case AIS_MSG_3:		ais_message_1(bits,ais);			result = true;	break;
 		case AIS_MSG_4:		
-		case AIS_MSG_11:	ais_message_4(bits,ais);			break;
-		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		break;
-		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		break;
+		case AIS_MSG_11:	ais_message_4(bits,ais);			result = true;	break;
+		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		result = true;	break;
 		case AIS_MSG_13:
-		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		break;
-		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		break;
-		case AIS_MSG_9:		ais_message_9(bits,ais);			break;
-		case AIS_MSG_10:	ais_message_10(bits,ais);			break;
-		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	break;
-		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	break;
-		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	break;
-		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	break;
-		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	break;
-		case AIS_MSG_18:	ais_message_18(bits,ais);			break;
-		case AIS_MSG_19:	ais_message_19(bits,ais);			break;
-		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	break;
-		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	break;
-		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
-		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
+		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_9:		ais_message_9(bits,ais);			result = true;	break;
+		case AIS_MSG_10:	ais_message_10(bits,ais);			result = true;	break;
+		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_18:	ais_message_18(bits,ais);			result = true;	break;
+		case AIS_MSG_19:	ais_message_19(bits,ais);			result = true;	break;
+		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_22:	ais_message_22(bits,ais);			result = true;	break;
+		case AIS_MSG_23:	ais_message_23(bits,ais);			result = true;	break;
 		//case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
-		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	break;
+		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	result = true;	break;
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
 			
 	}
-		
-	if(add)
-	{	
-		vAist.push_back(ais);
-		return true;
+
+	return result;
+}
+
+void ais_prepare_buffer(ais_t *ais)
+{
+	nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	bool add = false;
+	
+	if(AisData == NULL)
+	{
+		AisData = (nvAisData*)malloc(sizeof(nvAisData));
+		AisData->valid[0] = false;
+		AisData->valid[1] = false;
+		add = true;
 	}
 	
+	AisData->mmsi = ais->mmsi;
+	bool exists = false;
+	
+	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
+	{
+		exists = true;
+		AisData->valid[0] = true;
+	}	
+	
+	if(ais_set_dim(ais,AisData->dim))
+	{
+		exists = true;
+		AisData->valid[1] = true;
+	}
+	
+	if(exists)
+	{
+		if(add)
+			vAisBuffer.Append(AisData);
+	}else{
+		
+		if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+			free(AisData);
+	}
+
+}	
+
+bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
+{
+	
+	if(ais->valid[AIS_MSG_1])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_2])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_3])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_4])	{	*lon = ais->type4.lon/AIS_LATLON_DIV;	*lat = ais->type4.lat/AIS_LATLON_DIV;	return true;	}
+
+	/*
+	if(ais->valid[AIS_MSG_8] )	
+	{	
+		if(ais->type8.dac1fid11.valid)	{	*lon = ais->type8.dac1fid11.lon;	*lat = ais->type8.dac1fid11.lat;		return true;}
+		if(ais->type8.dac1fid19.valid)	{	*lon = ais->type8.dac1fid19.lon;	*lat = ais->type8.dac1fid19.lat;		return true;}
+		if(ais->type8.dac1fid31.valid)	{	*lon = ais->type8.dac1fid31.lon;	*lat = ais->type8.dac1fid31.lat;		return true;}
+		if(ais->type8.dac200fid40.valid){	*lon = ais->type8.dac200fid40.lon;	*lat = ais->type8.dac200fid40.lat;		return true;}	
+	}
+	*/
+	return false;
+}
+
+bool ais_set_dim(ais_t *ais, int *dim)
+{
+	if(ais->valid[AIS_MSG_5])
+	{
+		dim[AIS_DIM_TO_BOW]			= ais->type5.to_bow;
+		dim[AIS_DIM_TO_STERN]		= ais->type5.to_stern;
+		dim[AIS_DIM_TO_PORT]		= ais->type5.to_port;	
+		dim[AIS_DIM_TO_STARBOARD]	= ais->type5.to_starboard;
+		
+		return true;
+	}
+
 	return false;
 }
 
@@ -641,6 +760,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 		{
 			case 11:        /* IMO236 - Meteorological/Hydrological data */
 				/* layout is almost identical to FID=31 from IMO289 */
+				ais->type8.dac1fid11.valid		=true;
 				ais->type8.dac1fid11.lat		= (int)SBITS(56, 24);
 				ais->type8.dac1fid11.lon		= (int)SBITS(80, 25);
 				ais->type8.dac1fid11.day		= (int)UBITS(105, 5);
@@ -684,6 +804,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 				UCHARS(56, ais->type8.dac1fid13.reason);
 				UCHARS(176, ais->type8.dac1fid13.closefrom);
 				UCHARS(296, ais->type8.dac1fid13.closeto);
+				ais->type8.dac1fid13.valid		=true;
 				ais->type8.dac1fid13.radius 	= (int)UBITS(416, 10);
 				ais->type8.dac1fid13.extunit	= (int)UBITS(426, 2);
 				ais->type8.dac1fid13.fday   	= (int)UBITS(428, 5);
@@ -737,6 +858,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 					}
 					
 					/* skip 4 bits */
+					ais->type8.dac1fid17.valid = true;
 					ais->type8.dac1fid17.targets[u].lat	= (int)SBITS(a + 48, 24);
 					ais->type8.dac1fid17.targets[u].lon	= (int)SBITS(a + 72, 25);
 					ais->type8.dac1fid17.targets[u].course	= (int)UBITS(a + 97, 9);
@@ -750,6 +872,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 		break;
 	    
 			case 19:        /* IMO289 - Marine Traffic Signal */
+				ais->type8.dac1fid19.valid = true;
 				ais->type8.dac1fid19.linkage	= (int)UBITS(56, 10);
 				UCHARS(66, ais->type8.dac1fid19.station);
 				ais->type8.dac1fid19.lon	= (int)SBITS(186, 25);
@@ -805,6 +928,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 31:        /* IMO289 - Meteorological/Hydrological data */
+				ais->type8.dac1fid31.valid		= true;
 				ais->type8.dac1fid31.lon		= (int)SBITS(56, 25);
 				ais->type8.dac1fid31.lat		= (int)SBITS(81, 24);
 				ais->type8.dac1fid31.accuracy       = (bool)UBITS(105, 1);
@@ -911,6 +1035,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 40:
+				ais->type8.dac200fid40.valid = true;
 				ais->type8.dac200fid40.lon	= (int)SBITS(56, 28);
 				ais->type8.dac200fid40.lat	= (int)SBITS(84, 27);
 				ais->type8.dac200fid40.form	= (int)UBITS(111, 4);

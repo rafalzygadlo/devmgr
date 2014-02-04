@@ -6,6 +6,7 @@
 #include <string.h>
 #include <vector>
 #include <wx/wx.h>
+#include "NaviArgsTypes.h"
 
 #define AIS_MESSAGES_LENGTH	27
 
@@ -441,6 +442,8 @@ struct ais_t
 	} type7;
 	/* Type 8 - Broadcast Binary Message */
 	struct msg8{
+		int lon;			/* longitude in minutes * .001 */
+	    int lat;			/* latitude in minutes * .001 */
 	    unsigned int dac;       	/* Designated Area Code */
 	    unsigned int fid;       	/* Functional ID */
 #define AIS_TYPE8_BINARY_MAX	952	/* 952 bits */
@@ -449,6 +452,7 @@ struct ais_t
 		char bitdata[(AIS_TYPE8_BINARY_MAX + 7) / 8];
 		/* Inland static ship and voyage-related data */
 		struct msg8_200_10{
+			bool valid;
 		    char vin[8+1];	/* European Vessel ID */
 #define DAC200FID10_LENGTH_NOT_AVAILABLE	0
 		    unsigned int length;	/* Length of ship */
@@ -466,6 +470,7 @@ struct ais_t
 		} dac200fid10;
 		/* Inland AIS EMMA Warning */
 		struct {
+			bool valid;
 		    unsigned int start_year;	/* Start Year */
 		    unsigned int start_month;	/* Start Month */
 		    unsigned int start_day;	/* Start Day */
@@ -492,6 +497,7 @@ struct ais_t
 #define DAC200FID23_WIND_UNKNOWN		0
 		} dac200fid23;
 		struct {
+			bool valid;
 		    char country[2+1];	/* UN Country Code */
 		    signed int ngauges;
 		    struct gauge_t {
@@ -502,6 +508,7 @@ struct ais_t
 		    } gauges[4];
 		} dac200fid24;
 		struct {
+			bool valid;
 		    signed int lon;	/* Signal Longitude */
 		    signed int lat;	/* Signal Latitude */
 		    unsigned int form;	/* Signal form */
@@ -518,6 +525,7 @@ struct ais_t
 		 * Replaced by IMO289 (DAC 1, FID 31)
 		 */
 		struct msg8_1_11{
+			bool valid;
 #define DAC1FID11_LATLON_SCALE			1000
 		    int lon;			/* longitude in minutes * .001 */
 #define DAC1FID11_LON_NOT_AVAILABLE		0xFFFFFF
@@ -594,6 +602,7 @@ struct ais_t
 		} dac1fid11;
 		/* IMO236 - Fairway Closed */
 		struct {
+			bool valid;
 		    char reason[20+1];		/* Reason For Closing */
 		    char closefrom[20+1];	/* Location Of Closing From */
 		    char closeto[20+1];		/* Location of Closing To */
@@ -620,6 +629,7 @@ struct ais_t
 		} dac1fid16;
 		/* IMO289 - VTS-generated/Synthetic Targets */
 		struct {
+			bool valid;
 		    signed int ntargets;
 		    struct target_t {
 #define DAC1FID17_IDTYPE_MMSI		0
@@ -645,6 +655,7 @@ struct ais_t
 		} dac1fid17;
 		/* IMO 289 - Marine Traffic Signal */
 		struct {
+			bool valid;
 		    unsigned int linkage;	/* Message Linkage ID */
 		    char station[20+1];		/* Name of Signal Station */
 		    signed int lon;		/* Longitude */
@@ -665,6 +676,7 @@ struct ais_t
 		} dac1fid29;
 		/* IMO289 - Meteorological-Hydrological data */
 		struct {
+			bool valid;
 		    bool accuracy;	/* position accuracy, <10m if true */
 #define DAC1FID31_LATLON_SCALE	1000
 		    int lon;		/* longitude in minutes * .001 */
@@ -1031,14 +1043,20 @@ wxString PrintHtmlAnchors(ais_t *msg);
 wxString GetHtmlHeader(int type);
 wxString GetHtmlFooter();
 
-
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
 bool ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 void ais_free_list();
+void ais_free_buffer();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
+void ais_prepare_buffer(ais_t *ais);
+bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
+bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
+bool ais_set_dim(ais_t *ais, int *dim);
+
+void *ais_get_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);

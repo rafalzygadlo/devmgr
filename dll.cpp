@@ -52,6 +52,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	
 	AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
+	AddExecuteFunction("devmgr_GetAisBuffer",GetAisBuffer);
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -385,6 +386,7 @@ void CMapPlugin::Kill(void)
         delete m_FileConfig;
 
 	ais_free_list();
+	ais_free_buffer();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 
@@ -398,29 +400,16 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-/*
-void CMapPlugin::RenderAIS()
-{
-		
-	glColor4f(0.0f,0.0f,1.0f,0.5f);
-	glPushMatrix();
-		//glLineWidth(2);
-		//glTranslated(0.0,0.0,0.0);
-		//glScalef(50.0/Scale,50.0/Scale,0.0f);
-		//glRotatef(Hdg,0.0f,0.0f,1.0f);
-		RenderGeometry(GL_POINTS,&v Circle1[0],vCircle1.size());	// circle 0
-		//RenderGeometry(GL_LINE_LOOP,&vCircle2[0],vCircle2.size());	// circle 1
-		//RenderGeometry(GL_LINE_LOOP,&vCircle3[0],vCircle3.size());	// circle 1
-		//RenderGeometry(GL_LINES,&vLineH[0],vLineH.size());			// line H
-		//glLineWidth(1);
-    //glPopMatrix();
 
-}
-*/
+
+
 void CMapPlugin::Render()
 {
 	m_Scale = m_Broker->GetMapScale();
-	//RenderAIS();
+
+	CNaviArray  <nvAisData*> ar  = *(CNaviArray <nvAisData*>*)ais_get_buffer();
+
+	RenderGeometry(GL_POINTS,ar.GetRawData(),ar.Length());
 }
 
 bool CMapPlugin::GetNeedExit(void)
@@ -503,6 +492,12 @@ void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
 	return NULL;
 }
 
+void *CMapPlugin::GetAisBuffer(void *NaviMapIOApiPtr, void *Params)
+{
+	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
+	return ais_get_buffer();
+}
+
 
 SData *CMapPlugin::GetData()
 {
@@ -524,12 +519,6 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 		break;
 	}
 	
-}
-
-
-int CMapPlugin::GetDisplaySignalType()
-{
-	return m_DisplaySignalType;
 }
 
 void CMapPlugin::SetDeviceId(int id)
