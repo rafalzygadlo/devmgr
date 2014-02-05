@@ -225,12 +225,10 @@ bool CParser::Ais(char *line)
 	{
 		GetMutex()->Lock();
 		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
-		nvAisData *data = ais_prepare_buffer(ais);
+		nvAisData *data = ais_prepare_data(ais);
+		ais_prepare_buffer(ais);
 		GetMutex()->Unlock();
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"ais_OnAisBuffer",data);
-		
-		
-		//free(data);
 		free(m_Bits);
 		m_Bits = NULL;
 		m_Bitlen = 0;

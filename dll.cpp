@@ -404,7 +404,7 @@ void CMapPlugin::Kill(void)
         delete m_FileConfig;
 
 	ais_free_list();
-	//ais_free_buffer();
+	ais_free_buffer();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 

@@ -4,7 +4,7 @@
 
 CNaviArray <ais_t*> vAisData;
 nvAisData *AisData = NULL;
-//CNaviArray <nvAisData*> vAisBuffer;
+CNaviArray <nvAisData*> vAisBuffer;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -314,7 +314,7 @@ void ais_free_list()
 
 //void ais_free_
 
-/*
+
 void ais_free_buffer()
 {
 	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
@@ -324,7 +324,6 @@ void ais_free_buffer()
 	
 	vAisBuffer.Clear();
 }
-*/
 
 ais_t *ais_msg_exists(int mmsi)
 {
@@ -338,7 +337,6 @@ ais_t *ais_msg_exists(int mmsi)
 	return NULL;
 }
 
-/*
 nvAisData *ais_buffer_exists(int mmsi)
 {
 	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
@@ -350,7 +348,7 @@ nvAisData *ais_buffer_exists(int mmsi)
 
 	return NULL;
 }
-*/
+
 
 ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
@@ -433,7 +431,7 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 	return result;
 }
 
-nvAisData *ais_prepare_buffer(ais_t *ais)
+nvAisData *ais_prepare_data(ais_t *ais)
 {
 	if(ais == NULL)
 		return NULL;
@@ -478,6 +476,52 @@ nvAisData *ais_prepare_buffer(ais_t *ais)
 	return AisData;
 
 }	
+
+void ais_prepare_buffer(ais_t *ais)
+{
+	if(ais == NULL)
+		return;
+	
+	nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	bool add = false;
+	
+	if(AisData == NULL)
+	{
+		AisData = (nvAisData*)malloc(sizeof(nvAisData));
+		AisData->valid[0] = false;
+		AisData->valid[1] = false;
+		add = true;
+	}
+		
+	AisData->mmsi = ais->mmsi;
+	bool exists = false;
+	
+	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
+	{
+		exists = true;
+		AisData->valid[0] = true;
+	}	
+	
+	if(ais_set_dim(ais,AisData->dim))
+	{
+		exists = true;
+		AisData->valid[1] = true;
+	}
+	
+	if(exists)
+	{
+
+		if(add)
+			vAisBuffer.Append(AisData);
+	}else{
+	
+		if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+			free(AisData);
+	}
+
+}	
+
+
 
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 {
