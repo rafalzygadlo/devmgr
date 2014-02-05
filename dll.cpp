@@ -400,16 +400,14 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-
-
-
 void CMapPlugin::Render()
 {
 	m_Scale = m_Broker->GetMapScale();
-
+	GetMutex()->Lock();
 	CNaviArray  <nvAisData*> ar  = *(CNaviArray <nvAisData*>*)ais_get_buffer();
-
+	
 	RenderGeometry(GL_POINTS,ar.GetRawData(),ar.Length());
+	GetMutex()->Unlock();
 }
 
 bool CMapPlugin::GetNeedExit(void)
