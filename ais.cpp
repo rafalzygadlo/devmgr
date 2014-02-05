@@ -2,7 +2,75 @@
 #include "tools.h"
 #include <stdio.h>
 
-std::vector <ais_t*> vAist;
+CNaviArray <ais_t*> vAisData;
+nvAisData *AisData = NULL;
+CNaviArray <nvAisData*> vAisBuffer;
+
+const wchar_t *nvHazardousCargo[2][6] = 
+{
+	{
+		L"Cones/Lights 0",
+		L"Cones/Lights 1",
+		L"Cones/Lights 2",
+		L"Cones/Lights 3",
+		L"B-Flag",
+		L"N/A",
+	},
+
+	{
+	}
+
+};
+
+
+
+const wchar_t *nvSpeedQuality[2][4] = 
+{ 
+	{
+		L"Low/GNSS", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvCourseQuality[2][4] = 
+{ 
+	{
+		L"Low/GNSS", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvHeadingQuality[2][4] = 
+{ 
+	{
+		L"Low", 
+		L"High", 
+	},
+	{
+	}
+
+};
+
+const wchar_t *nvLoaded[2][4] = 
+{ 
+	{
+		L"N/A",
+		L"Loaded",
+		L"Unloaded",
+		L"N/A",
+	},
+	
+	{
+	
+	}
+};
+
 
 const wchar_t *nvDTE[2][2] = 
 { 
@@ -19,7 +87,7 @@ const wchar_t *nvDTE[2][2] =
 const wchar_t *nvShipTypes[2][100] = 
 { 
 	{
-		L"Not available (default)",
+		L"N/A",
 		L"Reserved for future use",
 		L"Reserved for future use",
 		L"Reserved for future use",
@@ -129,7 +197,7 @@ const wchar_t *nvShipTypes[2][100] =
 const wchar_t *nvEPFDFixTypes[2][16] = 
 { 
 	{
-		L"Undefined (default)",
+		L"N/A",
 		L"GPS",
 		L"GLONASS",
 		L"Combined GPS/GLONASS",
@@ -138,13 +206,13 @@ const wchar_t *nvEPFDFixTypes[2][16] =
 		L"Integrated navigation system",
 		L"Surveyed",
 		L"Galileo",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
-		L"Undefined (default)",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
+		L"N/A",
 	},
 	
 	{
@@ -200,7 +268,7 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 void ais_sort()
 {
-	size_t len = vAist.size();
+	size_t len = vAisData.Length();
 	
 	for(size_t i = 0; i < len; i++)
 	{	
@@ -217,51 +285,78 @@ void ais_sort()
 //		}
 	}
 }
-
+/*
+void *ais_get_buffer()
+{
+	return (void*)&vAisBuffer;
+}
+*/
 size_t ais_get_item_count()
 {
-	size_t len = 0;
-	len = vAist.size();
-	return len;
+	return vAisData.Length();
 }
 
 ais_t *ais_get_item(size_t idx)
 {
-	return vAist[idx];
+	ais_t *ais = vAisData.Get(idx);
+	return ais;
 }
 
 void ais_free_list()
 {
-	for(size_t  i = 0; i < vAist.size(); i++)
+	for(size_t  i = 0; i < vAisData.Length(); i++)
 	{
-		ais_t *ais = vAist[i];
-		free(ais);
+		free(vAisData.Get(i));
 	}
 	
-	vAist.clear();
+	vAisData.Clear();
+}
+
+//void ais_free_
+
+
+void ais_free_buffer()
+{
+	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
+	{
+		free(vAisBuffer.Get(i));
+	}
+	
+	vAisBuffer.Clear();
 }
 
 ais_t *ais_msg_exists(int mmsi)
 {
-	for(size_t  i = 0; i < vAist.size(); i++)
+	for(size_t  i = 0; i < vAisData.Length(); i++)
 	{
-		ais_t *ais = vAist[i];
+		ais_t *ais = vAisData.Get(i);
 		if(ais->mmsi == mmsi)
 			return ais;
 	}
 
 	return NULL;
-
 }
 
-bool ais_binary_decode(unsigned char *bits, size_t bitlen)
+nvAisData *ais_buffer_exists(int mmsi)
+{
+	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
+	{
+		nvAisData *ptr = vAisBuffer.Get(i);
+		if(ptr->mmsi == mmsi)
+			return ptr;
+	}
+
+	return NULL;
+}
+
+
+ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
 	
 	ais_t *ais;
 	int mmsi;
 	mmsi = (int)UBITS(8, 30);
 	bool add = false;
-		
 	ais = ais_msg_exists(mmsi);
 	
 	if(!ais)
@@ -274,46 +369,192 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 	uint64_t type =	UBITS(0, 6);
 	ais->mmsi = (int)UBITS(8, 30);
     ais->repeat = (int)UBITS(6, 2);
-	ais->valid[type] = true;
+	
+	if(type <= AIS_MESSAGES_LENGTH)
+		ais->valid[type] = true;
 
+	if(ais_decode(bits,bitlen,ais,type))
+	{
+		if(add)
+		{
+			vAisData.Append(ais);
+		}
+	}else{
+		
+		if(add)
+		{
+			free(ais);
+			ais = NULL;
+		}
+	}
+	
+	return ais;
+}
+
+bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
+{
+	bool result = false;
+	
 	switch(type)
 	{
 		case AIS_MSG_1:		
 		case AIS_MSG_2:		
-		case AIS_MSG_3:		ais_message_1(bits,ais);			break;
+		case AIS_MSG_3:		ais_message_1(bits,ais);			result = true;	break;
 		case AIS_MSG_4:		
-		case AIS_MSG_11:	ais_message_4(bits,ais);			break;
-		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		break;
-		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		break;
+		case AIS_MSG_11:	ais_message_4(bits,ais);			result = true;	break;
+		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		result = true;	break;
 		case AIS_MSG_13:
-		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		break;
-		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		break;
-		case AIS_MSG_9:		ais_message_9(bits,ais);			break;
-		case AIS_MSG_10:	ais_message_10(bits,ais);			break;
-		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	break;
-		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	break;
-		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	break;
-		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	break;
-		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	break;
-		case AIS_MSG_18:	ais_message_18(bits,ais);			break;
-		case AIS_MSG_19:	ais_message_19(bits,ais);			break;
-		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	break;
-		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	break;
-		case AIS_MSG_22:	ais_message_22(bits,ais);			break;
-		case AIS_MSG_23:	ais_message_23(bits,ais);			break;
+		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_9:		ais_message_9(bits,ais);			result = true;	break;
+		case AIS_MSG_10:	ais_message_10(bits,ais);			result = true;	break;
+		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_18:	ais_message_18(bits,ais);			result = true;	break;
+		case AIS_MSG_19:	ais_message_19(bits,ais);			result = true;	break;
+		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_22:	ais_message_22(bits,ais);			result = true;	break;
+		case AIS_MSG_23:	ais_message_23(bits,ais);			result = true;	break;
 		//case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
-		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	break;
+		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	result = true;	break;
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
+			
 	}
-		
-	if(add)
-	{	
-		vAist.push_back(ais);
-		return true;
+
+	return result;
+}
+
+nvAisData *ais_prepare_data(ais_t *ais)
+{
+	if(ais == NULL)
+		return NULL;
+	
+	//nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	//bool add = false;
+	
+	if(AisData == NULL)
+		AisData = (nvAisData*)malloc(sizeof(nvAisData));
+	
+	AisData->valid[0] = false;
+	AisData->valid[1] = false;
+	//add = true;
+	//}
+	
+	AisData->mmsi = ais->mmsi;
+	bool exists = false;
+	
+	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
+	{
+		exists = true;
+		AisData->valid[0] = true;
+	}	
+	
+	if(ais_set_dim(ais,AisData->dim))
+	{
+		exists = true;
+		AisData->valid[1] = true;
 	}
 	
+	//if(exists)
+	//{
+
+		//if(add)
+			//vAisBuffer.Append(AisData);
+	//}else{
+		
+		//if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+			//free(AisData);
+	//}
+
+	return AisData;
+
+}	
+
+void ais_prepare_buffer(ais_t *ais)
+{
+	if(ais == NULL)
+		return;
+	
+	nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	bool add = false;
+	
+	if(AisData == NULL)
+	{
+		AisData = (nvAisData*)malloc(sizeof(nvAisData));
+		AisData->valid[0] = false;
+		AisData->valid[1] = false;
+		add = true;
+	}
+		
+	AisData->mmsi = ais->mmsi;
+	bool exists = false;
+	
+	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
+	{
+		exists = true;
+		AisData->valid[0] = true;
+	}	
+	
+	if(ais_set_dim(ais,AisData->dim))
+	{
+		exists = true;
+		AisData->valid[1] = true;
+	}
+	
+	if(exists)
+	{
+
+		if(add)
+			vAisBuffer.Append(AisData);
+	}else{
+	
+		if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+			free(AisData);
+	}
+
+}	
+
+
+
+bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
+{
+	
+	if(ais->valid[AIS_MSG_1])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_2])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_3])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_4])	{	*lon = ais->type4.lon/AIS_LATLON_DIV;	*lat = ais->type4.lat/AIS_LATLON_DIV;	return true;	}
+
+	/*
+	if(ais->valid[AIS_MSG_8] )	
+	{	
+		if(ais->type8.dac1fid11.valid)	{	*lon = ais->type8.dac1fid11.lon;	*lat = ais->type8.dac1fid11.lat;		return true;}
+		if(ais->type8.dac1fid19.valid)	{	*lon = ais->type8.dac1fid19.lon;	*lat = ais->type8.dac1fid19.lat;		return true;}
+		if(ais->type8.dac1fid31.valid)	{	*lon = ais->type8.dac1fid31.lon;	*lat = ais->type8.dac1fid31.lat;		return true;}
+		if(ais->type8.dac200fid40.valid){	*lon = ais->type8.dac200fid40.lon;	*lat = ais->type8.dac200fid40.lat;		return true;}	
+	}
+	*/
+	return false;
+}
+
+bool ais_set_dim(ais_t *ais, int *dim)
+{
+	if(ais->valid[AIS_MSG_5])
+	{
+		dim[AIS_DIM_TO_BOW]			= ais->type5.to_bow;
+		dim[AIS_DIM_TO_STERN]		= ais->type5.to_stern;
+		dim[AIS_DIM_TO_PORT]		= ais->type5.to_port;	
+		dim[AIS_DIM_TO_STARBOARD]	= ais->type5.to_starboard;
+		
+		return true;
+	}
+
 	return false;
 }
 
@@ -573,6 +814,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 		{
 			case 11:        /* IMO236 - Meteorological/Hydrological data */
 				/* layout is almost identical to FID=31 from IMO289 */
+				ais->type8.dac1fid11.valid		=true;
 				ais->type8.dac1fid11.lat		= (int)SBITS(56, 24);
 				ais->type8.dac1fid11.lon		= (int)SBITS(80, 25);
 				ais->type8.dac1fid11.day		= (int)UBITS(105, 5);
@@ -616,6 +858,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 				UCHARS(56, ais->type8.dac1fid13.reason);
 				UCHARS(176, ais->type8.dac1fid13.closefrom);
 				UCHARS(296, ais->type8.dac1fid13.closeto);
+				ais->type8.dac1fid13.valid		=true;
 				ais->type8.dac1fid13.radius 	= (int)UBITS(416, 10);
 				ais->type8.dac1fid13.extunit	= (int)UBITS(426, 2);
 				ais->type8.dac1fid13.fday   	= (int)UBITS(428, 5);
@@ -669,6 +912,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 					}
 					
 					/* skip 4 bits */
+					ais->type8.dac1fid17.valid = true;
 					ais->type8.dac1fid17.targets[u].lat	= (int)SBITS(a + 48, 24);
 					ais->type8.dac1fid17.targets[u].lon	= (int)SBITS(a + 72, 25);
 					ais->type8.dac1fid17.targets[u].course	= (int)UBITS(a + 97, 9);
@@ -682,6 +926,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 		break;
 	    
 			case 19:        /* IMO289 - Marine Traffic Signal */
+				ais->type8.dac1fid19.valid = true;
 				ais->type8.dac1fid19.linkage	= (int)UBITS(56, 10);
 				UCHARS(66, ais->type8.dac1fid19.station);
 				ais->type8.dac1fid19.lon	= (int)SBITS(186, 25);
@@ -737,6 +982,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 31:        /* IMO289 - Meteorological/Hydrological data */
+				ais->type8.dac1fid31.valid		= true;
 				ais->type8.dac1fid31.lon		= (int)SBITS(56, 25);
 				ais->type8.dac1fid31.lat		= (int)SBITS(81, 24);
 				ais->type8.dac1fid31.accuracy       = (bool)UBITS(105, 1);
@@ -843,6 +1089,7 @@ void ais_message_8(unsigned char *bits, size_t bitlen, ais_t *ais)
 			break;
 	    
 			case 40:
+				ais->type8.dac200fid40.valid = true;
 				ais->type8.dac200fid40.lon	= (int)SBITS(56, 28);
 				ais->type8.dac200fid40.lat	= (int)SBITS(84, 27);
 				ais->type8.dac200fid40.form	= (int)UBITS(111, 4);
@@ -1324,9 +1571,24 @@ void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen)
 	
 }
 
-float get_draught(unsigned int v)
+float get_beam(unsigned int v)
 {
 	return (float)(v / 10);
+}
+
+float get_length(unsigned int v)
+{
+	return (float)(v / 10);
+}
+
+float get_draught_msg5(unsigned int v)
+{
+	return (float)(v / 10);
+}
+
+float get_draught_msg8(unsigned int v)
+{
+	return (float)(v / 100);
 }
 
 float get_speed(unsigned int v)
@@ -1339,23 +1601,9 @@ float get_cog(unsigned int v)
 	return (float)(v * 0.1);
 }
 
-wxString get_turn(int v)
-{
-	switch(v)
-	{	
-		case AIS_TURN_HARD_LEFT:		return GetMsg(MSG_TURN_HARD_LEFT);		
-		case AIS_TURN_HARD_RIGHT:		return GetMsg(MSG_TURN_HARD_RIGHT);		
-		case AIS_TURN_LEFT:				return GetMsg(MSG_TURN_LEFT);			
-		case AIS_TURN_RIGHT:			return GetMsg(MSG_TURN_RIGHT);			
-		case AIS_TURN_NOT_AVAILABLE:	return GetMsg(MSG_NA);					
-		default:						return GetMsg(MSG_NA);
-	}
-
-}
-
 float get_lon_lat(int val)
 {
-	return (float)(val /10000) /60;
+	return (float)(val / AIS_LATLON_DIV);
 }
 
 wxString get_value_as_string(bool v)
@@ -1519,6 +1767,8 @@ wxArrayString PrepareMsg_1(ais_t::msg1 msg)
 	ar.Add(GetMsg(MSG_SECOND));				ar.Add(get_value_as_string(msg.second,true,AIS_SEC_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_SPEED));				ar.Add(get_value_as_string(get_speed(msg.speed),true,AIS_SPEED_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_NAVIGATION_STATUS));	ar.Add(GetNavigationStatus(msg.status));
+	ar.Add(GetMsg(MSG_TURN));				ar.Add(GetTurn(msg.status));
+	
 
 	return ar;
 }
@@ -1539,7 +1789,7 @@ wxArrayString PrepareMsg_4(ais_t::msg4 msg)
 	ar.Add(GetMsg(MSG_SECONDS));	ar.Add(get_value_as_string(msg.second,true,AIS_SECOND_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,AIS_LAT_NOT_AVAILABLE).wc_str());
 	ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,AIS_LON_NOT_AVAILABLE));
-	ar.Add(GetMsg(MSG_EPFD));		ar.Add(get_value_as_string(GetEPFDFixTypes(msg.epfd)));
+	ar.Add(GetMsg(MSG_EPFD));		ar.Add(GetEPFDFixTypes(msg.epfd));
 
 	return ar;
 
@@ -1563,10 +1813,8 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg)
 	ar.Add(GetMsg(MSG_TO_STERN));		ar.Add(get_value_as_string(msg.to_stern));
 	ar.Add(GetMsg(MSG_TO_PORT));		ar.Add(get_value_as_string(msg.to_port));
 	ar.Add(GetMsg(MSG_TO_STARBOARD));	ar.Add(get_value_as_string(msg.to_starboard));
-	
 	ar.Add(GetMsg(MSG_LENGTH_WIDTH));	ar.Add(wxString::Format(_("%sx%s m"), get_value_as_string(msg.to_bow + msg.to_stern), get_value_as_string(msg.to_port + msg.to_starboard)) );
-			
-	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(msg.draught));
+	ar.Add(GetMsg(MSG_DRAUGHT));		ar.Add(get_value_as_string(get_draught_msg5(msg.draught),true,AIS_DRAUGHT_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_DTE));			ar.Add(GetDTE(msg.dte));
 	ar.Add(GetMsg(MSG_EPFD));			ar.Add(GetEPFDFixTypes(msg.epfd));
 		
@@ -1580,17 +1828,129 @@ wxArrayString PrepareMsg_8(ais_t::msg8 msg)
 	ar.Add(GetMsg(MSG_DAC));	ar.Add(get_value_as_string(msg.dac));
 	ar.Add(GetMsg(MSG_FID));	ar.Add(get_value_as_string(msg.fid));
 	
-	//switch(msg.dac1fid11.)
-	//{
-	//}
-
-
-	msg.dac;
+	if(msg.dac == 1)
+	{
+		switch(msg.fid)
+		{
 	
+			case 11: ar = PrepareMsg_8_1_11(msg.dac1fid11);	break;
+			case 13: break;
+			case 15: break;
+			case 16: break;
+			case 17: break;
+			case 19: break;
+			case 27: break;
+			case 29: break;
+			case 31: break;
+		}
+	}
+
+	if(msg.dac == 200)
+	{
+		switch(msg.fid)
+		{
+			case 10: ar = PrepareMsg_8_200_10(msg.dac200fid10);	break;
+			case 23: break;
+			case 24: break;
+			case 40: break; 
+		}
+	
+	}
 
 	return ar;
 }
 
+wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg)
+{
+	wxArrayString ar;
+		
+	ar.Add(GetMsg(MSG_LON));						ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,DAC1FID11_LON_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LAT));						ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,DAC1FID11_LAT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DAY));						ar.Add(get_value_as_string(msg.day,true,AIS_DAY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HOUR));						ar.Add(get_value_as_string(msg.hour,true,AIS_HOUR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_MINUTE));						ar.Add(get_value_as_string(msg.minute,true,AIS_MINUTE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_AVERAGE_WIND_SPEED));			ar.Add(get_value_as_string(msg.wspeed,true,DAC1FID11_WSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_GUST_SPEED));					ar.Add(get_value_as_string(msg.wgust,true,DAC1FID11_WSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WIND_DIR));					ar.Add(get_value_as_string(msg.wdir,true,DAC1FID11_WDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WIND_GUST_DIR));				ar.Add(get_value_as_string(msg.wgustdir,true,DAC1FID11_WDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_AIR_TMP));					ar.Add(get_value_as_string(msg.airtemp,true,DAC1FID11_AIRTEMP_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_HUMIDITY));					ar.Add(get_value_as_string(msg.humidity,true,DAC1FID11_HUMIDITY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_DEWPOINT));					ar.Add(get_value_as_string(msg.dewpoint,true,DAC1FID11_DEWPOINT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_PRESSURE));					ar.Add(get_value_as_string(msg.pressure,true,DAC1FID11_PRESSURE_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_PRESSURE_TENDENCY));			ar.Add(get_value_as_string(msg.pressuretend,true,DAC1FID11_PRESSURETREND_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_H_VISIBILTY));				ar.Add(get_value_as_string(msg.visibility,true,DAC1FID11_VISIBILITY_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WATER_LEVEL));				ar.Add(get_value_as_string(msg.waterlevel,true,DAC1FID11_WATERLEVEL_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WATER_LEVEL_TREND));			ar.Add(get_value_as_string(msg.leveltrend,true,DAC1FID11_WATERLEVELTREND_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_SPEED));		ar.Add(get_value_as_string(msg.cspeed,true,DAC1FID11_CSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_DIRECTION));	ar.Add(get_value_as_string(msg.cdir,true,DAC1FID11_CDIR_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_SURFACE_CURRENT_SPEED));		ar.Add(get_value_as_string(msg.cspeed2,true,DAC1FID11_CSPEED_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_HEIGHT));				ar.Add(get_value_as_string(msg.waveheight,true,DAC1FID11_WAVEHEIGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_PERIOD));				ar.Add(get_value_as_string(msg.waveperiod,true,DAC1FID11_WAVEPERIOD_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_WAVE_DIR));					ar.Add(get_value_as_string(msg.wavedir,true,DAC1FID11_WAVEDIR_NOT_AVAILABLE));
+
+	return ar;
+}
+
+wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
+{
+	wxArrayString ar;
+
+	ar.Add(GetMsg(MSG_VIN));					ar.Add(get_value_as_string(msg.vin));
+	ar.Add(GetMsg(MSG_LENGTH));					ar.Add(get_value_as_string(get_length(msg.length),true,DAC200FID10_LENGTH_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_BEAM));					ar.Add(get_value_as_string(get_beam(msg.beam),true,DAC200FID10_BEAM_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_TYPE));					ar.Add(get_value_as_string(msg.type));
+	ar.Add(GetMsg(MSG_HAZARD));					ar.Add(GetHazardousCargo(msg.hazard));
+	ar.Add(GetMsg(MSG_DRAUGHT));				ar.Add(get_value_as_string(get_draught_msg8(msg.draught),true,DAC200FID10_DRAUGHT_NOT_AVAILABLE));
+	ar.Add(GetMsg(MSG_LOADED_UNLOADED));		ar.Add(GetLoaded(msg.loaded));
+	ar.Add(GetMsg(MSG_SPEED_INF_QUALITY));		ar.Add(GetSpeedQuality(msg.speed_q));
+	ar.Add(GetMsg(MSG_COURSE_INF_QUALITY));		ar.Add(GetCourseQuality(msg.course_q));
+	ar.Add(GetMsg(MSG_HEADING_INF_QUALITY));	ar.Add(GetHeadingQuality(msg.course_q));
+
+	return ar;
+
+}
+
+
+
+const wchar_t *GetTurn(int v)
+{
+	switch(v)
+	{	
+		case AIS_TURN_HARD_LEFT:		return GetMsg(MSG_TURN_HARD_LEFT);		
+		case AIS_TURN_HARD_RIGHT:		return GetMsg(MSG_TURN_HARD_RIGHT);		
+		case AIS_TURN_LEFT:				return GetMsg(MSG_TURN_LEFT);			
+		case AIS_TURN_RIGHT:			return GetMsg(MSG_TURN_RIGHT);			
+		case AIS_TURN_NOT_AVAILABLE:	return GetMsg(MSG_NA);					
+		default:						return GetMsg(MSG_NA);
+	}
+
+}
+
+
+const wchar_t *GetHazardousCargo(int id)
+{
+	return nvHazardousCargo[GetLanguageId()][id];
+}
+
+const wchar_t *GetSpeedQuality(int id)
+{
+	return nvSpeedQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetHeadingQuality(int id)
+{
+	return nvHeadingQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetCourseQuality(int id)
+{
+	return nvCourseQuality[GetLanguageId()][id];
+}
+
+const wchar_t *GetLoaded(int id)
+{
+	return nvLoaded[GetLanguageId()][id];
+}
 
 const wchar_t *GetDTE(int id)
 {

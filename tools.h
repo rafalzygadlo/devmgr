@@ -5,6 +5,7 @@
 #include "NaviBroker.h"
 #include "reader.h"
 
+
 wxString GetProductInfo();
 wxString GetProductName();
 wxMutex *GetMutex();
@@ -26,6 +27,7 @@ int GetLanguageId();
 CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool run);
 CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, bool run);
 double _nvToRad( double angle );
+void Reset(double *tab);
 // funkcje protokolu
 
 #endif

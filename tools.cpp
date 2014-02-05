@@ -2,6 +2,7 @@
 #include "tools.h"
 #include <wx/stdpaths.h>
 #include "protocol.h"
+#include "GeometryTools.h"
 
 wxMutex *mutex = NULL;
 int GlobalLanguageID;
@@ -128,7 +129,33 @@ const wchar_t *nvLanguage[2][183] =
 		_("Top"),
 		_("Designated Area Code"),
 		_("Functional ID"),
-		
+		_("European Vessel ID"),
+		_("Length of ship"),
+		_("Beam of ship"),
+		_("Ship/combination type"),
+		_("Hazardous cargo"),
+		_("Loaded/Unloaded"),
+		_("Speed inf. quality"),
+		_("Course inf. quality"),
+		_("Heading inf. quality"),
+		_("Average Wind Speed"),
+		_("Gust Speed"),
+		_("Wind Direction"),
+		_("Wind Gust Direction"),
+		_("Air Temperature"),
+		_("Relative Humidity"),
+		_("Dew Point"),
+		_("Air Pressure"),
+		_("Pressure Tendency"),
+		_("Horizontal Visibility"),
+		_("Water Level"),
+		_("Water Level Trend"),
+		_("Surface Current Speed"),
+		_("Surface Current Direction"),
+		_("Wave height"),
+		_("Wave period"),
+		_("Wave direction"),
+
 
 	},
 	
@@ -373,7 +400,6 @@ bool Check_HDT()
 		m_HDT_Exists = false;
 		return false;
 	}else{
-		//fprintf(stdout,"FORM HDT\n");
 		return true;
 	}
 }
@@ -384,10 +410,8 @@ bool Set_VTG_COG()
 	
 	if(m_HDT_Exists)
 		return false;
-	else{
-		//fprintf(stdout,"FORM VTG\n");
+	else
 		return true;
-	}
 }
 
 bool Set_RMC_COG()
@@ -396,8 +420,16 @@ bool Set_RMC_COG()
 
 	if(m_HDT_Exists)
 		return false;
-	else{
-		//fprintf(stdout,"FORM COG\n");
+	else
 		return true;
-	}
+}
+
+void Reset(double *tab)
+{
+	tab[0] = UNDEFINED_DOUBLE;
+	tab[1] = UNDEFINED_DOUBLE;
+	tab[2] = UNDEFINED_DOUBLE;
+	tab[3] = UNDEFINED_DOUBLE;
+	tab[4] = UNDEFINED_DOUBLE;
+	tab[5] = UNDEFINED_DOUBLE;
 }

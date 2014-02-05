@@ -6,6 +6,7 @@
 #include <string.h>
 #include <vector>
 #include <wx/wx.h>
+#include "NaviArgsTypes.h"
 
 #define AIS_MESSAGES_LENGTH	27
 
@@ -86,7 +87,7 @@ struct ais_t
     //unsigned int	type;		/* message type */
     unsigned int    repeat;		/* Repeat indicator */
     unsigned int	mmsi;		/* MMSI */
-	bool			valid[27];
+	bool			valid[28];  //zaczynamy od 1
     //union {
 	/* Types 1-3 Common navigation info */
 	struct msg1{
@@ -160,6 +161,7 @@ struct ais_t
 	    unsigned int day;		/* UTC day */
 	    unsigned int hour;		/* UTC hour */
 	    unsigned int minute;	/* UTC minute */
+#define AIS_DRAUGHT_NOT_AVAILABLE 0
 	    unsigned int draught;	/* draft in meters */
 	    char destination[20+1];	/* ship destination */
 	    unsigned int dte;		/* data terminal enable */
@@ -440,6 +442,8 @@ struct ais_t
 	} type7;
 	/* Type 8 - Broadcast Binary Message */
 	struct msg8{
+		int lon;			/* longitude in minutes * .001 */
+	    int lat;			/* latitude in minutes * .001 */
 	    unsigned int dac;       	/* Designated Area Code */
 	    unsigned int fid;       	/* Functional ID */
 #define AIS_TYPE8_BINARY_MAX	952	/* 952 bits */
@@ -447,12 +451,17 @@ struct ais_t
 	    //union {
 		char bitdata[(AIS_TYPE8_BINARY_MAX + 7) / 8];
 		/* Inland static ship and voyage-related data */
-		struct {
+		struct msg8_200_10{
+			bool valid;
 		    char vin[8+1];	/* European Vessel ID */
+#define DAC200FID10_LENGTH_NOT_AVAILABLE	0
 		    unsigned int length;	/* Length of ship */
+#define DAC200FID10_BEAM_NOT_AVAILABLE	0
 		    unsigned int beam;	/* Beam of ship */
 		    unsigned int type;	/* Ship/combination type */
+#define DAC200FID10_HAZARD_NOT_AVAILABLE	5
 		    unsigned int hazard;	/* Hazardous cargo */
+#define DAC200FID10_DRAUGHT_NOT_AVAILABLE	0
 		    unsigned int draught;	/* Draught */
 		    unsigned int loaded;	/* Loaded/Unloaded */
 		    bool speed_q;	/* Speed inf. quality */
@@ -461,6 +470,7 @@ struct ais_t
 		} dac200fid10;
 		/* Inland AIS EMMA Warning */
 		struct {
+			bool valid;
 		    unsigned int start_year;	/* Start Year */
 		    unsigned int start_month;	/* Start Month */
 		    unsigned int start_day;	/* Start Day */
@@ -487,6 +497,7 @@ struct ais_t
 #define DAC200FID23_WIND_UNKNOWN		0
 		} dac200fid23;
 		struct {
+			bool valid;
 		    char country[2+1];	/* UN Country Code */
 		    signed int ngauges;
 		    struct gauge_t {
@@ -497,6 +508,7 @@ struct ais_t
 		    } gauges[4];
 		} dac200fid24;
 		struct {
+			bool valid;
 		    signed int lon;	/* Signal Longitude */
 		    signed int lat;	/* Signal Latitude */
 		    unsigned int form;	/* Signal form */
@@ -512,7 +524,8 @@ struct ais_t
 		 * Trial message, not to be used after January 2013
 		 * Replaced by IMO289 (DAC 1, FID 31)
 		 */
-		struct {
+		struct msg8_1_11{
+			bool valid;
 #define DAC1FID11_LATLON_SCALE			1000
 		    int lon;			/* longitude in minutes * .001 */
 #define DAC1FID11_LON_NOT_AVAILABLE		0xFFFFFF
@@ -589,6 +602,7 @@ struct ais_t
 		} dac1fid11;
 		/* IMO236 - Fairway Closed */
 		struct {
+			bool valid;
 		    char reason[20+1];		/* Reason For Closing */
 		    char closefrom[20+1];	/* Location Of Closing From */
 		    char closeto[20+1];		/* Location of Closing To */
@@ -615,6 +629,7 @@ struct ais_t
 		} dac1fid16;
 		/* IMO289 - VTS-generated/Synthetic Targets */
 		struct {
+			bool valid;
 		    signed int ntargets;
 		    struct target_t {
 #define DAC1FID17_IDTYPE_MMSI		0
@@ -640,6 +655,7 @@ struct ais_t
 		} dac1fid17;
 		/* IMO 289 - Marine Traffic Signal */
 		struct {
+			bool valid;
 		    unsigned int linkage;	/* Message Linkage ID */
 		    char station[20+1];		/* Name of Signal Station */
 		    signed int lon;		/* Longitude */
@@ -660,6 +676,7 @@ struct ais_t
 		} dac1fid29;
 		/* IMO289 - Meteorological-Hydrological data */
 		struct {
+			bool valid;
 		    bool accuracy;	/* position accuracy, <10m if true */
 #define DAC1FID31_LATLON_SCALE	1000
 		    int lon;		/* longitude in minutes * .001 */
@@ -1007,30 +1024,46 @@ const wchar_t *GetManeuverIndicator(int id);
 const wchar_t *GetNavigationStatus(int id);
 const wchar_t *GetShipType(int id);
 const wchar_t *GetDTE(int id);
+const wchar_t *GetLoaded(int id);
+const wchar_t *GetSpeedQuality(int id);
+const wchar_t *GetHeadingQuality(int id);
+const wchar_t *GetCourseQuality(int id);
+const wchar_t *GetHazardousCargo(int id);
+const wchar_t *GetTurn(int v);
 
 wxArrayString PrepareMsg_1(ais_t::msg1 msg);
 wxArrayString PrepareMsg_4(ais_t::msg4 msg);
 wxArrayString PrepareMsg_5(ais_t::msg5 msg);
 wxArrayString PrepareMsg_8(ais_t::msg8 msg);
+wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg);
+wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg);
 
 wxString PrintHtmlMsg(ais_t *msg, int type);
 wxString PrintHtmlAnchors(ais_t *msg);
 wxString GetHtmlHeader(int type);
 wxString GetHtmlFooter();
 
-
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
-bool ais_binary_decode(unsigned char *bits, size_t bitlen);
+ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 void ais_free_list();
+void ais_free_buffer();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
+nvAisData *ais_prepare_data(ais_t *ais);
+void ais_prepare_buffer(ais_t *ais);
+bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
+bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
+bool ais_set_dim(ais_t *ais, int *dim);
+
+//void *ais_get_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
 float get_cog(unsigned int v);
-wxString get_turn(int v);
+float get_length(unsigned int v);
+float get_beam(unsigned int v);
 
 wxString get_value_as_string(bool v);
 wxString get_value_as_string(unsigned int v , bool check_na, int na_v );

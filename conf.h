@@ -179,6 +179,33 @@
 #define MSG_GO_TOP					111
 #define MSG_DAC						112
 #define MSG_FID						113
+#define MSG_VIN						114
+#define MSG_LENGTH					115
+#define MSG_BEAM					116
+#define MSG_TYPE					117
+#define MSG_HAZARD					118
+#define MSG_LOADED_UNLOADED			119
+#define MSG_SPEED_INF_QUALITY		120
+#define MSG_COURSE_INF_QUALITY		121
+#define MSG_HEADING_INF_QUALITY		122
+#define MSG_AVERAGE_WIND_SPEED		123
+#define MSG_GUST_SPEED				124
+#define MSG_WIND_DIR				125
+#define MSG_WIND_GUST_DIR				126
+#define MSG_AIR_TMP						127
+#define MSG_HUMIDITY					128
+#define MSG_DEWPOINT					129
+#define MSG_PRESSURE					130
+#define MSG_PRESSURE_TENDENCY			131
+#define MSG_H_VISIBILTY					132
+#define MSG_WATER_LEVEL					133
+#define MSG_WATER_LEVEL_TREND			134
+#define MSG_SURFACE_CURRENT_SPEED		135
+#define MSG_SURFACE_CURRENT_DIRECTION	136
+#define MSG_WAVE_HEIGHT			137
+#define MSG_WAVE_PERIOD			138
+#define MSG_WAVE_DIR			139
+
 
 
 #define MAX_DATA_POSITIONS	10

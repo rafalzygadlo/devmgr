@@ -26,7 +26,6 @@ class CParser
 	double ConvertValue(int signal_id,double data);
 	void SetValidData();
 	void SetFunction(int id_function, double *values);
-	void Reset(float *tab);
 	double DD( float DM );
 	void AisParse(char *str);
 	bool Ais(char *str);
