@@ -42,16 +42,18 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Data = NULL;
 	m_Devices = new wxArrayPtrVoid();
 	m_ShipStateExist = false;
+	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_Ticker = new CTicker(this);
 	m_Ticker->Start();
-	
+	Reset(m_ShipState);
+	Reset(m_GlobalShipState);
 	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
 	AddExecuteFunction("devmgr_OnDevSignal",OnDeviceSignal);
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	
-	AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
+	//AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
 	AddExecuteFunction("devmgr_GetAisBuffer",GetAisBuffer);
 	
 	//m_SearchThread = new CNotifier();
@@ -210,11 +212,27 @@ void CMapPlugin::OnTickerStop()
 
 void CMapPlugin::OnTickerTick()
 {
+			
 	if(m_ShipStateExist)
 	{
-		m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);	
-		fprintf(stdout,"%f %f",m_GlobalShipState[0],m_GlobalShipState[0]);
+		m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
+		//fprintf(stdout,"%f %f %f %f %f %f\n",m_ShipState[0],m_ShipState[1],m_ShipState[2],m_ShipState[3],m_ShipState[4],m_ShipState[5]);
+		m_Position_0_Exists = false;
+		m_Position_1_Exists = false;
+		m_ShipStateExist = false;
+		Reset(m_ShipState);
+	
+	}else{
+	
+		if(m_OtherData)
+		{
+			m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);
+			Reset(m_GlobalShipState);
+		}
+
+		
 	}
+
 }
 
 CNaviBroker *CMapPlugin::GetBroker()
@@ -386,7 +404,7 @@ void CMapPlugin::Kill(void)
         delete m_FileConfig;
 
 	ais_free_list();
-	ais_free_buffer();
+	//ais_free_buffer();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 
@@ -403,11 +421,11 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::Render()
 {
 	m_Scale = m_Broker->GetMapScale();
-	GetMutex()->Lock();
-	CNaviArray  <nvAisData*> ar  = *(CNaviArray <nvAisData*>*)ais_get_buffer();
+	//GetMutex()->Lock();
+	//CNaviArray  <nvAisData*> ar  = *(CNaviArray <nvAisData*>*)ais_get_buffer();
 	
-	RenderGeometry(GL_POINTS,ar.GetRawData(),ar.Length());
-	GetMutex()->Unlock();
+	//RenderGeometry(GL_POINTS,ar.GetRawData(),ar.Length());
+	//GetMutex()->Unlock();
 }
 
 bool CMapPlugin::GetNeedExit(void)
@@ -485,7 +503,7 @@ void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
 	//SFunctionData *Data = (SFunctionData*)Params;
 	
-	ThisPtr->SendSignal(SIGNAL_NEW_AIS_OBJECT,NULL);
+	//ThisPtr->SendSignal(SIGNAL_NEW_AIS_OBJECT,NULL);
 		
 	return NULL;
 }
@@ -493,7 +511,7 @@ void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
 void *CMapPlugin::GetAisBuffer(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	return ais_get_buffer();
+	return NULL; //ais_get_buffer();
 }
 
 
@@ -512,9 +530,51 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 	switch(data->id_function)
 	{
 		case 0: 
-			m_ShipStateExist = true;
 			memcpy(m_GlobalShipState,data->values,sizeof(data->values));
+			Prepare();
 		break;
+	}
+	
+}
+
+void CMapPlugin::Prepare()
+{
+	m_OtherData = true;
+	
+	if(!m_ShipStateExist)
+	{
+		if(!UNDEFINED_VAL(m_GlobalShipState[0]))
+		{
+			m_ShipState[0] = m_GlobalShipState[0];
+			m_Position_0_Exists = true;
+			m_OtherData = false;
+		}
+		
+		if(!UNDEFINED_VAL(m_GlobalShipState[1]))
+		{			
+			m_ShipState[1] = m_GlobalShipState[1];
+			m_Position_1_Exists = true;
+			m_OtherData = false;
+		}
+	}
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[2]))
+		m_ShipState[2] = m_GlobalShipState[2];
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[3]))
+		m_ShipState[3] = m_GlobalShipState[3];
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[4]))
+		m_ShipState[4] = m_GlobalShipState[4];
+
+	if(!UNDEFINED_VAL(m_GlobalShipState[5]))
+		m_ShipState[5] = m_GlobalShipState[5];
+
+	if(m_Position_0_Exists && m_Position_1_Exists)
+	{
+		m_ShipStateExist = true;
+		m_Position_0_Exists = false;
+		m_Position_1_Exists = false;
 	}
 	
 }

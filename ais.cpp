@@ -3,7 +3,8 @@
 #include <stdio.h>
 
 CNaviArray <ais_t*> vAisData;
-CNaviArray <nvAisData*> vAisBuffer;
+nvAisData *AisData = NULL;
+//CNaviArray <nvAisData*> vAisBuffer;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -284,12 +285,12 @@ void ais_sort()
 //		}
 	}
 }
-
+/*
 void *ais_get_buffer()
 {
 	return (void*)&vAisBuffer;
 }
-
+*/
 size_t ais_get_item_count()
 {
 	return vAisData.Length();
@@ -297,10 +298,7 @@ size_t ais_get_item_count()
 
 ais_t *ais_get_item(size_t idx)
 {
-	GetMutex()->Lock();
 	ais_t *ais = vAisData.Get(idx);
-	GetMutex()->Unlock();
-
 	return ais;
 }
 
@@ -314,6 +312,9 @@ void ais_free_list()
 	vAisData.Clear();
 }
 
+//void ais_free_
+
+/*
 void ais_free_buffer()
 {
 	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
@@ -323,7 +324,7 @@ void ais_free_buffer()
 	
 	vAisBuffer.Clear();
 }
-
+*/
 
 ais_t *ais_msg_exists(int mmsi)
 {
@@ -337,6 +338,7 @@ ais_t *ais_msg_exists(int mmsi)
 	return NULL;
 }
 
+/*
 nvAisData *ais_buffer_exists(int mmsi)
 {
 	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
@@ -348,8 +350,9 @@ nvAisData *ais_buffer_exists(int mmsi)
 
 	return NULL;
 }
+*/
 
-bool ais_binary_decode(unsigned char *bits, size_t bitlen)
+ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
 	
 	ais_t *ais;
@@ -374,19 +377,20 @@ bool ais_binary_decode(unsigned char *bits, size_t bitlen)
 
 	if(ais_decode(bits,bitlen,ais,type))
 	{
-		ais_prepare_buffer(ais);
 		if(add)
 		{
 			vAisData.Append(ais);
-			return true;
 		}
 	}else{
 		
 		if(add)
+		{
 			free(ais);
+			ais = NULL;
+		}
 	}
 	
-	return false;
+	return ais;
 }
 
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
@@ -429,18 +433,21 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 	return result;
 }
 
-void ais_prepare_buffer(ais_t *ais)
+nvAisData *ais_prepare_buffer(ais_t *ais)
 {
-	nvAisData *AisData = ais_buffer_exists(ais->mmsi);
-	bool add = false;
+	if(ais == NULL)
+		return NULL;
+	
+	//nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	//bool add = false;
 	
 	if(AisData == NULL)
-	{
 		AisData = (nvAisData*)malloc(sizeof(nvAisData));
-		AisData->valid[0] = false;
-		AisData->valid[1] = false;
-		add = true;
-	}
+	
+	AisData->valid[0] = false;
+	AisData->valid[1] = false;
+	//add = true;
+	//}
 	
 	AisData->mmsi = ais->mmsi;
 	bool exists = false;
@@ -457,15 +464,18 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid[1] = true;
 	}
 	
-	if(exists)
-	{
-		if(add)
-			vAisBuffer.Append(AisData);
-	}else{
+	//if(exists)
+	//{
+
+		//if(add)
+			//vAisBuffer.Append(AisData);
+	//}else{
 		
-		if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
-			free(AisData);
-	}
+		//if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+			//free(AisData);
+	//}
+
+	return AisData;
 
 }	
 

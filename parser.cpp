@@ -1,8 +1,8 @@
 #include "parser.h"
 #include "protocol.h"
 #include "tools.h"
-//#include "GeometryTools.h"
 #include "ais.h"
+#include "tools.h"
 
 CParser::CParser()
 {
@@ -138,9 +138,7 @@ void CParser::Parse( char *line)
 
 void CParser::AisParse(char *line)
 {
-	if(Ais(line))
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnNewAisObject",NULL);
-		
+	Ais(line);
 }
 
 bool CParser::Ais(char *line)
@@ -214,9 +212,7 @@ bool CParser::Ais(char *line)
 		}
 				
 	}
-		
-
-	GetMutex()->Lock();
+	
 	
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
 	m_Bitlen -= pad;
@@ -227,14 +223,21 @@ bool CParser::Ais(char *line)
 	
 	if(decode)
 	{
-		new_data = ais_binary_decode(m_Bits,m_Bitlen);
+		GetMutex()->Lock();
+		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
+		nvAisData *data = ais_prepare_buffer(ais);
+		GetMutex()->Unlock();
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"ais_OnAisBuffer",data);
+		
+		
+		//free(data);
 		free(m_Bits);
 		m_Bits = NULL;
 		m_Bitlen = 0;
 		m_OldLen = 0;
 	}
 	
-	GetMutex()->Unlock();
+	
 
 	return new_data;
 	
@@ -330,6 +333,7 @@ void CParser::SetValidData()
 			{
 				//if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
 				//{
+					Reset(funcs->values);
 					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
 					SetFunction(funcd->id,funcs->values);
 				//}
@@ -339,11 +343,6 @@ void CParser::SetValidData()
 
 	}
 
-}
-
-void CParser::Reset(float *tab)
-{
-	
 }
 
 void CParser::SetFunction(int id_function, double *values)

@@ -2,6 +2,7 @@
 #include "tools.h"
 #include <wx/stdpaths.h>
 #include "protocol.h"
+#include "GeometryTools.h"
 
 wxMutex *mutex = NULL;
 int GlobalLanguageID;
@@ -421,4 +422,14 @@ bool Set_RMC_COG()
 		return false;
 	else
 		return true;
+}
+
+void Reset(double *tab)
+{
+	tab[0] = UNDEFINED_DOUBLE;
+	tab[1] = UNDEFINED_DOUBLE;
+	tab[2] = UNDEFINED_DOUBLE;
+	tab[3] = UNDEFINED_DOUBLE;
+	tab[4] = UNDEFINED_DOUBLE;
+	tab[5] = UNDEFINED_DOUBLE;
 }

@@ -231,7 +231,7 @@
 #define MARKER_LENGTH 5
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
 
-#define TICKER_SLEEP	1000
+#define TICKER_SLEEP	100
 
 typedef struct SData 
 {

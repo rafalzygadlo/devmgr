@@ -1044,19 +1044,19 @@ wxString GetHtmlHeader(int type);
 wxString GetHtmlFooter();
 
 void to6bit(char *data, size_t *datalen, unsigned char *&bits, size_t *bitlen);
-bool ais_binary_decode(unsigned char *bits, size_t bitlen);
+ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen);
 ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 void ais_free_list();
-void ais_free_buffer();
+//void ais_free_buffer();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
-void ais_prepare_buffer(ais_t *ais);
+nvAisData *ais_prepare_buffer(ais_t *ais);
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
 bool ais_set_dim(ais_t *ais, int *dim);
 
-void *ais_get_buffer();
+//void *ais_get_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);

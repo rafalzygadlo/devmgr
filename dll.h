@@ -26,6 +26,9 @@ class CMyFrame;
 class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
+	bool m_Position_0_Exists,m_Position_1_Exists;
+	bool m_OtherData;
+	double m_ShipState[6];
 	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
 	bool m_ShipStateExist;
@@ -43,6 +46,7 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_GlobalShipState[6];
 	CTicker *m_Ticker;
 
+	void Prepare();
 	void CreateApiMenu(void);
 	void WriteConfig();
 	void ReadConfig();
