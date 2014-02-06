@@ -11,6 +11,7 @@
 //#include "GeometryTools.h"
 
 
+
 unsigned char PluginInfoBlock[] = {
 0x59,0x0,0x0,0x0,0x5a,0xa1,0xb1,0xfb,0xff,0x1c,0xbd,0xa7,0xc4,0xbf,0x99,0x83,0xaa,0xa9,0x33,0x3e,0xcd,0x2e,0x30,0x6e,0xc,0xa6,0x2a,0x51,0xef,0x72,0x80,0x38,0x39,0x2b,
 0x23,0x64,0x4,0x6d,0x21,0xf1,0x8c,0x5c,0x2f,0x7,0xd4,0xb0,0x6c,0x5f,0x26,0x24,0xf2,0xb6,0xd3,0xd4,0xb2,0x8,0x90,0x67,0x3f,0xee,0x7,0xae,0x45,0x69,0xf8,0x1e,0xf3,0xd3,
@@ -45,6 +46,20 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_Ticker = new CTicker(this);
 	m_Ticker->Start();
+	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );	
+	
+	m_Font = new nvFastFont();
+	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
+	m_Font->SetEffect( nvEFFECT_SMOOTH );
+	m_Font->SetEffect( nvEFFECT_GLOW );
+    
+	m_Font->SetGlyphColor(0.0f, 0.0f, 0.0f);
+	//Font->SetGlyphCenter(0.0001f);
+    //Font->SetGlyphOffset( 0.5f );
+
+	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
+	m_Font->SetGlowCenter( 4.0f );
+
 	Reset(m_ShipState);
 	Reset(m_GlobalShipState);
 	AddExecuteFunction("devmgr_OnDevData",OnDeviceData);
@@ -52,10 +67,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
-	
-	//AddExecuteFunction("devmgr_OnNewAisObject",OnNewAisObject);
-	AddExecuteFunction("devmgr_GetAisBuffer",GetAisBuffer);
-	
+		
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -200,6 +212,10 @@ void CMapPlugin::ReadSocketConfig(int index)
 
 }
 
+void CMapPlugin::OnInitGL()
+{
+	m_Font->InitGL();
+}
 
 void CMapPlugin::OnTickerStart()
 {
@@ -213,11 +229,170 @@ void CMapPlugin::OnTickerStop()
 
 void CMapPlugin::OnTickerTick()
 {
+	SendShipData();
+	PrepareBuffer();
+}		
+
+void CMapPlugin::PrepareBuffer()
+{
+	GetMutex()->Lock();
+	CNaviArray <SAisData*> *buffer = ais_get_buffer();
+	m_Font->Clear();	
+	// przygotuj bufor punktow do renderu
+	CurrentBufferPtr = &PointsBuffer1;
+	PointsBuffer0.Clear();
+	TriangleBuffer0.Clear();
+	
+	for(size_t i = 0; i < buffer->Length(); i++)
+	{
+		SAisData *data = buffer->Get(i);
+		//PreparePointsBuffer(data);
+		PrepareTriangleBuffer(data);
 			
+		//PrepareIndicesBuffer();
+	}
+	CurrentBufferPtr = &PointsBuffer0;
+	CopyPointsBuffer();
+
+	GetMutex()->Unlock();
+	
+}
+
+void CMapPlugin::CopyPointsBuffer()
+{
+	PointsBuffer1.Clear();
+	PointsBuffer1.SetSize(PointsBuffer0.Length());
+	
+	for(size_t i = 0; i < PointsBuffer0.Length(); i++)
+		PointsBuffer1.Set(i,PointsBuffer0.Get(i));
+}
+
+void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
+{
+	nvPoint2d pt;
+	
+	m_Broker->Unproject(ptr->lon, -ptr->lat, &pt.x, &pt.y);							// pozycja y statku na mapie
+	double Distance = nvDistance( ptr->lon, ptr->lat, ptr->lon + 1.0, ptr->lat );	// iloœæ mil na stopieñ w aktualnej pozycji y
+		
+	PointsBuffer0.Append(pt);
+
+}
+
+void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
+{
+	nvPoint2d pt;
+	
+	m_Broker->Unproject(ptr->lon, -ptr->lat, &pt.x, &pt.y);							// pozycja y statku na mapie
+	double Distance = nvDistance( ptr->lon, ptr->lat, ptr->lon + 1.0, ptr->lat );	// iloœæ mil na stopieñ w aktualnej pozycji y
+//	double Percent = m_MilesPerDeg / Distance;										// korekcja "równikowej" d³ugoœci stopnia
+	
+	// na mile morskie
+	if(ptr->valid_dim && ptr->valid_pos)
+	{
+		double to_bow, to_stern, to_port, to_statboard;	
+		nvPoint2d p1, p2, p3, p4;
+		
+		to_bow		 = (double)ptr->to_bow / 1852 / Distance;
+		to_stern	 = (double)ptr->to_stern / 1852 / Distance;
+		to_port		 = (double)ptr->to_port / 1852 /Distance;
+		to_statboard = (double)ptr->to_starboard / 1852 /Distance;
+				
+		p1.x = 0.0 - ( to_port/2 );			p1.y = 0.0 + (to_bow/2);
+		p2.x = 0.0 + ( to_statboard/2 );	p2.y = 0.0 + (to_bow/2);
+		p3.x = 0.0 + ( to_statboard/2 );	p4.y = 0.0 - (to_stern/2);
+		p4.x = 0.0 - ( to_port/2 );			p3.y = 0.0 - (to_stern/2);
+		
+		if(ptr->valid_cog)
+		{
+			double out_x,out_y;
+			
+			RotateZ(p1.x,p1.y,out_x,out_y,ptr->cog);	p1.x = out_x;	p1.y = out_y;
+			RotateZ(p2.x,p2.y,out_x,out_y,ptr->cog);	p2.x = out_x;	p2.y = out_y;
+			RotateZ(p3.x,p3.y,out_x,out_y,ptr->cog);	p3.x = out_x;	p3.y = out_y;
+			RotateZ(p4.x,p4.y,out_x,out_y,ptr->cog);	p4.x = out_x;	p4.y = out_y;
+		}
+		
+		// translate
+		p1.x += pt.x; p1.y += pt.y;
+		p2.x += pt.x; p2.y += pt.y;
+		p3.x += pt.x; p3.y += pt.y;
+		p4.x += pt.x; p4.y += pt.y;
+		
+
+		TriangleBuffer0.Append(p1);
+		TriangleBuffer0.Append(p2);
+		TriangleBuffer0.Append(p3);
+		TriangleBuffer0.Append(p4);
+		wchar_t str[128];
+		float scale = (1 / m_Broker->GetMapScale()) / 8;
+				
+		swprintf(str,L"mmsi: %d %ls %f",ptr->mmsi,ptr->shipname,nvDistance(p1.x,p1.y,p4.x,p4.y,nvMeter));
+		
+		m_Font->Print(pt.x,pt.y,scale,0,str);
+		glColor3f(1.0,0.0,0.0);
+	
+	
+		
+		PointsBuffer0.Append(pt);
+
+
+	}
+	
+	//double ShipScale = (ShipWidth / m_MilesPerDeg) * Percent;						// skalowanie rzeczywistego wymiaru statku w milach
+			
+	
+
+}
+/*
+void CMapPlugin::BuildFontData(SAisData *ptr)
+{
+	Font
+	
+	Font->Clear();
+	if(size == 0)
+		return;
+
+	size_t CaptionsSize = size;
+    vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );    // czêœæ ca³kowita jednostki sondowania
+    float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *Angle = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *vx = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *vy = (float*)malloc( CaptionsSize * sizeof( float ) );
+    wchar_t **CaptionsStr = (wchar_t**)malloc(  CaptionsSize * sizeof( wchar_t** ) );
+	
+	
+
+    for(size_t i = 0 ; i < Towns.Length(); i++ ) 
+	{
+		//STown Town = Towns.Get(i);
+		Positions[i][0] = TownsList[i].p1; 
+        Positions[i][1] = TownsList[i].p2  + (20.0/SmoothScaleFactor);
+		Scale[i] = TownsList[i].scale / SmoothScaleFactor / DEFAULT_FONT_FACTOR;
+        vx[i] = 0.5f;
+        vy[i] = 0.5f;
+		CaptionsStr[i] = TownsList[i].name;   // bez kopiowania ³añcucha!!! 
+		Angle[i] = Broker->GetAngle();
+    }
+
+	Font->Clear();
+    Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
+
+	free( CaptionsStr );    // ³añcuchy nie zosta³y skopiowane, nie ma koniecznoœci zwalniania ca³ej listy
+    free( Positions );
+    free( Scale );
+    free( Angle );
+    free( vx );
+    free( vy );
+
+}
+*/
+
+void CMapPlugin::SendShipData()
+{
+
 	if(m_ShipStateExist)
 	{
 		m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
-		//fprintf(stdout,"%f %f %f %f %f %f\n",m_ShipState[0],m_ShipState[1],m_ShipState[2],m_ShipState[3],m_ShipState[4],m_ShipState[5]);
 		m_Position_0_Exists = false;
 		m_Position_1_Exists = false;
 		m_ShipStateExist = false;
@@ -230,10 +405,8 @@ void CMapPlugin::OnTickerTick()
 			m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);
 			Reset(m_GlobalShipState);
 		}
-
-		
+	
 	}
-
 }
 
 CNaviBroker *CMapPlugin::GetBroker()
@@ -421,17 +594,27 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 
 void CMapPlugin::Render()
 {
-	m_Scale = m_Broker->GetMapScale();
-	//GetMutex()->Lock();
-	//CNaviArray  <nvAisData*> ar  = *(CNaviArray <nvAisData*>*)ais_get_buffer();
-	
-	//RenderGeometry(GL_POINTS,ar.GetRawData(),ar.Length());
-	//GetMutex()->Unlock();
+	glColor3f(0.0,0.0,0.0);
+	glPointSize(5);
+	RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
+	RenderGeometry(GL_QUADS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
+			
+	glColor3f(1.0,0.0,0.0);
+	//RenderGeometry(GL_POINTS,CurrentBufferPtr->GetRawData(),CurrentBufferPtr->Length());
+	RenderGeometry(GL_POINTS,PointsBuffer0.GetRawData(),PointsBuffer0.Length());
+
+	glPointSize(1);
+
+
+	m_Font->ClearBuffers();
+	m_Font->CreateBuffers();
+	m_Font->Render();
+
 }
 
 bool CMapPlugin::GetNeedExit(void)
-{
-    return m_NeedExit;
+{    
+	return m_NeedExit;
 }
 
 void CMapPlugin::CreateApiMenu(void) 
@@ -512,7 +695,8 @@ void *CMapPlugin::OnNewAisObject(void *NaviMapIOApiPtr, void *Params)
 void *CMapPlugin::GetAisBuffer(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	return NULL; //ais_get_buffer();
+	//Params = ais_get_buffer();
+	return NULL;
 }
 
 

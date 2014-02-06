@@ -3,8 +3,8 @@
 #include <stdio.h>
 
 CNaviArray <ais_t*> vAisData;
-nvAisData *AisData = NULL;
-CNaviArray <nvAisData*> vAisBuffer;
+SAisData *AisData = NULL;
+CNaviArray <SAisData*> vAisBuffer;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -268,29 +268,31 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 void ais_sort()
 {
-	size_t len = vAisData.Length();
 	
+	size_t len = vAisData.Length();
+	/*
 	for(size_t i = 0; i < len; i++)
 	{	
-//		for(size_t j = 0; j < len - 1; j++)
-//		{
-//			if(strcmp(vAist[j]-> Devices[j].name,Devices[j + 1].name) > 0)
-//			{
-//				SDevices tmp;
-//				tmp = Devices[j];
-//				Devices[j] = Devices[j + 1];
-//				Devices[j + 1] = tmp;
-//			}
+		for(size_t j = 0; j < len - 1; j++)
+		{
+			if(strcmp(vAist[j]-> Devices[j].name,Devices[j + 1].name) > 0)
+			{
+				SDevices tmp;
+				tmp = Devices[j];
+				Devices[j] = Devices[j + 1];
+				Devices[j + 1] = tmp;
+			}
 			
-//		}
+		}
 	}
+
+	*/
 }
-/*
-void *ais_get_buffer()
+CNaviArray <SAisData*> *ais_get_buffer()
 {
-	return (void*)&vAisBuffer;
+	return &vAisBuffer;
 }
-*/
+
 size_t ais_get_item_count()
 {
 	return vAisData.Length();
@@ -311,9 +313,6 @@ void ais_free_list()
 	
 	vAisData.Clear();
 }
-
-//void ais_free_
-
 
 void ais_free_buffer()
 {
@@ -337,11 +336,11 @@ ais_t *ais_msg_exists(int mmsi)
 	return NULL;
 }
 
-nvAisData *ais_buffer_exists(int mmsi)
+SAisData *ais_buffer_exists(int mmsi)
 {
 	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
 	{
-		nvAisData *ptr = vAisBuffer.Get(i);
+		SAisData *ptr = vAisBuffer.Get(i);
 		if(ptr->mmsi == mmsi)
 			return ptr;
 	}
@@ -431,86 +430,39 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 	return result;
 }
 
-nvAisData *ais_prepare_data(ais_t *ais)
-{
-	if(ais == NULL)
-		return NULL;
-	
-	//nvAisData *AisData = ais_buffer_exists(ais->mmsi);
-	//bool add = false;
-	
-	if(AisData == NULL)
-		AisData = (nvAisData*)malloc(sizeof(nvAisData));
-	
-	AisData->valid[0] = false;
-	AisData->valid[1] = false;
-	//add = true;
-	//}
-	
-	AisData->mmsi = ais->mmsi;
-	bool exists = false;
-	
-	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
-	{
-		exists = true;
-		AisData->valid[0] = true;
-	}	
-	
-	if(ais_set_dim(ais,AisData->dim))
-	{
-		exists = true;
-		AisData->valid[1] = true;
-	}
-	
-	//if(exists)
-	//{
-
-		//if(add)
-			//vAisBuffer.Append(AisData);
-	//}else{
-		
-		//if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
-			//free(AisData);
-	//}
-
-	return AisData;
-
-}	
-
 void ais_prepare_buffer(ais_t *ais)
 {
 	if(ais == NULL)
 		return;
 	
-	nvAisData *AisData = ais_buffer_exists(ais->mmsi);
+	SAisData *AisData = ais_buffer_exists(ais->mmsi);
 	bool add = false;
 	
 	if(AisData == NULL)
 	{
-		AisData = (nvAisData*)malloc(sizeof(nvAisData));
-		AisData->valid[0] = false;
-		AisData->valid[1] = false;
+		AisData = (SAisData*)malloc(sizeof(SAisData));
+		AisData->valid_pos = false;
+		AisData->valid_dim = false;
 		add = true;
 	}
 		
 	AisData->mmsi = ais->mmsi;
 	bool exists = false;
 	
-	if(ais_set_lon_lat(ais,&AisData->lon_lat[AIS_LON],&AisData->lon_lat[AIS_LAT]))
+	if(ais_set_lon_lat(ais,&AisData->lon,&AisData->lat))
 	{
-		exists = true;
-		AisData->valid[0] = true;
+		exists = true;			// wystarczy ze mamy lon lat
+		AisData->valid_pos = true;
 	}	
 	
-	if(ais_set_dim(ais,AisData->dim))
-	{
-		exists = true;
-		AisData->valid[1] = true;
-	}
+	if(ais_set_dim(ais,AisData))
+		AisData->valid_dim = true;
 	
+	if(ais_set_cog(ais,AisData))
+		AisData->valid_cog = true;
+			
 	if(exists)
 	{
-
 		if(add)
 			vAisBuffer.Append(AisData);
 	}else{
@@ -520,8 +472,6 @@ void ais_prepare_buffer(ais_t *ais)
 	}
 
 }	
-
-
 
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 {
@@ -543,19 +493,32 @@ bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 	return false;
 }
 
-bool ais_set_dim(ais_t *ais, int *dim)
+bool ais_set_dim(ais_t *ais, SAisData *ptr)
 {
 	if(ais->valid[AIS_MSG_5])
 	{
-		dim[AIS_DIM_TO_BOW]			= ais->type5.to_bow;
-		dim[AIS_DIM_TO_STERN]		= ais->type5.to_stern;
-		dim[AIS_DIM_TO_PORT]		= ais->type5.to_port;	
-		dim[AIS_DIM_TO_STARBOARD]	= ais->type5.to_starboard;
-		
+		ptr->to_bow			= ais->type5.to_bow;
+		ptr->to_stern		= ais->type5.to_stern;
+		ptr->to_port		= ais->type5.to_port;	
+		ptr->to_starboard	= ais->type5.to_starboard;
+		memcpy(ptr->shipname,ais->type5.shipname,AIS_SHIPNAME_MAXLEN + 1);
+	
 		return true;
 	}
 
 	return false;
+}
+
+bool ais_set_cog(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_1])
+	{
+		ptr->cog = ais->type1.course;
+		return true;
+	}
+
+	return false;
+
 }
 
 

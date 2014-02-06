@@ -105,13 +105,13 @@ void CListCtrl::Menu()
 
 void CListCtrl::OnSelected(wxListEvent &event)
 {
+	
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-	GetMutex()->Lock();
-	ais_t *ais = ais_get_item(n_item);
-	GetMutex()->Unlock();
-	_AisList->ClearHtml();
 	
+	ais_t *ais = ais_get_item(n_item);
+	
+	_AisList->ClearHtml();
 	_AisList->SetHtml(_("<a name='top'></a><br>"));
 	_AisList->SetHtml(PrintHtmlAnchors(ais));
 	
@@ -192,9 +192,7 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 
 	wxString str;
 	wxString name;	
-	GetMutex()->Lock();
 	ais_t *ais = ais_get_item(item);
-	GetMutex()->Unlock();
 	wxString mes;
 	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
 	{

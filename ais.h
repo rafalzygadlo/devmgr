@@ -7,6 +7,8 @@
 #include <vector>
 #include <wx/wx.h>
 #include "NaviArgsTypes.h"
+#include "NaviArray.h"
+#include "conf.h"
 
 #define AIS_MESSAGES_LENGTH	27
 
@@ -44,7 +46,7 @@
 #define AIS_MSG_26	26
 #define AIS_MSG_27	27
 
-#define AIS_SHIPNAME_MAXLEN	20
+//#define AIS_SHIPNAME_MAXLEN	20
 #define MAX_TYPE24_INTERLEAVE	8	/* max number of queued type 24s */
 
 struct ais_p
@@ -1051,13 +1053,12 @@ void ais_free_list();
 void ais_free_buffer();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
-nvAisData *ais_prepare_data(ais_t *ais);
 void ais_prepare_buffer(ais_t *ais);
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
-bool ais_set_dim(ais_t *ais, int *dim);
-
-//void *ais_get_buffer();
+bool ais_set_dim(ais_t *ais, SAisData *dim);
+bool ais_set_cog(ais_t *ais, SAisData *ptr);
+CNaviArray <SAisData*> *ais_get_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
