@@ -5,7 +5,7 @@
 #define COMMENT
 
 #define DEBUG
-
+enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 };
 #ifdef _WIN32
 	#define DIR_SEPARATOR "\\"
 #endif
@@ -225,6 +225,7 @@
 #define AIS_FRAGMENT_NUMBER		2
 #define AIS_FRAGMENT_COUNTER	1
 #define AIS_DATA				5
+#define AIS_SHIPNAME_MAXLEN		20
 
 #define AIS_PARTS 7 // czesci wiadomosci
 
@@ -248,6 +249,27 @@ typedef struct SFunctionData
 	double	values[6];
 
 } SFunctionData;
+
+
+typedef struct 
+{
+
+	unsigned int mmsi;
+	double lon;		//pozycja lon,lat
+	double lat;
+	float cog;
+	int to_bow;
+	int to_stern;
+	int to_port;
+	int to_starboard;
+	char shipname[AIS_SHIPNAME_MAXLEN + 1];
+	int index;			//index w glownej tablicy danych
+	bool valid_dim;		// czy wystapil wymiar
+	bool valid_pos;		// czy wystapila pozycja
+	bool valid_cog;		//czy cog
+
+}SAisData;
+
 
 
 // globalne identyfikatory eventów

@@ -28,6 +28,7 @@ CReader *CreateSerialDevice(wxString name, char *port, int baud, int dtype, bool
 CReader *CreateSocketDevice(wxString name, wxString host, int port, int dtype, bool run);
 double _nvToRad( double angle );
 void Reset(double *tab);
-// funkcje protokolu
+void RotateZ( double x, double y, double &out_x, double &out_y, double radangle);
+double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit);
 
 #endif

@@ -7,7 +7,8 @@
 #include <wx/wx.h>
 #include "NaviDisplayApi.h"
 #include <wx/fileconf.h>
-#include "gl/gl.h"
+#include "GeometryConfig.h"
+#include "nvFastFont.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -45,6 +46,15 @@ class CMapPlugin :public CNaviMapIOApi
 	SData *m_Data;
 	double m_GlobalShipState[6];
 	CTicker *m_Ticker;
+	double m_MilesPerDeg;
+	nvFastFont *m_Font;
+	
+	// bufory punktow
+	CNaviArray <nvPoint2d> PointsBuffer0;
+	CNaviArray <nvPoint2d> PointsBuffer1;
+	CNaviArray <nvPoint2d> TriangleBuffer0;
+
+	CNaviArray <nvPoint2d> *CurrentBufferPtr;
 
 	void Prepare();
 	void CreateApiMenu(void);
@@ -65,6 +75,11 @@ class CMapPlugin :public CNaviMapIOApi
 	void WriteSocketConfig(int index);
 	void ReadSocketConfig(int index);
 	void ReadSerialConfig(int index);
+	void PrepareBuffer();
+	void PreparePointsBuffer(SAisData *ptr);
+	void PrepareTriangleBuffer(SAisData *ptr);
+	void CopyPointsBuffer();
+	void SendShipData();
 					
 public:
 
@@ -100,6 +115,7 @@ public:
 	virtual void Config();
 	virtual void Mouse(int x, int y, bool lmb, bool mmb, bool rmb );
 	virtual void MouseDBLClick(int x, int y);
+	virtual void OnInitGL();
 		
 	// funkcje dostêpne dla innych pluginów
 	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial signal (recnnec, on data etc...)

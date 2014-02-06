@@ -9,6 +9,7 @@ int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 
+
 const wchar_t *nvLanguage[2][183] = 
 { 
 	/*EN*/
@@ -432,4 +433,30 @@ void Reset(double *tab)
 	tab[3] = UNDEFINED_DOUBLE;
 	tab[4] = UNDEFINED_DOUBLE;
 	tab[5] = UNDEFINED_DOUBLE;
+}
+
+void RotateZ( double x, double y, double &out_x, double &out_y, double radangle) 
+{
+	out_x = (x * cos( radangle )) - (y * sin( radangle ) );
+	out_y = (x * sin( radangle )) + (y * cos( radangle ) );
+}
+
+double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit) 
+{
+
+	double dLat = nvToRad( lat2 - lat1 );
+	double dLon = nvToRad( lon2 - lon1 );
+	double R = 6371.0;
+
+	double a = ( sin(dLat/2) * sin(dLat/2) )  +  ( cos( nvToRad(lat1) ) * cos( nvToRad(lat2) ) * sin(dLon/2) * sin(dLon/2) );
+	double c = 2 * atan2( sqrt(a), sqrt( 1 - a ) );
+
+	switch( distanceunit ) 
+	{
+		case nvKilometer: return R * c;
+		case nvNauticMiles: return (R *c) / 1.852;
+		case nvMeter : return R * c * 1000;
+		default:
+			return (R *c) / 1.852;
+	}
 }
