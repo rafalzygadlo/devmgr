@@ -513,7 +513,7 @@ bool ais_set_cog(ais_t *ais, SAisData *ptr)
 {
 	if(ais->valid[AIS_MSG_1])
 	{
-		ptr->cog = ais->type1.course;
+		ptr->cog = get_cog(ais->type1.course);
 		return true;
 	}
 
