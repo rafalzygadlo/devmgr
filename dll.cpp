@@ -283,10 +283,8 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 	nvPoint2d pt;
 	pt.x = ptr->lon;
 	pt.y = -ptr->lat;
-	//_Broker->Unproject(ptr->lon, -ptr->lat, &pt.x, &pt.y);							// pozycja y statku na mapie
-	double Distance = nvDistance( 0.0, 0.0, 0.0 + 1.0, 0.0 );	// iloœæ mil na stopieñ w aktualnej pozycji y
-	//double Distance = nvDistance( pt.x, pt.y, pt.x + 1.0, pt.y );	// iloœæ mil na stopieñ w aktualnej pozycji y
-//	double Percent = m_MilesPerDeg / Distance;										// korekcja "równikowej" d³ugoœci stopnia
+	
+	double yDistance = nvDistance( pt.x, pt.y, pt.x + 1.0, pt.y );	// iloœæ mil na stopieñ w aktualnej pozycji y
 	
 	// na mile morskie
 	if(ptr->valid_dim && ptr->valid_pos)
@@ -294,31 +292,43 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		double to_bow, to_stern, to_port, to_starboard;	
 		nvPoint2d p1, p2, p3, p4;
 		
-		to_bow		 = (double)ptr->to_bow / 1852 / Distance;
-		to_stern	 = (double)ptr->to_stern / 1852 / Distance;
-		to_port		 = (double)ptr->to_port / 1852 / Distance;
-		to_starboard = (double)ptr->to_starboard / 1852 / Distance;
-				
-		p1.x = 0.0 + to_starboard;	p1.y = 0.0 + to_stern;
-		p2.y = 0.0 - to_port;		p2.x = 0.0 + to_stern;
-		p3.x = 0.0 - to_port;		p3.y = 0.0 - to_bow;
-		p4.x = 0.0 + to_starboard;	p4.y = 0.0 - to_bow;
-		
-		
+		to_bow		 = (double)ptr->to_bow/1852/yDistance; 			
+		to_stern	 = (double)ptr->to_stern/1852/yDistance;		
+		to_port		 = (double)ptr->to_port/1852/yDistance ;			
+		to_starboard = (double)ptr->to_starboard/1852/yDistance;
+			
+		double width = to_port + to_starboard;
+		double height = to_bow + to_stern;
 
+		p1.x = -0.5*width;	p1.y =  0.5*height;
+		p2.x =  0.5*width;	p2.y =  0.5*height;
+		p3.x =  0.5*width;	p3.y = -0.5*height;
+		p4.x = -0.5*width;	p4.y = -0.5*height;
+				
 		if(ptr->valid_cog)
 		{
 			double out_x,out_y;
-			//RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->cog));	p1.x = out_x;	p1.y = out_y;
-			//RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->cog));	p2.x = out_x;	p2.y = out_y;
-			//RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->cog));	p3.x = out_x;	p3.y = out_y;
-			//RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->cog));	p4.x = out_x;	p4.y = out_y;
+			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->cog));	p1.x = out_x;	p1.y = out_y;
+			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->cog));	p2.x = out_x;	p2.y = out_y;
+			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->cog));	p3.x = out_x;	p3.y = out_y;
+			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->cog));	p4.x = out_x;	p4.y = out_y;
 		}
-
+		
 		double to_x, to_y;
-		//m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
-		//pt.x = to_x;
-		//pt.y = to_y;
+		m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+		pt.x = to_x;
+		pt.y = to_y;
+		
+		double vx = to_port - to_starboard;
+		double vy = to_bow - to_stern;
+		m_Broker->Unproject(vx, vy,&to_x,&to_y);
+		vx = to_x;
+		vy = to_y;
+		
+		p1.x += vy; p1.y += vx;
+		p2.x += vy; p2.y += vx;
+		p3.x += vy; p3.y += vx;
+		p4.x += vy; p4.y += vx;
 
 		// translate
 		p1.x += pt.x; p1.y += pt.y;
@@ -326,21 +336,11 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		p3.x += pt.x; p3.y += pt.y;
 		p4.x += pt.x; p4.y += pt.y;
 
-
-		// projektujemy
-		//double to_x, to_y;
-		m_Broker->Unproject(p1.x, p1.y, &to_x, &to_y);	p1.x = to_x; p1.y = to_y;
-		m_Broker->Unproject(p2.x, p2.y, &to_x, &to_y);	p2.x = to_x; p2.y = to_y;
-		m_Broker->Unproject(p3.x, p3.y, &to_x, &to_y);	p3.x = to_x; p3.y = to_y;
-		m_Broker->Unproject(p4.x, p4.y, &to_x, &to_y);	p4.x = to_x; p4.y = to_y;
-		
-
-
+				
 		TriangleBuffer0.Append(p1);
 		TriangleBuffer0.Append(p2);
 		TriangleBuffer0.Append(p3);
 		TriangleBuffer0.Append(p4);
-		
 
 
 		wchar_t str[128];
@@ -348,16 +348,12 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		wchar_t wc[128];
 		mbstowcs(wc, ptr->shipname, 128);
 		//m_Broker->Project(
-			swprintf(str,L"mmsi:%d %d %d %ls %f %f %f %f",ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard, ptr->mmsi,wc, nvDistance(p1.x,p1.y,p4.x,p4.y,nvMeter),nvDistance(p1.x,p1.y,p2.x,p2.y,nvMeter),nvDistance(p1.x,p1.y,p3.x,p3.y,nvMeter),nvDistance(p1.x,p1.y,p4.x,p4.y)*1852);
+		swprintf(str,L"mmsi:%d [%dx%d] %ls",ptr->mmsi,ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard,wc);
 				
 		m_Font->Print(p1.x,p1.y,scale,0,str);
 		glColor3f(1.0,0.0,0.0);
-	
-	
 		
 		//PointsBuffer0.Append(pt);
-
-
 	}
 	
 	//double ShipScale = (ShipWidth / m_MilesPerDeg) * Percent;						// skalowanie rzeczywistego wymiaru statku w milach
