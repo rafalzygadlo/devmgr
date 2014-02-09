@@ -191,8 +191,10 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 {
 
 	wxString str;
-	wxString name;	
+	wxString name;
+	GetMutex()->Lock();
 	ais_t *ais = ais_get_item(item);
+	GetMutex()->Unlock();
 	wxString mes;
 	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
 	{

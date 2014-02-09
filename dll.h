@@ -52,9 +52,13 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufory punktow
 	CNaviArray <nvPoint2d> PointsBuffer0;
 	CNaviArray <nvPoint2d> PointsBuffer1;
-	CNaviArray <nvPoint2d> TriangleBuffer0;
+	// pointer na aktualny bufor
+	CNaviArray <nvPoint2d> *CurrentPointsBufferPtr;
 
-	CNaviArray <nvPoint2d> *CurrentBufferPtr;
+	CNaviArray <nvPoint2d> TriangleBuffer0;
+	CNaviArray <nvPoint2d> TriangleBuffer1;
+	// pointer na aktualny bufor
+	CNaviArray <nvPoint2d> *CurrentTriangleBufferPtr;
 
 	void Prepare();
 	void CreateApiMenu(void);
@@ -79,6 +83,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareTriangleBuffer(SAisData *ptr);
 	void CopyPointsBuffer();
+	void CopyTriangleBuffer();
 	void SendShipData();
 					
 public:

@@ -419,7 +419,7 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	result = true;	break;
 		case AIS_MSG_22:	ais_message_22(bits,ais);			result = true;	break;
 		case AIS_MSG_23:	ais_message_23(bits,ais);			result = true;	break;
-		//case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	break;
+		case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	result = true;	break;
 		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	result = true;	break;
 
 		default:
@@ -443,6 +443,8 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData = (SAisData*)malloc(sizeof(SAisData));
 		AisData->valid_pos = false;
 		AisData->valid_dim = false;
+		AisData->valid_cog = false;
+		AisData->valid_hdg = false;
 		add = true;
 	}
 		
@@ -460,6 +462,9 @@ void ais_prepare_buffer(ais_t *ais)
 	
 	if(ais_set_cog(ais,AisData))
 		AisData->valid_cog = true;
+	
+	if(ais_set_hdg(ais,AisData))
+		AisData->valid_hdg = true;
 			
 	if(exists)
 	{
@@ -476,11 +481,18 @@ void ais_prepare_buffer(ais_t *ais)
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 {
 	
-	if(ais->valid[AIS_MSG_1])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
-	if(ais->valid[AIS_MSG_2])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
-	if(ais->valid[AIS_MSG_3])	{	*lon = ais->type1.lon/AIS_LATLON_DIV;	*lat = ais->type1.lat/AIS_LATLON_DIV;	return true;	}
-	if(ais->valid[AIS_MSG_4])	{	*lon = ais->type4.lon/AIS_LATLON_DIV;	*lat = ais->type4.lat/AIS_LATLON_DIV;	return true;	}
+	if(ais->valid[AIS_MSG_1])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_2])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_3])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_4])	{	*lon = get_lon_lat(ais->type4.lon);		*lat = get_lon_lat(ais->type4.lat);		return true;	}
+	if(ais->valid[AIS_MSG_9])	{	*lon = get_lon_lat(ais->type9.lon);		*lat = get_lon_lat(ais->type9.lat);		return true;	}
+	if(ais->valid[AIS_MSG_17])	{	*lon = get_lon_lat(ais->type17.lon);	*lat = get_lon_lat(ais->type17.lat);	return true;	}
+	if(ais->valid[AIS_MSG_18])	{	*lon = get_lon_lat(ais->type18.lon);	*lat = get_lon_lat(ais->type18.lat);	return true;	}
+	if(ais->valid[AIS_MSG_19])	{	*lon = get_lon_lat(ais->type19.lon);	*lat = get_lon_lat(ais->type19.lat);	return true;	}
+	if(ais->valid[AIS_MSG_21])	{	*lon = get_lon_lat(ais->type21.lon);	*lat = get_lon_lat(ais->type21.lat);	return true;	}
+	if(ais->valid[AIS_MSG_27])	{	*lon = get_lon_lat(ais->type27.lon);	*lat = get_lon_lat(ais->type27.lat);	return true;	}
 
+	
 	/*
 	if(ais->valid[AIS_MSG_8] )	
 	{	
@@ -506,15 +518,70 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		return true;
 	}
 
+	if(ais->valid[AIS_MSG_19])
+	{
+		ptr->to_bow			= ais->type19.to_bow;
+		ptr->to_stern		= ais->type19.to_stern;
+		ptr->to_port		= ais->type19.to_port;	
+		ptr->to_starboard	= ais->type19.to_starboard;
+		memcpy(ptr->shipname,ais->type19.shipname,AIS_SHIPNAME_MAXLEN + 1);
+	
+		return true;
+	}
+
+	if(ais->valid[AIS_MSG_21])
+	{
+		ptr->to_bow			= ais->type21.to_bow;
+		ptr->to_stern		= ais->type21.to_stern;
+		ptr->to_port		= ais->type21.to_port;	
+		ptr->to_starboard	= ais->type21.to_starboard;
+		//memcpy(ptr->shipname,ais->type21. shipname,AIS_SHIPNAME_MAXLEN + 1);
+	
+		return true;
+	}
+
+	if(ais->valid[AIS_MSG_24])
+	{
+		ptr->to_bow			= ais->type24.dim.to_bow;
+		ptr->to_stern		= ais->type24.dim.to_stern;
+		ptr->to_port		= ais->type24.dim.to_port;	
+		ptr->to_starboard	= ais->type24.dim.to_starboard;
+		memcpy(ptr->shipname,ais->type24. shipname,AIS_SHIPNAME_MAXLEN + 1);
+	
+		return true;
+	}
+
 	return false;
 }
 
 bool ais_set_cog(ais_t *ais, SAisData *ptr)
 {
-	if(ais->valid[AIS_MSG_1])
+	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
 	{
-		ptr->cog = get_cog(ais->type1.course);
-		return true;
+		if(ais->type1.course == AIS_COURSE_NOT_AVAILABLE)
+		{
+			return false;
+		}else{
+			ptr->cog = get_cog(ais->type1.course);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ais_set_hdg(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
+	{
+		if(ais->type1.heading == AIS_HEADING_NOT_AVAILABLE)
+		{
+			return false;
+		}else{
+			
+			ptr->hdg = get_hdg(ais->type1.heading);
+			return true;
+		}
 	}
 
 	return false;
@@ -525,7 +592,6 @@ bool ais_set_cog(ais_t *ais, SAisData *ptr)
 /* Position Report */
 void ais_message_1(unsigned char *bits, ais_t *ais)
 {
-	
 	ais->type1.status = (int)UBITS(38, 4);
 	ais->type1.turn = (int)SBITS(42, 8);
 	ais->type1.speed = (int)UBITS(50, 10);
@@ -1395,15 +1461,15 @@ void ais_message_24(unsigned char *bits, size_t bitlen, ais_t *ais)
 			ais->type24.serial = UBITS(70, 20);
 			UCHARS(90, ais->type24.callsign);
 			
-			//if (AIS_AUXILIARY_MMSI(ais->mmsi)) 
-			//{
-//				ais->type24.mothership_mmsi   = UBITS(132, 30);
-	//		} else {
-		//		ais->type24.dim.to_bow        = UBITS(132, 9);
-			//	ais->type24.dim.to_stern      = UBITS(141, 9);
-				//ais->type24.dim.to_port       = UBITS(150, 6);
-				//ais->type24.dim.to_starboard  = UBITS(156, 6);
-			//}
+			if (AIS_AUXILIARY_MMSI(ais->mmsi)) 
+			{
+				ais->type24.mothership_mmsi   = UBITS(132, 30);
+			} else {
+				ais->type24.dim.to_bow        = UBITS(132, 9);
+				ais->type24.dim.to_stern      = UBITS(141, 9);
+				ais->type24.dim.to_port       = UBITS(150, 6);
+				ais->type24.dim.to_starboard  = UBITS(156, 6);
+			}
 			//ais->type24.b.spare	    = UBITS(162, 8);
 
 			/* search the 24A queue for a matching MMSI */
@@ -1563,6 +1629,12 @@ float get_cog(unsigned int v)
 {
 	return (float)(v * 0.1);
 }
+
+float get_hdg(unsigned int v)
+{
+	return (float)(v);
+}
+
 
 float get_lon_lat(int val)
 {

@@ -237,9 +237,11 @@ void CMapPlugin::PrepareBuffer()
 {
 	GetMutex()->Lock();
 	CNaviArray <SAisData*> *buffer = ais_get_buffer();
-	m_Font->Clear();	
+
 	// przygotuj bufor punktow do renderu
-	CurrentBufferPtr = &PointsBuffer1;
+	CurrentPointsBufferPtr = &PointsBuffer1;
+	CurrentTriangleBufferPtr = &TriangleBuffer1; 
+	
 	PointsBuffer0.Clear();
 	TriangleBuffer0.Clear();
 	
@@ -251,8 +253,11 @@ void CMapPlugin::PrepareBuffer()
 			
 		//PrepareIndicesBuffer();
 	}
-	CurrentBufferPtr = &PointsBuffer0;
+	
+	CurrentPointsBufferPtr = &PointsBuffer0;
+	CurrentTriangleBufferPtr = &TriangleBuffer0;
 	CopyPointsBuffer();
+	CopyTriangleBuffer();
 
 	GetMutex()->Unlock();
 	
@@ -266,6 +271,16 @@ void CMapPlugin::CopyPointsBuffer()
 	for(size_t i = 0; i < PointsBuffer0.Length(); i++)
 		PointsBuffer1.Set(i,PointsBuffer0.Get(i));
 }
+
+void CMapPlugin::CopyTriangleBuffer()
+{
+	TriangleBuffer1.Clear();
+	TriangleBuffer1.SetSize(TriangleBuffer0.Length());
+	
+	for(size_t i = 0; i < TriangleBuffer0.Length(); i++)
+		TriangleBuffer1.Set(i,TriangleBuffer0.Get(i));
+}
+
 
 void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
 {
@@ -300,18 +315,28 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		double width = to_port + to_starboard;
 		double height = to_bow + to_stern;
 
+		double vx = (to_port - to_starboard)/2;
+		double vy = (to_bow - to_stern)/2;
+
+		//wymiary rzeczywiste
 		p1.x = -0.5*width;	p1.y =  0.5*height;
 		p2.x =  0.5*width;	p2.y =  0.5*height;
 		p3.x =  0.5*width;	p3.y = -0.5*height;
-		p4.x = -0.5*width;	p4.y = -0.5*height;
-				
-		if(ptr->valid_cog)
+		p4.x = -0.5*width;	p4.y = -0.5*height;		
+		
+		//pozycja GPSa
+		p1.x -= vx; p1.y -= vy;
+		p2.x -= vx; p2.y -= vy;
+		p3.x -= vx; p3.y -= vy;
+		p4.x -= vx; p4.y -= vy;
+
+		if(ptr->valid_hdg)
 		{
 			double out_x,out_y;
-			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->cog));	p1.x = out_x;	p1.y = out_y;
-			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->cog));	p2.x = out_x;	p2.y = out_y;
-			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->cog));	p3.x = out_x;	p3.y = out_y;
-			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->cog));	p4.x = out_x;	p4.y = out_y;
+			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->hdg));	p1.x = out_x;	p1.y = out_y;
+			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->hdg));	p2.x = out_x;	p2.y = out_y;
+			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->hdg));	p3.x = out_x;	p3.y = out_y;
+			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->hdg));	p4.x = out_x;	p4.y = out_y;
 		}
 		
 		double to_x, to_y;
@@ -319,39 +344,28 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		pt.x = to_x;
 		pt.y = to_y;
 		
-		double vx = to_port - to_starboard;
-		double vy = to_bow - to_stern;
-		m_Broker->Unproject(vx, vy,&to_x,&to_y);
-		vx = to_x;
-		vy = to_y;
-		
-		p1.x += vy; p1.y += vx;
-		p2.x += vy; p2.y += vx;
-		p3.x += vy; p3.y += vx;
-		p4.x += vy; p4.y += vx;
-
 		// translate
 		p1.x += pt.x; p1.y += pt.y;
 		p2.x += pt.x; p2.y += pt.y;
 		p3.x += pt.x; p3.y += pt.y;
 		p4.x += pt.x; p4.y += pt.y;
+		
 
-				
 		TriangleBuffer0.Append(p1);
 		TriangleBuffer0.Append(p2);
 		TriangleBuffer0.Append(p3);
 		TriangleBuffer0.Append(p4);
 
 
-		wchar_t str[128];
-		float scale = (1 / m_Broker->GetMapScale()) / 8;
-		wchar_t wc[128];
-		mbstowcs(wc, ptr->shipname, 128);
+		//wchar_t str[128];
+		//float scale = (1 / m_Broker->GetMapScale()) / 8;
+		//wchar_t wc[128];
+		//mbstowcs(wc, ptr->shipname, 128);
 		//m_Broker->Project(
-		swprintf(str,L"mmsi:%d [%dx%d] %ls",ptr->mmsi,ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard,wc);
+		//swprintf(str,L"mmsi:%d [%dx%d][bow:%d stern:%d port:%d %d] %ls",ptr->mmsi,ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard,ptr->to_bow,ptr->to_stern,ptr->to_port,ptr->to_starboard,wc);
 				
-		m_Font->Print(p1.x,p1.y,scale,0,str);
-		glColor3f(1.0,0.0,0.0);
+		//m_Font->Print(p1.x,p1.y,scale,0,str);
+		//glColor3f(1.0,0.0,0.0);
 		
 		//PointsBuffer0.Append(pt);
 	}
@@ -614,19 +628,18 @@ void CMapPlugin::Render()
 {
 	glColor3f(0.0,0.0,0.0);
 	glPointSize(5);
-	RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
-	RenderGeometry(GL_QUADS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
+	//RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
+	RenderGeometry(GL_QUADS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
 			
 	glColor3f(1.0,0.0,0.0);
-	//RenderGeometry(GL_POINTS,CurrentBufferPtr->GetRawData(),CurrentBufferPtr->Length());
-	RenderGeometry(GL_POINTS,PointsBuffer0.GetRawData(),PointsBuffer0.Length());
-
+	RenderGeometry(GL_POINTS,CurrentPointsBufferPtr->GetRawData(),CurrentPointsBufferPtr->Length());
+	
 	glPointSize(1);
 
 
-	m_Font->ClearBuffers();
-	m_Font->CreateBuffers();
-	m_Font->Render();
+	//m_Font->ClearBuffers();
+	//m_Font->CreateBuffers();
+	//m_Font->Render();
 
 }
 

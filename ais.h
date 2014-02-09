@@ -17,6 +17,7 @@
 #define SBITS(s, l)	sbits((signed char *)bits, s, l, false)
 #define UCHARS(s, to)	from_sixbit((unsigned char *)bits, s, sizeof(to)-1, to)
 #define ENDCHARS(s, to)	from_sixbit((unsigned char *)bits, s, (bitlen-(s))/6,to)
+#define AIS_AUXILIARY_MMSI(n)	((n) / 10000000 == 98)
 
 #define AIS_MSG_1	1
 #define AIS_MSG_2	2
@@ -1058,11 +1059,13 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
 bool ais_set_dim(ais_t *ais, SAisData *dim);
 bool ais_set_cog(ais_t *ais, SAisData *ptr);
+bool ais_set_hdg(ais_t *ais, SAisData *ptr);
 CNaviArray <SAisData*> *ais_get_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
 float get_cog(unsigned int v);
+float get_hdg(unsigned int v);
 float get_length(unsigned int v);
 float get_beam(unsigned int v);
 

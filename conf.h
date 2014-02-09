@@ -258,6 +258,7 @@ typedef struct
 	double lon;		//pozycja lon,lat
 	double lat;
 	float cog;
+	float hdg;
 	int to_bow;
 	int to_stern;
 	int to_port;
@@ -267,6 +268,7 @@ typedef struct
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		//czy cog
+	bool valid_hdg;
 
 }SAisData;
 
