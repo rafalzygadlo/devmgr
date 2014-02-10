@@ -223,13 +223,20 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	wxString lon(_("N/A"));
 	wxString lat(_("N/A"));
 	
+	double _lon,_lat;
+	if(ais_set_lon_lat(ais,&_lon,&_lat))
+	{
+		lon = wxString::Format(_("%4.2f"),_lon);
+		lat = wxString::Format(_("%4.2f"),_lat);
+	}
+
 	switch (column)
 	{
-		case 0:	str = mes;															break;
-		case 1:	str = wxString::Format(_("%d"),ais->mmsi);							break;
-		case 2:	str = wxString::Format(_("%s"),name.wc_str());						break;
-		case 3: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lat));		break;
-		case 4: str = wxString::Format(_("%4.2f"),get_lon_lat(ais->type1.lon));		break;
+		case 0:	str = mes;										break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);		break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());	break;
+		case 3: str = lon;										break;
+		case 4: str = lat;										break;
 	}
 
 	return str;

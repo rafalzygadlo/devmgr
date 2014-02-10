@@ -44,9 +44,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Devices = new wxArrayPtrVoid();
 	m_ShipStateExist = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
+	m_OtherData = false;
+	m_Prepare = false;
 	m_Ticker = new CTicker(this);
 	m_Ticker->Start();
-	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );	
+	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
@@ -80,6 +82,7 @@ CMapPlugin::~CMapPlugin()
 	m_Devices->Clear();
 	delete m_Devices;
 	delete m_DisplaySignal;
+	delete m_Font;
 	FreeMutex();
 }
 
@@ -231,7 +234,51 @@ void CMapPlugin::OnTickerTick()
 {
 	SendShipData();
 	PrepareBuffer();
-}		
+}
+void CMapPlugin::Prepare()
+{
+	m_Prepare = true;
+	m_OtherData = true;
+	
+	if(!m_ShipStateExist)
+	{
+		if(!UNDEFINED_VAL(m_GlobalShipState[0]))
+		{
+			m_ShipState[0] = m_GlobalShipState[0];
+			m_Position_0_Exists = true;
+			m_OtherData = false;
+		}
+		
+		if(!UNDEFINED_VAL(m_GlobalShipState[1]))
+		{			
+			m_ShipState[1] = m_GlobalShipState[1];
+			m_Position_1_Exists = true;
+			m_OtherData = false;
+		}
+	}
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[2]))
+		m_ShipState[2] = m_GlobalShipState[2];
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[3]))
+		m_ShipState[3] = m_GlobalShipState[3];
+	
+	if(!UNDEFINED_VAL(m_GlobalShipState[4]))
+		m_ShipState[4] = m_GlobalShipState[4];
+
+	if(!UNDEFINED_VAL(m_GlobalShipState[5]))
+		m_ShipState[5] = m_GlobalShipState[5];
+
+	if(m_Position_0_Exists && m_Position_1_Exists)
+	{
+		m_ShipStateExist = true;
+		m_Position_0_Exists = false;
+		m_Position_1_Exists = false;
+	}
+	
+	m_Prepare = false;
+}
+
 
 void CMapPlugin::PrepareBuffer()
 {
@@ -241,6 +288,7 @@ void CMapPlugin::PrepareBuffer()
 	// przygotuj bufor punktow do renderu
 	CurrentPointsBufferPtr = &PointsBuffer1;
 	CurrentTriangleBufferPtr = &TriangleBuffer1; 
+	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer1;
 	
 	PointsBuffer0.Clear();
 	TriangleBuffer0.Clear();
@@ -250,14 +298,16 @@ void CMapPlugin::PrepareBuffer()
 		SAisData *data = buffer->Get(i);
 		PreparePointsBuffer(data);
 		PrepareTriangleBuffer(data);
-			
-		//PrepareIndicesBuffer();
+		PrepareIndicesBuffer();
 	}
 	
 	CurrentPointsBufferPtr = &PointsBuffer0;
 	CurrentTriangleBufferPtr = &TriangleBuffer0;
+	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer0;
+	
 	CopyPointsBuffer();
 	CopyTriangleBuffer();
+	//CopyTriangleIndicesBuffer();
 
 	GetMutex()->Unlock();
 	
@@ -307,10 +357,7 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		double to_bow, to_stern, to_port, to_starboard;	
 		nvPoint2d p1, p2, p3, p4;
 		
-		to_bow		 = (double)ptr->to_bow/1852/yDistance; 			
-		to_stern	 = (double)ptr->to_stern/1852/yDistance;		
-		to_port		 = (double)ptr->to_port/1852/yDistance ;			
-		to_starboard = (double)ptr->to_starboard/1852/yDistance;
+		to_bow = (double)ptr->to_bow/1852/yDistance; to_stern = (double)ptr->to_stern/1852/yDistance; to_port = (double)ptr->to_port/1852/yDistance; to_starboard = (double)ptr->to_starboard/1852/yDistance;
 			
 		double width = to_port + to_starboard;
 		double height = to_bow + to_stern;
@@ -319,24 +366,21 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		double vy = (to_bow - to_stern)/2;
 
 		//wymiary rzeczywiste
-		p1.x = -0.5*width;	p1.y =  0.5*height;
-		p2.x =  0.5*width;	p2.y =  0.5*height;
-		p3.x =  0.5*width;	p3.y = -0.5*height;
-		p4.x = -0.5*width;	p4.y = -0.5*height;		
-		
+		p1.x = -0.5*width;	p1.y = 0.5*height;	p2.x = 0.5*width; p2.y =  0.5*height; p3.x = 0.5*width;	p3.y = -0.5*height;	p4.x = -0.5*width;	p4.y = -0.5*height;		
 		//pozycja GPSa
-		p1.x -= vx; p1.y -= vy;
-		p2.x -= vx; p2.y -= vy;
-		p3.x -= vx; p3.y -= vy;
-		p4.x -= vx; p4.y -= vy;
+		p1.x -= vx; p1.y -= vy;	p2.x -= vx; p2.y -= vy;	p3.x -= vx; p3.y -= vy;	p4.x -= vx; p4.y -= vy;
 
 		if(ptr->valid_hdg)
 		{
 			double out_x,out_y;
-			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->hdg));	p1.x = out_x;	p1.y = out_y;
-			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->hdg));	p2.x = out_x;	p2.y = out_y;
-			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->hdg));	p3.x = out_x;	p3.y = out_y;
-			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->hdg));	p4.x = out_x;	p4.y = out_y;
+			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->hdg));	
+			p1.x = out_x;	p1.y = out_y;
+			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->hdg));	
+			p2.x = out_x;	p2.y = out_y;
+			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->hdg));	
+			p3.x = out_x;	p3.y = out_y;
+			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->hdg));	
+			p4.x = out_x;	p4.y = out_y;
 		}
 		
 		double to_x, to_y;
@@ -349,7 +393,6 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		p2.x += pt.x; p2.y += pt.y;
 		p3.x += pt.x; p3.y += pt.y;
 		p4.x += pt.x; p4.y += pt.y;
-		
 
 		TriangleBuffer0.Append(p1);
 		TriangleBuffer0.Append(p2);
@@ -371,10 +414,23 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 	}
 	
 	//double ShipScale = (ShipWidth / m_MilesPerDeg) * Percent;						// skalowanie rzeczywistego wymiaru statku w milach
-			
-	
 
 }
+
+void CMapPlugin::PrepareIndicesBuffer()
+{
+	int id = TriangleBuffer0.Length();
+
+	TriangleIndicesBuffer0.Append(id);
+	TriangleIndicesBuffer0.Append(id + 1);
+	TriangleIndicesBuffer0.Append(id + 3);
+	TriangleIndicesBuffer0.Append(id + 1);
+	TriangleIndicesBuffer0.Append(id + 2);
+	TriangleIndicesBuffer0.Append(id + 3);
+
+}
+
+
 /*
 void CMapPlugin::BuildFontData(SAisData *ptr)
 {
@@ -421,22 +477,29 @@ void CMapPlugin::BuildFontData(SAisData *ptr)
 
 void CMapPlugin::SendShipData()
 {
-
+	if(m_Prepare)
+		return;
+	
 	if(m_ShipStateExist)
 	{
 		m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
 		m_Position_0_Exists = false;
 		m_Position_1_Exists = false;
 		m_ShipStateExist = false;
+		fprintf(stdout,"%4.2f %4.2f %4.2f %4.2f %4.2f\n",m_ShipState[0],m_ShipState[1],m_ShipState[2],m_ShipState[3],m_ShipState[4],m_ShipState[5]);
 		Reset(m_ShipState);
 	
 	}else{
 	
-		if(m_OtherData)
-		{
-			m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);
-			Reset(m_GlobalShipState);
-		}
+		//if(m_OtherData)
+		//{
+			//m_Broker->SetShip(m_Broker->GetParentPtr(),m_GlobalShipState);
+			//fprintf(stdout,"%4.2f %4.2f %4.2f %4.2f %4.2f\n",m_GlobalShipState[0],m_GlobalShipState[1],m_GlobalShipState[2],m_GlobalShipState[3],m_GlobalShipState[4],m_GlobalShipState[5]);
+			//m_Position_0_Exists = false;
+			//m_Position_1_Exists = false;
+			//m_ShipStateExist = false;
+			//Reset(m_GlobalShipState);
+		//}
 	
 	}
 }
@@ -593,10 +656,7 @@ void CMapPlugin::Kill(void)
 		
 	m_NeedExit = true;
 	WriteConfig();
-	//CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE)));
-	
-	//m_SearchThread->Stop();
-	//delete m_SearchThread;
+		
 	SendSignal(CLEAR_AIS_LIST,NULL);
 
 	for(size_t i = 0; i < m_Devices->size(); i++)
@@ -627,7 +687,7 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::Render()
 {
 	glColor3f(0.0,0.0,0.0);
-	glPointSize(5);
+	glPointSize(2);
 	//RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
 	RenderGeometry(GL_QUADS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
 			
@@ -753,47 +813,6 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 	
 }
 
-void CMapPlugin::Prepare()
-{
-	m_OtherData = true;
-	
-	if(!m_ShipStateExist)
-	{
-		if(!UNDEFINED_VAL(m_GlobalShipState[0]))
-		{
-			m_ShipState[0] = m_GlobalShipState[0];
-			m_Position_0_Exists = true;
-			m_OtherData = false;
-		}
-		
-		if(!UNDEFINED_VAL(m_GlobalShipState[1]))
-		{			
-			m_ShipState[1] = m_GlobalShipState[1];
-			m_Position_1_Exists = true;
-			m_OtherData = false;
-		}
-	}
-	
-	if(!UNDEFINED_VAL(m_GlobalShipState[2]))
-		m_ShipState[2] = m_GlobalShipState[2];
-	
-	if(!UNDEFINED_VAL(m_GlobalShipState[3]))
-		m_ShipState[3] = m_GlobalShipState[3];
-	
-	if(!UNDEFINED_VAL(m_GlobalShipState[4]))
-		m_ShipState[4] = m_GlobalShipState[4];
-
-	if(!UNDEFINED_VAL(m_GlobalShipState[5]))
-		m_ShipState[5] = m_GlobalShipState[5];
-
-	if(m_Position_0_Exists && m_Position_1_Exists)
-	{
-		m_ShipStateExist = true;
-		m_Position_0_Exists = false;
-		m_Position_1_Exists = false;
-	}
-	
-}
 
 void CMapPlugin::SetDeviceId(int id)
 {
