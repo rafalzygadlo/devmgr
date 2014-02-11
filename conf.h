@@ -1,6 +1,7 @@
 #ifndef __CONF_H
 #define __CONF_H
 #include <wx/wx.h>
+#include "protocol.h"
 
 #define COMMENT
 
@@ -233,6 +234,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
 
 #define TICKER_SLEEP	1000
+#define DEFAULT_FREQUENCY 1000 //milisekundy
 
 typedef struct SData 
 {
@@ -246,7 +248,8 @@ typedef struct SData
 typedef struct SFunctionData 
 {
 	int		id_function;
-	double	values[6];
+	double	values[MAX_SHIP_VALUES_LEN];
+	int		frequency[MAX_SHIP_VALUES_LEN];
 
 } SFunctionData;
 

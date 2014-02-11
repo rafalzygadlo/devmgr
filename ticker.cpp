@@ -6,6 +6,7 @@ CTicker::CTicker(void *parent)
 {
 	Exit = false;
 	Parent = parent;
+	Tick = TICKER_SLEEP;
 }
 
 CTicker::~CTicker()
@@ -45,7 +46,7 @@ void *CTicker::Ticker(void *Param)
 
 
 #ifdef _WIN32
-        Sleep(TICKER_SLEEP);
+        Sleep(Ticker->GetTick());
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
         usleep(TICKER_SLEEP * 1000);
@@ -62,9 +63,19 @@ return 0;
 
 }
 
+int CTicker::GetTick()
+{
+	return Tick;
+}
+
 bool CTicker::GetExit()
 {
 	return Exit;
+}
+
+void CTicker::SetTick(int tick)
+{
+	Tick = tick;
 }
 
 void CTicker::Stop()

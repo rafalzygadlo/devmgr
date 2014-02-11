@@ -44,11 +44,13 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
 	SData *m_Data;
-	double m_GlobalShipState[6];
+	double m_GlobalShipState[MAX_SHIP_VALUES_LEN];
+	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	CTicker *m_Ticker;
 	double m_MilesPerDeg;
 	nvFastFont *m_Font;
 	bool m_Prepare;
+	int m_MaxFrequency;
 	
 	// bufory punktow
 	CNaviArray <nvPoint2d> PointsBuffer0;
@@ -92,6 +94,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void CopyTriangleBuffer();
 	void PrepareIndicesBuffer();
 	void SendShipData();
+	void NewPosition();
+	void SetMaxFrequency();
+	void SetTickerTick();
 					
 public:
 

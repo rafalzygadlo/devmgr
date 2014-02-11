@@ -327,12 +327,11 @@ void CParser::SetValidData()
 
 			if(funcd->id_signal == id_signal)
 			{
-				//if(SetGlobalPrioryty(funcd->id_signal)) // dla HDT (cog?)
-				//{
-					Reset(funcs->values);
-					funcs->values[funcd->index] = ConvertValue(id_signal,atof(m_Data.value));
-					SetFunction(funcd->id,funcs->values);
-				//}
+				Reset(funcs->values);
+				funcs->values[funcd->index]		= ConvertValue(id_signal,atof(m_Data.value));
+				funcs->frequency[funcd->index]  = SetFrequency(funcs->time[funcd->index]);
+				funcs->time[funcd->index]		= clock();
+				SetFunction(funcd->id,funcs->values,funcs->frequency);
 			}
 
 		}
@@ -341,10 +340,16 @@ void CParser::SetValidData()
 
 }
 
-void CParser::SetFunction(int id_function, double *values)
+int CParser::SetFrequency(int value)
+{
+	return clock() - value;
+}
+
+void CParser::SetFunction(int id_function, double *values, int *frequency)
 {
 	SFunctionData Function;
 	Function.id_function = id_function;
-	memcpy(Function.values,values,sizeof(double) * MAX_VALUES_LEN);
+	memcpy(Function.values,values,sizeof(double)*MAX_SHIP_VALUES_LEN);
+	memcpy(Function.frequency,frequency,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 }

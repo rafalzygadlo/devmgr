@@ -49,6 +49,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ticker = new CTicker(this);
 	m_Ticker->Start();
 	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
+	m_MaxFrequency = 1000; // w milisekundach 10 sekund domyslnie
 	
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
@@ -232,13 +233,17 @@ void CMapPlugin::OnTickerStop()
 
 void CMapPlugin::OnTickerTick()
 {
+	SetMaxFrequency();
+	SetTickerTick();
 	SendShipData();
-	PrepareBuffer();
+	//PrepareBuffer();
 }
+
 void CMapPlugin::Prepare()
 {
 	m_Prepare = true;
 	m_OtherData = true;
+	
 	
 	if(!m_ShipStateExist)
 	{
@@ -272,8 +277,8 @@ void CMapPlugin::Prepare()
 	if(m_Position_0_Exists && m_Position_1_Exists)
 	{
 		m_ShipStateExist = true;
-		m_Position_0_Exists = false;
-		m_Position_1_Exists = false;
+		//m_Position_0_Exists = false;
+		//m_Position_1_Exists = false;
 	}
 	
 	m_Prepare = false;
@@ -480,16 +485,24 @@ void CMapPlugin::SendShipData()
 	if(m_Prepare)
 		return;
 	
-	if(m_ShipStateExist)
-	{
-		m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
-		m_Position_0_Exists = false;
-		m_Position_1_Exists = false;
-		m_ShipStateExist = false;
-		fprintf(stdout,"%4.2f %4.2f %4.2f %4.2f %4.2f\n",m_ShipState[0],m_ShipState[1],m_ShipState[2],m_ShipState[3],m_ShipState[4],m_ShipState[5]);
-		Reset(m_ShipState);
+	if(!m_Position_0_Exists || !m_Position_1_Exists)
+		NewPosition(); // przelicz pozycjê
+	else{
+		int a = 0;
+		fprintf(stdout,"real data\n");
+	}
+	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
+	m_ShipStateExist = false;
+	m_Position_0_Exists = false;
+	m_Position_1_Exists = false;
+	//fprintf(stdout,"%4.2f %4.2f %4.2f %4.2f %4.2f\n",m_ShipState[0],m_ShipState[1],m_ShipState[2],m_ShipState[3],m_ShipState[4],m_ShipState[5]);
+	//fprintf(stdout,"%d %d %d %d %d %d\n",m_GlobalFrequency[0],m_GlobalFrequency[1],m_GlobalFrequency[2],m_GlobalFrequency[3],m_GlobalFrequency[4],m_GlobalFrequency[5]);
 	
-	}else{
+	//Reset(m_ShipState);
+	//}
+	
+	//fprintf(stdout,"wysylka\n");
+	//}else{
 	
 		//if(m_OtherData)
 		//{
@@ -501,7 +514,54 @@ void CMapPlugin::SendShipData()
 			//Reset(m_GlobalShipState);
 		//}
 	
+	//}
+}
+
+void CMapPlugin::SetTickerTick()
+{
+	m_Ticker->SetTick(m_MaxFrequency);
+	//fprintf(stdout,"%d",m_MaxFrequency);
+}
+
+void CMapPlugin::SetMaxFrequency()
+{
+	m_MaxFrequency = DEFAULT_FREQUENCY;
+	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
+	{
+		if((m_MaxFrequency > m_GlobalFrequency[i]) && (m_GlobalFrequency[i] > 0))
+			m_MaxFrequency = m_GlobalFrequency[i];
 	}
+
+}
+
+void CMapPlugin::NewPosition()
+{
+	double lon = m_ShipState[0];
+	double lat = m_ShipState[1];
+	double sog = m_ShipState[3];
+	double cog = m_ShipState[4];
+	double sec = (double)m_MaxFrequency / 1000;
+
+	fprintf(stdout,"%f\n",sec);
+	//sec = 1.0;
+
+
+	double rad360 = 2 * nvPI / 360.0;
+	//#my $m2st = 1 / (1852 * 60);
+	
+	double sogm = (1852.0 / 3600.0) * sog;
+	double lonkm = 2 * nvPI * sin(nvToRad(90-lat)) * 6211.7 / 360.0;
+	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
+	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
+	
+	double nlat = lat + dlatm / (111.1 * 1000);
+	double nlon = lon + dlonm / (lonkm * 1000);
+	
+	m_ShipState[0] = nlon;
+	m_ShipState[1] = nlat;
+	m_ShipStateExist = true;
+	
+	//my %npos = ( lat => $nlat, lon => $nlon);
 }
 
 CNaviBroker *CMapPlugin::GetBroker()
@@ -686,13 +746,18 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 
 void CMapPlugin::Render()
 {
-	glColor3f(0.0,0.0,0.0);
-	glPointSize(2);
-	//RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
-	RenderGeometry(GL_QUADS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
-			
 	glColor3f(1.0,0.0,0.0);
-	RenderGeometry(GL_POINTS,CurrentPointsBufferPtr->GetRawData(),CurrentPointsBufferPtr->Length());
+	glPointSize(10);
+
+	glBegin;
+	glVertex2f(m_ShipState[0],m_ShipState[1]);
+	glEnd;
+
+	//RenderGeometry(GL_POINTS,TriangleBuffer0.GetRawData(),TriangleBuffer0.Length());
+//	RenderGeometry(GL_QUADS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
+			
+	//glColor3f(1.0,0.0,0.0);
+//	RenderGeometry(GL_POINTS,CurrentPointsBufferPtr->GetRawData(),CurrentPointsBufferPtr->Length());
 	
 	glPointSize(1);
 
@@ -805,8 +870,10 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 {
 	switch(data->id_function)
 	{
-		case 0: 
+		case 0: // funkcja set ship
 			memcpy(m_GlobalShipState,data->values,sizeof(data->values));
+			memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
+			//SetMaxFrequency();
 			Prepare();
 		break;
 	}
