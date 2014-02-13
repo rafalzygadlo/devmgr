@@ -233,9 +233,9 @@ void CMapPlugin::OnTickerStop()
 
 void CMapPlugin::OnTickerTick()
 {
+	SendShipData();
 	SetMaxFrequency();
 	SetTickerTick();
-	SendShipData();
 	//PrepareBuffer();
 }
 
@@ -489,8 +489,11 @@ void CMapPlugin::SendShipData()
 		NewPosition(); // przelicz pozycjê
 	else{
 		int a = 0;
-		fprintf(stdout,"real data\n");
+		fprintf(stdout,"real data %4.10f %4.10f\n",m_ShipState[0],m_ShipState[1]);
+		//Sleep(3000);
 	}
+	m_ShipState[0] = (float)m_ShipState[0];
+	m_ShipState[1] = (float)m_ShipState[1];
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);	
 	m_ShipStateExist = false;
 	m_Position_0_Exists = false;
@@ -532,6 +535,7 @@ void CMapPlugin::SetMaxFrequency()
 			m_MaxFrequency = m_GlobalFrequency[i];
 	}
 
+	m_MaxFrequency = 1000;
 }
 
 void CMapPlugin::NewPosition()
@@ -554,11 +558,12 @@ void CMapPlugin::NewPosition()
 	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
 	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
 	
-	double nlat = lat + dlatm / (111.1 * 1000);
+	double nlat = lat + dlatm / (111.2 * 1000);
 	double nlon = lon + dlonm / (lonkm * 1000);
 	
 	m_ShipState[0] = nlon;
 	m_ShipState[1] = nlat;
+	fprintf(stdout,"%4.10f %4.10f\n",nlon,nlat);
 	m_ShipStateExist = true;
 	
 	//my %npos = ( lat => $nlat, lon => $nlon);
