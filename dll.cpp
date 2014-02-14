@@ -49,6 +49,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ticker->Start();
 	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_MaxFrequency = 1000; // w milisekundach 10 sekund domyslnie
+	m_ShipTick = 0;
+	m_AisBufferTick = 0;
+	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
+	m_CurrentTriangleBufferPtr = NULL;
 	
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
@@ -71,7 +76,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_GetParentPtr",GetParentPtr);
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
-		
+	
+	SetTickerTick();
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -234,10 +240,24 @@ void CMapPlugin::OnTickerStop()
 
 void CMapPlugin::OnTickerTick()
 {
-	SendShipData();
-	SetMaxFrequency();
-	SetTickerTick();
-	PrepareBuffer();
+	
+	m_ShipTick++;
+	m_AisBufferTick++;
+		
+	if( m_ShipTick >= m_ShipInterval ) 
+	{
+		m_ShipTick = 0;
+		SendShipData();
+		SetMaxFrequency();
+	}
+	
+	if( m_AisBufferTick >= m_AisBufferInterval)	
+	{	
+		m_AisBufferTick = 0;
+		PrepareBuffer();
+	}
+
+	
 }
 
 
@@ -248,12 +268,12 @@ void CMapPlugin::PrepareBuffer()
 	CNaviArray <SAisData*> *buffer = ais_get_buffer();
 
 	// przygotuj bufor punktow do renderu
-	CurrentPointsBufferPtr = &PointsBuffer1;
-	CurrentTriangleBufferPtr = &TriangleBuffer1; 
+	m_CurrentPointsBufferPtr = &m_PointsBuffer1;
+	m_CurrentTriangleBufferPtr = &m_TriangleBuffer1; 
 	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer1;
 	
-	PointsBuffer0.Clear();
-	TriangleBuffer0.Clear();
+	m_PointsBuffer0.Clear();
+	m_TriangleBuffer0.Clear();
 	
 	for(size_t i = 0; i < buffer->Length(); i++)
 	{
@@ -263,8 +283,8 @@ void CMapPlugin::PrepareBuffer()
 		PrepareIndicesBuffer();
 	}
 	
-	CurrentPointsBufferPtr = &PointsBuffer0;
-	CurrentTriangleBufferPtr = &TriangleBuffer0;
+	m_CurrentPointsBufferPtr = &m_PointsBuffer0;
+	m_CurrentTriangleBufferPtr = &m_TriangleBuffer0;
 	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer0;
 	
 	CopyPointsBuffer();
@@ -277,20 +297,20 @@ void CMapPlugin::PrepareBuffer()
 
 void CMapPlugin::CopyPointsBuffer()
 {
-	PointsBuffer1.Clear();
-	PointsBuffer1.SetSize(PointsBuffer0.Length());
+	m_PointsBuffer1.Clear();
+	m_PointsBuffer1.SetSize(m_PointsBuffer0.Length());
 	
-	for(size_t i = 0; i < PointsBuffer0.Length(); i++)
-		PointsBuffer1.Set(i,PointsBuffer0.Get(i));
+	for(size_t i = 0; i < m_PointsBuffer0.Length(); i++)
+		m_PointsBuffer1.Set(i,m_PointsBuffer0.Get(i));
 }
 
 void CMapPlugin::CopyTriangleBuffer()
 {
-	TriangleBuffer1.Clear();
-	TriangleBuffer1.SetSize(TriangleBuffer0.Length());
+	m_TriangleBuffer1.Clear();
+	m_TriangleBuffer1.SetSize(m_TriangleBuffer0.Length());
 	
-	for(size_t i = 0; i < TriangleBuffer0.Length(); i++)
-		TriangleBuffer1.Set(i,TriangleBuffer0.Get(i));
+	for(size_t i = 0; i < m_TriangleBuffer0.Length(); i++)
+		m_TriangleBuffer1.Set(i,m_TriangleBuffer0.Get(i));
 }
 
 
@@ -301,7 +321,7 @@ void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
 	m_Broker->Unproject(ptr->lon, -ptr->lat, &pt.x, &pt.y);							// pozycja y statku na mapie
 	double Distance = nvDistance( ptr->lon, ptr->lat, ptr->lon + 1.0, ptr->lat );	// iloœæ mil na stopieñ w aktualnej pozycji y
 		
-	PointsBuffer0.Append(pt);
+	m_PointsBuffer0.Append(pt);
 
 }
 
@@ -356,10 +376,10 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		p3.x += pt.x; p3.y += pt.y;
 		p4.x += pt.x; p4.y += pt.y;
 
-		TriangleBuffer0.Append(p1);
-		TriangleBuffer0.Append(p2);
-		TriangleBuffer0.Append(p3);
-		TriangleBuffer0.Append(p4);
+		m_TriangleBuffer0.Append(p1);
+		m_TriangleBuffer0.Append(p2);
+		m_TriangleBuffer0.Append(p3);
+		m_TriangleBuffer0.Append(p4);
 
 
 		//wchar_t str[128];
@@ -381,14 +401,14 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareIndicesBuffer()
 {
-	int id = TriangleBuffer0.Length();
+	int id = m_TriangleBuffer0.Length();
 
-	TriangleIndicesBuffer0.Append(id);
-	TriangleIndicesBuffer0.Append(id + 1);
-	TriangleIndicesBuffer0.Append(id + 3);
-	TriangleIndicesBuffer0.Append(id + 1);
-	TriangleIndicesBuffer0.Append(id + 2);
-	TriangleIndicesBuffer0.Append(id + 3);
+	m_TriangleIndicesBuffer0.Append(id);
+	m_TriangleIndicesBuffer0.Append(id + 1);
+	m_TriangleIndicesBuffer0.Append(id + 3);
+	m_TriangleIndicesBuffer0.Append(id + 1);
+	m_TriangleIndicesBuffer0.Append(id + 2);
+	m_TriangleIndicesBuffer0.Append(id + 3);
 
 }
 
@@ -514,8 +534,7 @@ void CMapPlugin::SendShipData()
 
 void CMapPlugin::SetTickerTick()
 {
-	m_Ticker->SetTick(m_MaxFrequency);
-	//fprintf(stdout,"%d",m_MaxFrequency);
+	m_Ticker->SetTick(TICKER_SLEEP);
 }
 
 void CMapPlugin::SetMaxFrequency()
@@ -526,6 +545,8 @@ void CMapPlugin::SetMaxFrequency()
 		if((m_MaxFrequency > m_GlobalFrequency[i]) && (m_GlobalFrequency[i] > 0))
 			m_MaxFrequency = m_GlobalFrequency[i];
 	}
+	
+	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
 }
 
 bool CMapPlugin::NewPosition()
@@ -746,6 +767,12 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 
 void CMapPlugin::Render()
 {
+
+	if(m_CurrentTriangleBufferPtr == NULL)
+		return;
+	if(m_CurrentPointsBufferPtr == NULL)
+		return;
+	
 	glColor3f(1.0,0.0,0.0);
 	glPointSize(2);
 
@@ -754,10 +781,10 @@ void CMapPlugin::Render()
 	//glEnd();
 
 	//RenderGeometry(GL_POINTS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
-	RenderGeometry(GL_QUADS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
+	RenderGeometry(GL_QUADS,m_CurrentTriangleBufferPtr->GetRawData(),m_CurrentTriangleBufferPtr->Length());
 			
 	glColor3f(1.0,0.0,0.0);
-	RenderGeometry(GL_POINTS,CurrentPointsBufferPtr->GetRawData(),CurrentPointsBufferPtr->Length());
+	RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length());
 	
 	glPointSize(1);
 	

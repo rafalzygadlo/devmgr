@@ -53,22 +53,24 @@ class CMapPlugin :public CNaviMapIOApi
 	nvFastFont *m_Font;
 	bool m_Prepare;
 	int m_MaxFrequency;
+	int m_ShipTick,m_AisBufferTick;
+	int m_ShipInterval,m_AisBufferInterval;
 	
 	// bufory punktow
-	CNaviArray <nvPoint2d> PointsBuffer0;
-	CNaviArray <nvPoint2d> PointsBuffer1;
+	CNaviArray <nvPoint2d> m_PointsBuffer0;
+	CNaviArray <nvPoint2d> m_PointsBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *CurrentPointsBufferPtr;
+	CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
 
-	CNaviArray <nvPoint2d> TriangleBuffer0;
-	CNaviArray <nvPoint2d> TriangleBuffer1;
+	CNaviArray <nvPoint2d> m_TriangleBuffer0;
+	CNaviArray <nvPoint2d> m_TriangleBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *CurrentTriangleBufferPtr;
+	CNaviArray <nvPoint2d> *m_CurrentTriangleBufferPtr;
 
-	CNaviArray <int> TriangleIndicesBuffer0;
-	CNaviArray <int>  TriangleIndicesBuffer1;
+	CNaviArray <int> m_TriangleIndicesBuffer0;
+	CNaviArray <int>  m_TriangleIndicesBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *CurrentTriangleIndicesBufferPtr;
+	CNaviArray <nvPoint2d> *m_CurrentTriangleIndicesBufferPtr;
 	
 	void Prepare();
 	void CreateApiMenu(void);
