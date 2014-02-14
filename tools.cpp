@@ -435,6 +435,19 @@ void Reset(double *tab)
 	tab[5] = UNDEFINED_DOUBLE;
 }
 
+bool IsUndefined(double *idx, size_t size)
+{
+	
+	for(size_t i = 0; i < size; i++)
+	{
+		if(UNDEFINED_VAL(idx[i]))
+			return true;
+	}
+	
+	return false;
+
+}
+
 void RotateZ( double x, double y, double &out_x, double &out_y, double radangle) 
 {
 	out_x = (x * cos( radangle )) - (y * sin( radangle ) );
