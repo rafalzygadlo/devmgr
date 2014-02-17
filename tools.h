@@ -31,5 +31,6 @@ void Reset(double *tab);
 void RotateZ( double x, double y, double &out_x, double &out_y, double radangle);
 double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit);
 bool IsUndefined(double *idx, size_t size);
-
+void SetFrequencyTable(int id);
+int GetMaxFrequency();
 #endif

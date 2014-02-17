@@ -48,7 +48,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ticker = new CTicker(this);
 	m_Ticker->Start();
 	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
-	m_MaxFrequency = 1000; // w milisekundach 10 sekund domyslnie
+	m_MaxFrequency = DEFAULT_FREQUENCY; // w milisekundach 10 sekund domyslnie
 	m_ShipTick = 0;
 	m_AisBufferTick = 0;
 	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
@@ -248,7 +248,9 @@ void CMapPlugin::OnTickerTick()
 	{
 		m_ShipTick = 0;
 		SendShipData();
-		SetMaxFrequency();
+		m_MaxFrequency = GetMaxFrequency();
+		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+		
 	}
 	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
@@ -514,11 +516,11 @@ void CMapPlugin::SendShipData()
 {
 	if(m_ShipStateExist)
 	{	
-		fprintf(stdout,"real data %4.4f %4.4f\n",m_ShipState[0],m_ShipState[1]);
+		fprintf(stdout,"real data %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		
 	}else{
 		if(NewPosition())		// przelicz pozycjê
-			fprintf(stdout,"proba %4.4f %4.4f\n",m_ShipState[0],m_ShipState[1]);
+			fprintf(stdout,"proba %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		else
 			fprintf(stdout,"proba BRAK danych\n");
 	}
@@ -528,7 +530,7 @@ void CMapPlugin::SendShipData()
 	m_Position_0_Exists = false;
 	m_Position_1_Exists = false;
 		
-	Reset(m_ShipState);
+	//Reset(m_ShipState);
 	
 }
 
@@ -539,14 +541,22 @@ void CMapPlugin::SetTickerTick()
 
 void CMapPlugin::SetMaxFrequency()
 {
-	m_MaxFrequency = DEFAULT_FREQUENCY;
+
+	/*		
+	m_MaxFrequency = m_GlobalFrequency[0];
+	
 	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
 	{
 		if((m_MaxFrequency > m_GlobalFrequency[i]) && (m_GlobalFrequency[i] > 0))
+		{
 			m_MaxFrequency = m_GlobalFrequency[i];
+			m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+		}
 	}
 	
-	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+	
+	fprintf(stdout,"Frequency %d %d\n",m_MaxFrequency, m_ShipInterval);
+	*/
 }
 
 bool CMapPlugin::NewPosition()
@@ -561,7 +571,8 @@ bool CMapPlugin::NewPosition()
 	double cog = m_ShipStaticState[4];
 	double sec = (double)m_MaxFrequency / 1000;
 
-	//fprintf(stdout,"%f\n",sec);
+	//sec = 1;
+	//fprintf(stdout,"%f sog:%f cog:%f\n",sec,sog,cog);
 
 	double rad360 = 2 * nvPI / 360.0;
 	double sogm = (1852.0 / 3600.0) * sog;
@@ -570,8 +581,8 @@ bool CMapPlugin::NewPosition()
 	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
 	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
 		
-	float nlon = lon + dlonm / (lonDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
-	float nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+	double nlon = lon + dlonm / (lonDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+	double nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
 			
 	// przypisz nowe wartosci 
 	m_ShipState[0] = nlon;
@@ -899,6 +910,7 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 		case 0: // funkcja set ship
 			memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
 			memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
+			//SetMaxFrequency();
 			Prepare();
 		break;
 	}

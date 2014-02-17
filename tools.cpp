@@ -8,7 +8,8 @@ wxMutex *mutex = NULL;
 int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
-
+SFrequency FrequencyTable;
+int MaxFrequency  = 0;
 
 const wchar_t *nvLanguage[2][183] = 
 { 
@@ -472,4 +473,31 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, int distan
 		default:
 			return (R *c) / 1.852;
 	}
+}
+
+// index w tablicy SetShip
+void SetFrequencyTable(int id)
+{
+	
+	int time = GetTickCount() - FrequencyTable.time[id];
+
+	if(time > 100)
+		FrequencyTable.frequency[id] = time;
+	
+	FrequencyTable.time[id] = GetTickCount();
+	
+	MaxFrequency = DEFAULT_FREQUENCY;
+	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
+	{
+		if(MaxFrequency > FrequencyTable.frequency[i])
+			MaxFrequency = FrequencyTable.frequency[i];
+	}
+		
+	//fprintf(stdout,"%d \n",MaxFrequency);
+	//fprintf(stdout,"Frequency %d %d %d %d %d %d\n",FrequencyTable.frequency[0],FrequencyTable.frequency[1],FrequencyTable.frequency[2],FrequencyTable.frequency[3],FrequencyTable.frequency[4],FrequencyTable.frequency[5] );
+}
+
+int GetMaxFrequency()
+{
+	return MaxFrequency;
 }
