@@ -234,30 +234,28 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
 
 #define TICKER_SLEEP	10
-#define DEFAULT_FREQUENCY 10000 //milisekundy 10 sekund
+#define DEFAULT_FREQUENCY 10000 //milisekundy 
 #define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP // co sekunde zbuduj bufory do renderu AIS
 
-typedef struct SData 
+typedef struct SData
 {
 	int		id;
 	char	marker[MARKER_LENGTH + 1];	// id definicji danych
 	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183’s 82
 	float	interval;
 
-} SData;
+}SData;
 
-typedef struct SFunctionData 
+typedef struct SFunctionData
 {
 	int		id_function;
 	double	values[MAX_SHIP_VALUES_LEN];
 	int		frequency[MAX_SHIP_VALUES_LEN];
 
-} SFunctionData;
+}SFunctionData;
 
-
-typedef struct 
+typedef struct
 {
-
 	unsigned int mmsi;
 	double lon;		//pozycja lon,lat
 	double lat;

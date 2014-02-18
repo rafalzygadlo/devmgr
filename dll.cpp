@@ -42,7 +42,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_EnableControls = false;
 	m_Data = NULL;
 	m_Devices = new wxArrayPtrVoid();
-	m_ShipStateExist = false;
+	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
 	m_Ticker = new CTicker(this);
@@ -54,6 +54,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
 	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
 	m_CurrentTriangleBufferPtr = NULL;
+	//m_CurrentHDT = UNDEFINED_DOUBLE;
+	m_LastHDT = UNDEFINED_DOUBLE;
 	
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );		// 1 = nvAriali 
@@ -250,7 +252,6 @@ void CMapPlugin::OnTickerTick()
 		SendShipData();
 		m_MaxFrequency = GetMaxFrequency();
 		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-		
 	}
 	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
@@ -258,10 +259,8 @@ void CMapPlugin::OnTickerTick()
 		m_AisBufferTick = 0;
 		PrepareBuffer();
 	}
-
 	
 }
-
 
 
 void CMapPlugin::PrepareBuffer()
@@ -462,7 +461,7 @@ void CMapPlugin::BuildFontData(SAisData *ptr)
 void CMapPlugin::Prepare()
 {
 		
-	if(!m_ShipStateExist)
+	if(!m_PositionExists)
 	{
 		if(!UNDEFINED_VAL(m_ShipGlobalState[0]))
 		{
@@ -499,22 +498,20 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[5]))
 	{
+		//m_CurrentHDT = m_ShipGlobalState[5];
 		m_ShipState[5] = m_ShipGlobalState[5];
 		m_ShipStaticState[5] = m_ShipGlobalState[5];
 	}
 	
 	if(m_Position_0_Exists && m_Position_1_Exists)
-	{
-		m_ShipStateExist = true;
-		//m_Position_0_Exists = false;
-		//m_Position_1_Exists = false;
-	}
-	
+		m_PositionExists = true;
+		
+		
 }
 
 void CMapPlugin::SendShipData()
 {
-	if(m_ShipStateExist)
+	if(m_PositionExists)
 	{	
 		fprintf(stdout,"real data %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		
@@ -524,9 +521,19 @@ void CMapPlugin::SendShipData()
 		else
 			fprintf(stdout,"proba BRAK danych\n");
 	}
+	
+	if(!NewCOG()) // COG po obliczeniu jest takie same
+		return;
 
+	if(!NewSOG()) // SOG po obliczeniu jest takie same
+		return;
+
+	if(!NewHDT()) // HDT po obliczeniu jest takie same
+		return;
+	
+	//m_LastHDT = m_ShipState[5];
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
-	m_ShipStateExist = false;
+	m_PositionExists = false;
 	m_Position_0_Exists = false;
 	m_Position_1_Exists = false;
 		
@@ -595,6 +602,57 @@ bool CMapPlugin::NewPosition()
 	
 	return true;
 }
+
+bool CMapPlugin::NewHDT()
+{
+	double v[2] = {m_ShipStaticState[2],m_ShipStaticState[5]}; // rot
+	if(IsUndefined(v,2))
+		return false;
+
+	if(m_LastHDT == m_ShipStaticState[5])
+	{
+		double rot = m_ShipStaticState[2];
+		double hdt = m_ShipState[5] + rot/60/m_MaxFrequency;
+
+		if(m_LastHDT == hdt)
+			return false;
+
+		m_LastHDT = hdt;
+		m_ShipStaticState[5] = hdt;
+		m_ShipState[5] = hdt;
+	
+		fprintf(stdout,"HDT OBLICZONE: %f\n",m_LastHDT);
+		return true;	
+		
+	}
+	
+	
+	fprintf(stdout,"HDT: %f\n",m_ShipStaticState[5]);
+	return true;
+}
+
+
+bool CMapPlugin::NewCOG()
+{
+	double v[1] = {m_ShipStaticState[4]}; // cog
+	if(IsUndefined(v,1))
+		return false;
+	
+	m_ShipState[4] = m_ShipStaticState[4];
+	return true;
+}
+
+bool CMapPlugin::NewSOG()
+{
+	double v[1] = {m_ShipStaticState[3]}; // cog
+	if(IsUndefined(v,1))
+		return false;
+		
+	m_ShipState[3] = m_ShipStaticState[3];
+	return true;
+}
+
+
 
 CNaviBroker *CMapPlugin::GetBroker()
 {

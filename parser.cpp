@@ -346,7 +346,6 @@ int CParser::SetFrequency(int value)
 	return clock() - value;
 }
 
-
 void CParser::SetFunction(int id_function, double *values, int *frequency)
 {
 	SFunctionData Function;

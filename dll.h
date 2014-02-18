@@ -32,6 +32,7 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_ShipState[MAX_SHIP_VALUES_LEN];
 	double m_ShipStaticState[MAX_SHIP_VALUES_LEN];
 	double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
+	double m_LastHDT;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
@@ -55,6 +56,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_MaxFrequency;
 	int m_ShipTick,m_AisBufferTick;
 	int m_ShipInterval,m_AisBufferInterval;
+	bool m_PositionExists;
 	
 	// bufory punktow
 	CNaviArray <nvPoint2d> m_PointsBuffer0;
@@ -99,6 +101,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareIndicesBuffer();
 	void SendShipData();
 	bool NewPosition();
+	bool NewHDT();
+	bool NewCOG();
+	bool NewSOG();
 	void SetMaxFrequency();
 	void SetTickerTick();
 					
