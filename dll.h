@@ -48,7 +48,6 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
 	SData *m_Data;
-	
 	CTicker *m_Ticker;
 	double m_MilesPerDeg;
 	nvFastFont *m_Font;
@@ -57,7 +56,10 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_ShipTick,m_AisBufferTick;
 	int m_ShipInterval,m_AisBufferInterval;
 	bool m_PositionExists;
-	
+	TTexture *m_TextureTGA_0;
+	GLuint m_TextureID_0;
+	GLuint m_ShipsArrayBuffer;
+
 	// bufory punktow
 	CNaviArray <nvPoint2d> m_PointsBuffer0;
 	CNaviArray <nvPoint2d> m_PointsBuffer1;
@@ -72,7 +74,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_TriangleIndicesBuffer0;
 	CNaviArray <int>  m_TriangleIndicesBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *m_CurrentTriangleIndicesBufferPtr;
+	CNaviArray <int> *m_CurrentTriangleIndicesBufferPtr;
 	
 	void Prepare();
 	void CreateApiMenu(void);
@@ -98,6 +100,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareTriangleBuffer(SAisData *ptr);
 	void CopyPointsBuffer();
 	void CopyTriangleBuffer();
+	void CopyTriangleIndicesBuffer();
 	void PrepareIndicesBuffer();
 	void SendShipData();
 	bool NewPosition();
@@ -106,6 +109,11 @@ class CMapPlugin :public CNaviMapIOApi
 	bool NewSOG();
 	void SetMaxFrequency();
 	void SetTickerTick();
+	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
+	void CreateTexture(TTexture *Texture, GLuint *TextureID);
+	void CreateTextures(void);
+	void CreateVBO();
+	void RenderVBO();
 					
 public:
 

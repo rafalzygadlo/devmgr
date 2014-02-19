@@ -234,7 +234,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
 
 #define TICKER_SLEEP	10
-#define DEFAULT_FREQUENCY 10000 //milisekundy 
+#define DEFAULT_FREQUENCY 1000 //milisekundy 
 #define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP // co sekunde zbuduj bufory do renderu AIS
 
 typedef struct SData

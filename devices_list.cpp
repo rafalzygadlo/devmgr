@@ -444,6 +444,7 @@ void CDevicesList::OnNewDevice(wxCommandEvent &event)
 		}
 		
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_AddDevice",reader);
+
 	}
 	
 }

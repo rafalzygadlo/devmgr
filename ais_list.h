@@ -19,6 +19,7 @@ class CAisList : public wxPanel
 	CDisplayPlugin *m_Display;
 	CListCtrl *m_List;
 	wxTimer *m_Timer;
+	wxBoxSizer *m_Page1Sizer;
 	void GetPanel();
 	void SetList();
 	void ClearList();
@@ -30,6 +31,7 @@ public:
 	~CAisList();
 	void SetSignal(int signal);
 	void SetHtml(wxString html);
+	void ShowHtmlPanel();
 	void ClearHtml();
 
 	enum 

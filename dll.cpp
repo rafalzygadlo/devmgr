@@ -1,4 +1,5 @@
 #include <wx/wx.h>
+#include "GLee.h"
 #include "NaviDisplaySignals.h"
 #include "conf.h"
 #include "dll.h"
@@ -9,6 +10,7 @@
 #include "protocol.h"
 #include "ais.h"
 #include "GeometryTools.h"
+#include "images/ship.img"
 
 
 
@@ -225,8 +227,34 @@ void CMapPlugin::ReadSocketConfig(int index)
 
 }
 
+void CMapPlugin::CreateSymbol(void *MemoryBlock,long MemoryBlockSize)
+{
+	TMemoryBlock BlockTGA_0;
+	BlockTGA_0.Ptr = MemoryBlock;
+	BlockTGA_0.Size = MemoryBlockSize;
+	m_TextureTGA_0 = LoadFromMemoryBlockTGA( &BlockTGA_0 );
+}
+
+void CMapPlugin::CreateTexture(TTexture *Texture, GLuint *TextureID)
+{
+	glGenTextures(1, TextureID );
+	glBindTexture(GL_TEXTURE_2D, *TextureID );
+	glTexImage2D(GL_TEXTURE_2D, 0, Texture->Bpp / 8, Texture->Width, Texture->Height, 0, Texture->Type, GL_UNSIGNED_BYTE, Texture->Data );
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	FreeTexture( Texture );
+}
+
+void CMapPlugin::CreateTextures(void) 
+{
+	CreateSymbol(ship, ship_size);
+	CreateTexture( m_TextureTGA_0,  &m_TextureID_0 );
+}
+
+
 void CMapPlugin::OnInitGL()
 {
+	CreateTextures();
 	m_Font->InitGL();
 }
 
@@ -271,7 +299,7 @@ void CMapPlugin::PrepareBuffer()
 	// przygotuj bufor punktow do renderu
 	m_CurrentPointsBufferPtr = &m_PointsBuffer1;
 	m_CurrentTriangleBufferPtr = &m_TriangleBuffer1; 
-	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer1;
+	m_CurrentTriangleIndicesBufferPtr = &m_TriangleIndicesBuffer1;
 	
 	m_PointsBuffer0.Clear();
 	m_TriangleBuffer0.Clear();
@@ -286,11 +314,11 @@ void CMapPlugin::PrepareBuffer()
 	
 	m_CurrentPointsBufferPtr = &m_PointsBuffer0;
 	m_CurrentTriangleBufferPtr = &m_TriangleBuffer0;
-	//CurrentTriangleIndicesBufferPtr = &TriangleIndicesBuffer0;
+	m_CurrentTriangleIndicesBufferPtr = &m_TriangleIndicesBuffer0;
 	
 	CopyPointsBuffer();
 	CopyTriangleBuffer();
-	//CopyTriangleIndicesBuffer();
+	CopyTriangleIndicesBuffer();
 
 	GetMutex()->Unlock();
 	
@@ -312,6 +340,15 @@ void CMapPlugin::CopyTriangleBuffer()
 	
 	for(size_t i = 0; i < m_TriangleBuffer0.Length(); i++)
 		m_TriangleBuffer1.Set(i,m_TriangleBuffer0.Get(i));
+}
+
+void CMapPlugin::CopyTriangleIndicesBuffer()
+{
+	m_TriangleIndicesBuffer1.Clear();
+	m_TriangleIndicesBuffer1.SetSize(m_TriangleIndicesBuffer0.Length());
+	
+	for(size_t i = 0; i < m_TriangleIndicesBuffer0.Length(); i++)
+		m_TriangleIndicesBuffer1.Set(i,m_TriangleIndicesBuffer0.Get(i));
 }
 
 
@@ -356,13 +393,13 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		if(ptr->valid_hdg)
 		{
 			double out_x,out_y;
-			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->hdg));	
+			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->cog));
 			p1.x = out_x;	p1.y = out_y;
-			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->hdg));	
+			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->cog));
 			p2.x = out_x;	p2.y = out_y;
-			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->hdg));	
+			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->cog));
 			p3.x = out_x;	p3.y = out_y;
-			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->hdg));	
+			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->cog));
 			p4.x = out_x;	p4.y = out_y;
 		}
 		
@@ -383,12 +420,12 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		m_TriangleBuffer0.Append(p4);
 
 
-		//wchar_t str[128];
-		//float scale = (1 / m_Broker->GetMapScale()) / 8;
-		//wchar_t wc[128];
-		//mbstowcs(wc, ptr->shipname, 128);
+		wchar_t str[128];
+		float scale = (1 / m_Broker->GetMapScale()) / 4;
+		wchar_t wc[128];
+		mbstowcs(wc, ptr->shipname, 128);
 		//m_Broker->Project(
-		//swprintf(str,L"mmsi:%d [%dx%d][bow:%d stern:%d port:%d %d] %ls",ptr->mmsi,ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard,ptr->to_bow,ptr->to_stern,ptr->to_port,ptr->to_starboard,wc);
+		swprintf(str,L"mmsi:%d [%dx%d][bow:%d stern:%d port:%d %d] %ls",ptr->mmsi,ptr->to_bow+ptr->to_stern,ptr->to_port+ptr->to_starboard,ptr->to_bow,ptr->to_stern,ptr->to_port,ptr->to_starboard,wc);
 				
 		//m_Font->Print(p1.x,p1.y,scale,0,str);
 		//glColor3f(1.0,0.0,0.0);
@@ -609,22 +646,20 @@ bool CMapPlugin::NewHDT()
 	if(IsUndefined(v,2))
 		return false;
 
-	if(m_LastHDT == m_ShipStaticState[5])
-	{
-		double rot = m_ShipStaticState[2];
-		double hdt = m_ShipState[5] + rot/60/m_MaxFrequency;
+	double rot = m_ShipStaticState[2];
+	double hdt = m_ShipState[5] + rot/60/m_MaxFrequency;
 
-		if(m_LastHDT == hdt)
-			return false;
+		//if(m_LastHDT == hdt)
+			//return false;
 
-		m_LastHDT = hdt;
-		m_ShipStaticState[5] = hdt;
-		m_ShipState[5] = hdt;
+	m_LastHDT = hdt;
+	m_ShipStaticState[5] = hdt;
+	m_ShipState[5] = hdt;
 	
-		fprintf(stdout,"HDT OBLICZONE: %f\n",m_LastHDT);
-		return true;	
+	//	fprintf(stdout,"HDT OBLICZONE: %f\n",m_LastHDT);
+	//	return true;	
 		
-	}
+	//}
 	
 	
 	fprintf(stdout,"HDT: %f\n",m_ShipStaticState[5]);
@@ -826,6 +861,26 @@ void CMapPlugin::Kill(void)
 
 }
 
+void CMapPlugin::CreateVBO()
+{
+	
+	glGenBuffers(1, &m_ShipsArrayBuffer );
+	glBindBuffer( GL_ARRAY_BUFFER, m_ShipsArrayBuffer );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentTriangleBufferPtr->Length(),NULL, GL_STATIC_DRAW );
+		
+	
+		
+	GLenum ErrorCheckValue = glGetError();
+    if (ErrorCheckValue != GL_NO_ERROR)
+    {
+       // fprintf(stderr, "ERROR: Could not create a VBO: %s \n", gluErrorString(ErrorCheckValue));
+ 
+        exit(-1);
+    }
+ 
+			
+}
+
 void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -833,6 +888,42 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
     glDrawArrays(Mode, 0, DataLength);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+
+void CMapPlugin::RenderVBO()
+{
+
+	CreateVBO();
+	GLenum  err = 0;
+	//glPushMatrix();
+	      
+    
+	//glEnable(GL_TEXTURE_2D);
+	glPointSize(10);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	//glEnableClientState(GL_COLOR_ARRAY);
+	glColor3f(1.0,0.0,0.0);
+	
+	//glBindTexture( GL_TEXTURE_2D, m_TextureID_0);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);	
+	glVertexPointer(3, GL_FLOAT,  0, 0);
+	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT,m_CurrentTriangleIndicesBufferPtr->GetRawData());
+				
+	
+	
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+
+
+	//glDisable(GL_TEXTURE_2D);
+	//glDisable(GL_POINT_SPRITE);
+
+	//glPopMatrix();
+
+}
+
+
 
 void CMapPlugin::Render()
 {
@@ -842,25 +933,26 @@ void CMapPlugin::Render()
 	if(m_CurrentPointsBufferPtr == NULL)
 		return;
 	
-	glColor3f(1.0,0.0,0.0);
-	glPointSize(2);
+	//RenderVBO();
 
-	//glBegin();
-	//glVertex2f(m_ShipState[0],m_ShipState[1]);
-	//glEnd();
-
-	//RenderGeometry(GL_POINTS,CurrentTriangleBufferPtr->GetRawData(),CurrentTriangleBufferPtr->Length());
+	/*
+	glEnable(GL_BLEND);
+	glColor4f(0.0,0.0,0.0,0.6);
+	glPointSize(5);
+	
+	RenderGeometry(GL_POINTS,m_CurrentTriangleBufferPtr->GetRawData(),m_CurrentTriangleBufferPtr->Length());
 	RenderGeometry(GL_QUADS,m_CurrentTriangleBufferPtr->GetRawData(),m_CurrentTriangleBufferPtr->Length());
 			
 	glColor3f(1.0,0.0,0.0);
 	RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length());
 	
 	glPointSize(1);
-	
-	//m_Font->ClearBuffers();
-	//m_Font->CreateBuffers();
-	//m_Font->Render();
+	glDisable(GL_BLEND);
 
+	m_Font->ClearBuffers();
+	m_Font->CreateBuffers();
+	m_Font->Render();
+	*/
 }
 
 bool CMapPlugin::GetNeedExit(void)

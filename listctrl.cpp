@@ -129,6 +129,26 @@ void CListCtrl::OnSelected(wxListEvent &event)
 
 void CListCtrl::OnActivate(wxListEvent &event)
 {
+
+	long n_item = -1;
+	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	
+	ais_t *ais = ais_get_item(n_item);
+	
+	_AisList->ClearHtml();
+	_AisList->SetHtml(_("<a name='top'></a><br>"));
+	_AisList->SetHtml(PrintHtmlAnchors(ais));
+	
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
+	{
+		if(ais->valid[i])
+		{
+			_AisList->SetHtml(PrintHtmlMsg(ais,i));
+			_AisList->ShowHtmlPanel();
+		}
+	
+	}
+
 /*
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
