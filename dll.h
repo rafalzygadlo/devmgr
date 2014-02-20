@@ -35,6 +35,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
 	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
 	double m_LastHDT;
+	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
@@ -105,12 +106,13 @@ class CMapPlugin :public CNaviMapIOApi
 	void CopyTriangleIndicesBuffer();
 	void PrepareIndicesBuffer();
 	void SendShipData();
-	bool NewPosition();
+	bool NewPosition(int time);
 	bool NewHDT();
 	bool NewCOG();
 	bool NewSOG();
 	void SetTickerTick();
 	void Interpolate();
+	bool Interpolate(int id);
 	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
@@ -118,6 +120,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderVBO();
 	void SetInvalid();
 	void SetFrequency(int id);
+	void SetShip(SFunctionData *data);
 
 public:
 
