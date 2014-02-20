@@ -478,23 +478,24 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, int distan
 // index w tablicy SetShip
 void SetFrequencyTable(int id)
 {
+	int time = GetTickCount();
+	int tick = time - FrequencyTable.time[id];
+		
+	FrequencyTable.frequency[id] = tick;
+	FrequencyTable.time[id] = time;
 	
-	int time = GetTickCount() - FrequencyTable.time[id];
-
-	if(time > 100)
-		FrequencyTable.frequency[id] = time;
-	
-	FrequencyTable.time[id] = GetTickCount();
-	
-	MaxFrequency = DEFAULT_FREQUENCY;
+	MaxFrequency = DEFAULT_FREQUENCY * 10; //10 sekund
 	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
 	{
 		if(MaxFrequency > FrequencyTable.frequency[i])
 			MaxFrequency = FrequencyTable.frequency[i];
 	}
-		
-	//fprintf(stdout,"%d \n",MaxFrequency);
-	//fprintf(stdout,"Frequency %d %d %d %d %d %d\n",FrequencyTable.frequency[0],FrequencyTable.frequency[1],FrequencyTable.frequency[2],FrequencyTable.frequency[3],FrequencyTable.frequency[4],FrequencyTable.frequency[5] );
+	
+}
+
+int GetFrequency(int id)
+{
+	return FrequencyTable.frequency[id];
 }
 
 int GetMaxFrequency()

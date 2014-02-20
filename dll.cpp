@@ -71,6 +71,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
 	m_Font->SetGlowCenter( 4.0f );
 
+	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
+	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
+
 	Reset(m_ShipState);			//wysylany do statku
 	Reset(m_ShipGlobalState);	
 	Reset(m_ShipStaticState);	// statyczny state ktory nie jest resetowany przetrzymuje ostatnio otrzymane dane
@@ -277,9 +280,10 @@ void CMapPlugin::OnTickerTick()
 	if( m_ShipTick >= m_ShipInterval ) 
 	{
 		m_ShipTick = 0;
-		SendShipData();
+		//SendShipData();
 		m_MaxFrequency = GetMaxFrequency();
 		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+		//fprintf(stdout,"Max freq: %d %d\n",m_MaxFrequency,m_ShipInterval);
 	}
 	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
@@ -495,6 +499,22 @@ void CMapPlugin::BuildFontData(SAisData *ptr)
 }
 */
 
+void CMapPlugin::SetFrequency(int id)
+{
+	int time = GetTickCount();
+	m_ShipTicks[id] = time - m_ShipTimes[id];
+	m_ShipTimes[id] = time;
+
+	m_MaxFrequency = DEFAULT_FREQUENCY * 10; //10 sekund
+	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
+	{
+		if(m_MaxFrequency > m_ShipTicks[i])
+			m_MaxFrequency = m_ShipTicks[i];
+	}
+
+	fprintf(stdout,"MAXAAA[%d]\n",m_MaxFrequency);
+}
+
 void CMapPlugin::Prepare()
 {
 		
@@ -504,6 +524,7 @@ void CMapPlugin::Prepare()
 		{
 			m_ShipState[0] = m_ShipGlobalState[0];
 			m_ShipStaticState[0] = m_ShipGlobalState[0];
+			SetFrequency(0);
 			m_Position_0_Exists = true;
 		}
 		
@@ -511,6 +532,7 @@ void CMapPlugin::Prepare()
 		{			
 			m_ShipState[1] = m_ShipGlobalState[1];
 			m_ShipStaticState[1] = m_ShipGlobalState[1];
+			SetFrequency(1);
 			m_Position_1_Exists = true;
 		}
 	}
@@ -519,57 +541,102 @@ void CMapPlugin::Prepare()
 	{
 		m_ShipState[2] = m_ShipGlobalState[2];
 		m_ShipStaticState[2] = m_ShipGlobalState[2];
+		SetFrequency(2);
+		m_ROT_Exists = true;
 	}
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[3]))
 	{
 		m_ShipState[3] = m_ShipGlobalState[3];
 		m_ShipStaticState[3] = m_ShipGlobalState[3];
+		SetFrequency(3);
+		m_SOG_Exists = true;
 	}
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[4]))
 	{
 		m_ShipState[4] = m_ShipGlobalState[4];
 		m_ShipStaticState[4] = m_ShipGlobalState[4];
+		SetFrequency(4);
+		m_COG_Exists = true;
 	}
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[5]))
 	{
-		//m_CurrentHDT = m_ShipGlobalState[5];
 		m_ShipState[5] = m_ShipGlobalState[5];
 		m_ShipStaticState[5] = m_ShipGlobalState[5];
+		SetFrequency(5);
+		m_HDT_Exists = true;
 	}
 	
 	if(m_Position_0_Exists && m_Position_1_Exists)
 		m_PositionExists = true;
+
+}
+
+void CMapPlugin::Interpolate()
+{
+	
+	
+	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
+	{
+		fprintf(stdout,"AAA[%d]\n",m_ShipTicks[i]);
+		if(m_MaxFrequency < m_ShipTicks[i])
+			fprintf(stdout,"Interpolate[%d]\n",i);
+	}
+	
+	fprintf(stdout,"MAX[%d]\n",m_MaxFrequency);
 		
 		
+
+	//}
+	
+
+		
+	Reset(m_ShipState);
+	SetInvalid();
+}
+
+void CMapPlugin::SetInvalid()
+{
+	m_PositionExists = false;
+	m_Position_0_Exists = false;
+	m_Position_1_Exists = false;
+	m_COG_Exists = false;
+	m_SOG_Exists = false;
+	m_ROT_Exists = false;
+	m_HDT_Exists = false;
+
 }
 
 void CMapPlugin::SendShipData()
 {
 	if(m_PositionExists)
 	{	
-		fprintf(stdout,"real data %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+		//fprintf(stdout,"real data %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		
 	}else{
-		if(NewPosition())		// przelicz pozycjê
-			fprintf(stdout,"proba %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
-		else
-			fprintf(stdout,"proba BRAK danych\n");
+		
+		return;
+		NewPosition();		// przelicz pozycjê
+			//fprintf(stdout,"proba %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+		//else
+			//fprintf(stdout,"proba BRAK danych\n");
 	}
 	
-	if(!NewCOG()) // COG po obliczeniu jest takie same
-		return;
+	//if(!NewCOG()) // COG po obliczeniu jest takie same
+		//return;
 
-	if(!NewSOG()) // SOG po obliczeniu jest takie same
-		return;
+	//if(!NewSOG()) // SOG po obliczeniu jest takie same
+		//return;
 
-	if(!NewHDT()) // HDT po obliczeniu jest takie same
-		return;
+	//if(!NewHDT()) // HDT po obliczeniu jest takie same
+		//return;
 	
 	//m_LastHDT = m_ShipState[5];
+	static int a = 0;
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
+	fprintf(stdout,"SetShip %d\n",a++);
 	m_PositionExists = false;
 	m_Position_0_Exists = false;
 	m_Position_1_Exists = false;
@@ -583,32 +650,12 @@ void CMapPlugin::SetTickerTick()
 	m_Ticker->SetTick(TICKER_SLEEP);
 }
 
-void CMapPlugin::SetMaxFrequency()
-{
-
-	/*		
-	m_MaxFrequency = m_GlobalFrequency[0];
-	
-	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
-	{
-		if((m_MaxFrequency > m_GlobalFrequency[i]) && (m_GlobalFrequency[i] > 0))
-		{
-			m_MaxFrequency = m_GlobalFrequency[i];
-			m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-		}
-	}
-	
-	
-	fprintf(stdout,"Frequency %d %d\n",m_MaxFrequency, m_ShipInterval);
-	*/
-}
-
 bool CMapPlugin::NewPosition()
 {
 	double v[4] = {m_ShipStaticState[0], m_ShipStaticState[1], m_ShipStaticState[3], m_ShipStaticState[4] };
 	if(IsUndefined(v,4))
 		return false;
-
+		
 	double lon = m_ShipStaticState[0];
 	double lat = m_ShipStaticState[1];
 	double sog = m_ShipStaticState[3];
@@ -647,14 +694,23 @@ bool CMapPlugin::NewHDT()
 		return false;
 
 	double rot = m_ShipStaticState[2];
-	double hdt = m_ShipState[5] + rot/60/m_MaxFrequency;
-
-		//if(m_LastHDT == hdt)
-			//return false;
-
-	m_LastHDT = hdt;
-	m_ShipStaticState[5] = hdt;
-	m_ShipState[5] = hdt;
+	//double hdt = m_ShipState[5] + rot/60/m_MaxFrequency;
+	double diff = m_LastHDT - m_ShipStaticState[5];
+	/*
+	if(diff)
+	{
+		m_LastHDT = m_ShipStaticState[5];
+		m_Diff0Counter = 0;
+		return true;
+		
+		}else{
+	
+			m_Diff0Counter++;
+		
+	}
+	*/
+	//m_ShipStaticState[5] = hdt;
+	//m_ShipState[5] = hdt;
 	
 	//	fprintf(stdout,"HDT OBLICZONE: %f\n",m_LastHDT);
 	//	return true;	
@@ -662,8 +718,8 @@ bool CMapPlugin::NewHDT()
 	//}
 	
 	
-	fprintf(stdout,"HDT: %f\n",m_ShipStaticState[5]);
-	return true;
+	//fprintf(stdout,"HDT: %f\n",m_ShipStaticState[5]);
+	return false;
 }
 
 
@@ -1060,8 +1116,8 @@ void CMapPlugin::SetFunctionData(SFunctionData *data)
 		case 0: // funkcja set ship
 			memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
 			memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
-			//SetMaxFrequency();
 			Prepare();
+			Interpolate();
 		break;
 	}
 	

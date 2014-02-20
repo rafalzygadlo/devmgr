@@ -33,4 +33,5 @@ double nvDistance(double lon1, double lat1, double lon2, double lat2, int distan
 bool IsUndefined(double *idx, size_t size);
 void SetFrequencyTable(int id);
 int GetMaxFrequency();
+int GetFrequency(int id);
 #endif

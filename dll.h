@@ -27,11 +27,13 @@ class CMyFrame;
 class CNotifier;
 class CMapPlugin :public CNaviMapIOApi
 {
-	bool m_Position_0_Exists,m_Position_1_Exists;
+	bool m_Position_0_Exists,m_Position_1_Exists,m_HDT_Exists,m_COG_Exists,m_ROT_Exists,m_SOG_Exists;
 	bool m_OtherData;
 	double m_ShipState[MAX_SHIP_VALUES_LEN];
 	double m_ShipStaticState[MAX_SHIP_VALUES_LEN];
 	double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
+	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
+	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
 	double m_LastHDT;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
@@ -107,14 +109,16 @@ class CMapPlugin :public CNaviMapIOApi
 	bool NewHDT();
 	bool NewCOG();
 	bool NewSOG();
-	void SetMaxFrequency();
 	void SetTickerTick();
+	void Interpolate();
 	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
 	void CreateVBO();
 	void RenderVBO();
-					
+	void SetInvalid();
+	void SetFrequency(int id);
+
 public:
 
 	CMapPlugin(CNaviBroker *NaviBroker);
