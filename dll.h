@@ -34,6 +34,8 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
 	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
 	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
+	bool m_ShipValidFrequencyTable[MAX_SHIP_VALUES_LEN];
+	bool m_ShipValidFrequency;
 	double m_LastHDT;
 	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
@@ -59,6 +61,9 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_ShipTick,m_AisBufferTick;
 	int m_ShipInterval,m_AisBufferInterval;
 	bool m_PositionExists;
+	bool m_Interpolation;
+	int m_FirstTick;
+		
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
 	GLuint m_ShipsArrayBuffer;
@@ -107,12 +112,13 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareIndicesBuffer();
 	void SendShipData();
 	bool NewPosition(int time);
-	bool NewHDT();
+	bool NewHDT(int time);
 	bool NewCOG();
 	bool NewSOG();
 	void SetTickerTick();
 	void Interpolate();
-	bool Interpolate(int id);
+	bool InterpolatePosition();
+	bool InterpolateHDT();
 	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
