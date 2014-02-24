@@ -8,6 +8,7 @@
 #include "protocol.h"
 #include "parser.h"
 #include "sclient.h"
+#include <Windows.h>
 #include <wx/treectrl.h>
 
 class CReader :public CSerial, public CClient

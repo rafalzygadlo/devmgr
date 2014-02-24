@@ -1,11 +1,13 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include <wx/wx.h>
+//#include <wx/wx.h>
+
 #include <wx/hyperlink.h>
 #include "conf.h"
 #include "tools.h"
 #include <vector>
+#include <Windows.h>
 
 class CReader;
 class CConfig: public wxDialog

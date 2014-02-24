@@ -54,7 +54,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ShipTick = 0;
 	m_AisBufferTick = 0;
 	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-	m_ShipInterval = 200/TICKER_SLEEP;
+	m_ShipInterval = 1000/TICKER_SLEEP;
 
 	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
 	m_CurrentTriangleBufferPtr = NULL;
@@ -288,6 +288,8 @@ void CMapPlugin::OnTickerTick()
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
+		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+		fprintf(stdout,"Interval:%d\n",m_ShipInterval);
 	}
 	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
@@ -636,17 +638,17 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		//fprintf(stdout,"LON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+		fprintf(stdout,"LON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		return false;
 	}
 
 	bool result = false;
 	int time = 0;
 	//int tick = GetTickCount();
-	time = abs(m_ShipTimes[1] - m_GlobalTick);
-	//fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
+	time = m_GlobalTick - m_ShipTimes[1];
+	fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
 	result = NewPosition(time);
-	
+	m_ShipTimes[1] = m_GlobalTick;
 	return result;
 }
 
@@ -654,14 +656,15 @@ bool CMapPlugin::InterpolateHDT()
 {
 	if(m_HDT_Exists)
 	{
-		fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
 		return false;
 	}
 	
 	bool result = false;
 	//int tick = GetTickCount();
-	int time = abs(m_ShipTimes[5] - m_GlobalTick);
-	fprintf(stdout,"Time %d\n",time);
+	//int time = abs(m_ShipTimes[5] - m_GlobalTick);
+	int time = m_GlobalTick - m_ShipTimes[5];
+	//fprintf(stdout,"Time %d\n",time);
 	result = NewHDT(time);
 		
 	//m_ShipTimes[5] = m_GlobalTick;
@@ -680,7 +683,7 @@ void CMapPlugin::SendShipData()
 	m_Interpolation = false;
 	m_HDT_Exists = false;
 
-	m_ShipState[4] = UNDEFINED_DOUBLE;
+	//m_ShipState[4] = UNDEFINED_DOUBLE;
 
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
@@ -701,10 +704,10 @@ bool CMapPlugin::NewPosition(int time)
 	double lat = m_ShipStaticState[1];
 	double sog = m_ShipStaticState[3];
 	double cog = m_ShipStaticState[4];
-	double sec = (double)time / 1000;
+	double sec = (double)time/1000.0;
 
 	//sec = 1;
-	//fprintf(stdout,"%f sog:%f cog:%f\n",sec,sog,cog);
+	//fprintf(stdout,"%4.4f sog:%f cog:%f\n",sec,sog,cog);
 
 	double rad360 = 2 * nvPI / 360.0;
 	double sogm = (1852.0 / 3600.0) * sog;
@@ -720,10 +723,10 @@ bool CMapPlugin::NewPosition(int time)
 	m_ShipState[0] = nlon;
 	m_ShipState[1] = nlat;
 
-	//m_ShipStaticState[0] = nlon;
-	//m_ShipStaticState[1] = nlat;
+	m_ShipStaticState[0] = nlon;
+	m_ShipStaticState[1] = nlat;
 	
-	//fprintf(stdout,"%4.10f %4.10f\n",nlon,nlat);
+	fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
 	
 	return true;
 }
@@ -740,7 +743,7 @@ bool CMapPlugin::NewHDT(int time)
 	double hdt = m_ShipStaticState[5] + a;
 	
 	m_OldHDT = hdt;
-	fprintf(stdout,"HDT wyliczone %4.4f %4.2f\n",hdt, m_ShipStaticState[5] - hdt);
+	//fprintf(stdout,"HDT wyliczone %4.4f %4.2f\n",hdt, m_ShipStaticState[5] - hdt);
 	//m_ShipStaticState[5] = hdt;
 	m_ShipState[5] = hdt;
 	
@@ -1013,6 +1016,17 @@ void CMapPlugin::Render()
 		return;
 	if(m_CurrentPointsBufferPtr == NULL)
 		return;
+	
+	glColor3f(0.0,1.0,0.0);
+	glPointSize(10);
+	
+	double to_x, to_y;
+	m_Broker->Unproject(m_ShipState[0],m_ShipState[1],&to_x,&to_y);
+	glBegin(GL_POINTS);
+		glVertex2f(to_x,to_y*-1);
+	glEnd();
+	
+	glPointSize(1);
 	
 	//RenderVBO();
 
