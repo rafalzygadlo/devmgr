@@ -62,8 +62,9 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_ShipInterval,m_AisBufferInterval;
 	bool m_PositionExists;
 	bool m_Interpolation;
-	int m_FirstTick;
-		
+	double m_OldHDT;
+	int m_GlobalTick;
+
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
 	GLuint m_ShipsArrayBuffer;

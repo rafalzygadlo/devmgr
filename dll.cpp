@@ -54,7 +54,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ShipTick = 0;
 	m_AisBufferTick = 0;
 	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-	m_ShipInterval = 1000/TICKER_SLEEP;
+	m_ShipInterval = 200/TICKER_SLEEP;
 
 	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
 	m_CurrentTriangleBufferPtr = NULL;
@@ -285,12 +285,9 @@ void CMapPlugin::OnTickerTick()
 		
 	if( m_ShipTick >= m_ShipInterval ) 
 	{
-		GetMutex()->Lock();
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
-		GetMutex()->Unlock();
-
 	}
 	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
@@ -547,7 +544,12 @@ void CMapPlugin::SetFrequency(int id)
 	for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
 	{
 		if(!m_ShipValidFrequencyTable[i])
+		{	
+			m_PositionExists = false;
+			m_Position_0_Exists = false;
+			m_Position_1_Exists = false;
 			return;
+		}
 	}
 
 	m_ShipValidFrequency = true;
@@ -620,13 +622,13 @@ void CMapPlugin::Prepare()
 
 void CMapPlugin::Interpolate()
 {
-	if(m_MaxFrequencyID == -1)
+	if(!m_ShipValidFrequency)
 		return;
-		
-	m_Interpolation = InterpolatePosition();
-	m_Interpolation = InterpolateHDT();
-	SendShipData();
 	
+	m_GlobalTick = GetTickCount();
+	InterpolatePosition();
+	InterpolateHDT();
+
 		
 }
 
@@ -634,57 +636,53 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		m_FirstTick = 0;
+		//fprintf(stdout,"LON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
 		return false;
 	}
-	
-	bool result = false;
-	if(!m_PositionExists && m_ShipValidFrequency)
-	{
-		int time = 0;
-		int tick = GetTickCount();
-		time = (tick - m_ShipTimes[1]);
-		fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
-		result = NewPosition(time);
-	}	
 
+	bool result = false;
+	int time = 0;
+	//int tick = GetTickCount();
+	time = abs(m_ShipTimes[1] - m_GlobalTick);
+	//fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
+	result = NewPosition(time);
+	
 	return result;
 }
 
 bool CMapPlugin::InterpolateHDT()
 {
-	bool result = false;
-	if(!m_HDT_Exists)
+	if(m_HDT_Exists)
 	{
-		int tick = GetTickCount();
-		int time = (tick - m_ShipTimes[5]);
-		result = NewHDT(time);
+		fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		return false;
 	}
-
+	
+	bool result = false;
+	//int tick = GetTickCount();
+	int time = abs(m_ShipTimes[5] - m_GlobalTick);
+	fprintf(stdout,"Time %d\n",time);
+	result = NewHDT(time);
+		
+	//m_ShipTimes[5] = m_GlobalTick;
 	return result;
 }
 
 
 void CMapPlugin::SendShipData()
 {
-	if(m_Interpolation)
-		fprintf(stdout,"proba %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+	if(!m_ShipValidFrequency)
+		return;
 	
-	if(m_PositionExists)
-	{		
-		fprintf(stdout,"real data %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
-	}
-	
-	if(m_Interpolation || m_PositionExists)
-	{
-		m_PositionExists = false;
-		m_Position_0_Exists = false;
-		m_Position_1_Exists = false;
-		m_Interpolation = false;
-		m_HDT_Exists = false;
-		m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
-	}
-	
+	m_PositionExists = false;
+	m_Position_0_Exists = false;
+	m_Position_1_Exists = false;
+	m_Interpolation = false;
+	m_HDT_Exists = false;
+
+	m_ShipState[4] = UNDEFINED_DOUBLE;
+
+	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
 
 void CMapPlugin::SetTickerTick()
@@ -737,11 +735,15 @@ bool CMapPlugin::NewHDT(int time)
 		return false;
 
 	double rot = m_ShipStaticState[2];
-	double hdt = m_ShipStaticState[5] + rot/60/time;
-		
+	double min = (double)time/1000.0/60.0;
+	double a = rot * min;
+	double hdt = m_ShipStaticState[5] + a;
+	
+	m_OldHDT = hdt;
+	fprintf(stdout,"HDT wyliczone %4.4f %4.2f\n",hdt, m_ShipStaticState[5] - hdt);
 	//m_ShipStaticState[5] = hdt;
 	m_ShipState[5] = hdt;
-	fprintf(stdout,"HDT wyliczone %4.4f\n",hdt);
+	
 	return true;
 }
 
