@@ -37,6 +37,8 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_ShipValidFrequencyTable[MAX_SHIP_VALUES_LEN];
 	bool m_ShipValidFrequency;
 	double m_LastHDT;
+	int m_OldGlobalPositionTick,m_OldGlobalHDTTick;
+
 	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
@@ -63,7 +65,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_PositionExists;
 	bool m_Interpolation;
 	double m_OldHDT;
-	int m_GlobalTick;
+	int m_GlobalTick, m_OldGlobalTick;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;

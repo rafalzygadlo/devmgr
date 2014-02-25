@@ -329,9 +329,9 @@ void CParser::SetValidData()
 			{
 				Reset(funcs->values);
 				funcs->values[funcd->index]	= ConvertValue(id_signal,atof(m_Data.value));
-				SetFrequencyTable(funcd->index);
-				funcs->frequency[funcd->index] = SetFrequency(funcs->time[funcd->index]);
-				funcs->time[funcd->index] = GetTickCount();
+				//SetFrequencyTable(funcd->index);
+				//funcs->frequency[funcd->index] = SetFrequency(funcs->time[funcd->index]);
+				//funcs->time[funcd->index] = GetTickCount();
 				SetFunction(funcd->id,funcs->values,funcs->frequency);
 			}
 
