@@ -287,10 +287,12 @@ void CMapPlugin::OnTickerTick()
 
 	if( m_ShipTick >= m_ShipInterval ) 
 	{
+		GetMutex()->Lock();
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
 		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
+		GetMutex()->Unlock();
 		
 	}
 	
@@ -509,11 +511,11 @@ void CMapPlugin::BuildFontData(SAisData *ptr)
 
 void CMapPlugin::SetShip(SFunctionData *data)
 {
-	//GetMutex()->Lock();
+	GetMutex()->Lock();
 	memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 	Prepare();
-	//GetMutex()->Unlock();
+	GetMutex()->Unlock();
 }
 
 void CMapPlugin::SetFrequency(int id)
@@ -571,6 +573,7 @@ void CMapPlugin::Prepare()
 	{
 		if(!UNDEFINED_VAL(m_ShipGlobalState[0]))
 		{
+			m_ShipOldStaticState[0] = m_ShipStaticState[0];
 			m_ShipState[0] = m_ShipGlobalState[0];
 			m_ShipStaticState[0] = m_ShipGlobalState[0];
 			SetFrequency(0);
@@ -579,7 +582,8 @@ void CMapPlugin::Prepare()
 		}
 		
 		if(!UNDEFINED_VAL(m_ShipGlobalState[1]))
-		{			
+		{	
+			m_ShipOldStaticState[1] = m_ShipStaticState[1];
 			m_ShipState[1] = m_ShipGlobalState[1];
 			m_ShipStaticState[1] = m_ShipGlobalState[1];
 			SetFrequency(1);
@@ -590,6 +594,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[2]))
 	{
+		m_ShipOldStaticState[2] = m_ShipStaticState[2];
 		m_ShipState[2] = m_ShipGlobalState[2];
 		m_ShipStaticState[2] = m_ShipGlobalState[2];
 		SetFrequency(2);
@@ -599,6 +604,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[3]))
 	{
+		m_ShipOldStaticState[3] = m_ShipStaticState[3];
 		m_ShipState[3] = m_ShipGlobalState[3];
 		m_ShipStaticState[3] = m_ShipGlobalState[3];
 		SetFrequency(3);
@@ -608,6 +614,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[4]))
 	{
+		m_ShipOldStaticState[4] = m_ShipStaticState[4];
 		m_ShipState[4] = m_ShipGlobalState[4];
 		m_ShipStaticState[4] = m_ShipGlobalState[4];
 		SetFrequency(4);
@@ -617,6 +624,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(m_ShipGlobalState[5]))
 	{
+		m_ShipOldStaticState[5] = m_ShipStaticState[5];
 		m_ShipState[5] = m_ShipGlobalState[5];
 		m_ShipStaticState[5] = m_ShipGlobalState[5];
 		SetFrequency(5);
@@ -631,12 +639,21 @@ void CMapPlugin::Prepare()
 
 void CMapPlugin::Interpolate()
 {
+	
 	if(!m_ShipValidFrequency)
 		return;
-	
+	bool result = false;
 	m_GlobalTick = GetTickCount();
-	InterpolatePosition();
-	InterpolateHDT();
+	
+	result = InterpolatePosition();	
+	if(!result)	
+		return;				// dane z urzadzenia nie wyswietlamy
+	
+	//result = InterpolateHDT();
+	//if(!result)	
+		//return;				// dane z urzadzenia nie wyswietlamy
+
+
 	m_OldGlobalTick = m_GlobalTick;
 
 		
@@ -646,20 +663,23 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		//fprintf(stdout,"LON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
-		//m_OldPositionTime = 0;
+		//double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
+		fprintf(stdout,"\nLON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+		m_OldPositionTick = 0;
 		return false;
 	}
 
 	
 	int time = 0;
 	
-	if(m_OldGlobalTick == 0)
+	if(m_OldPositionTick == 0)
 		time = m_GlobalTick - m_ShipTimes[1];
 	else
-		time = m_GlobalTick - m_OldGlobalTick;
+		time = m_GlobalTick - m_OldPositionTick;
 
-	//fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
+	m_OldPositionTick = m_GlobalTick;
+	//time = m_MaxFrequency;
+	fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
 	NewPosition(time);
 	
 	//m_OldGlobalPositionTick = m_GlobalTick;
@@ -672,7 +692,7 @@ bool CMapPlugin::InterpolateHDT()
 {
 	if(m_HDT_Exists)
 	{
-		fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
 		return false;
 	}
 	
@@ -684,27 +704,10 @@ bool CMapPlugin::InterpolateHDT()
 	else
 		time = m_GlobalTick - m_OldGlobalTick;
 	
-	fprintf(stdout,"HDT Time %d\n",time);
+	//fprintf(stdout,"HDT Time %d\n",time);
 	NewHDT(time);
 		
 	return true;
-}
-
-
-void CMapPlugin::SendShipData()
-{
-	if(!m_ShipValidFrequency)
-		return;
-	
-	m_PositionExists = false;
-	m_Position_0_Exists = false;
-	m_Position_1_Exists = false;
-	m_Interpolation = false;
-	m_HDT_Exists = false;
-
-	m_ShipState[4] = UNDEFINED_DOUBLE;
-
-	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
 
 void CMapPlugin::SetTickerTick()
@@ -729,9 +732,8 @@ bool CMapPlugin::NewPosition(int time)
 	//fprintf(stdout,"%4.4f sog:%f cog:%f\n",sec,sog,cog);
 
 	double rad360 = 2 * nvPI / 360.0;
-	double sogm = (1852.0 / 3600.0) * sog;
-	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
-	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
+	double dlatm = (sog * cos ( 2 * nvPI - cog * rad360 )) * sec;
+	double dlonm = (sog * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
 	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
 	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
 		
@@ -745,7 +747,7 @@ bool CMapPlugin::NewPosition(int time)
 	m_ShipStaticState[0] = nlon;
 	m_ShipStaticState[1] = nlat;
 	
-	//fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
+	fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
 	
 	return true;
 }
@@ -762,7 +764,7 @@ bool CMapPlugin::NewHDT(int time)
 	double hdt = m_ShipStaticState[5] + a;
 	
 	m_OldHDT = hdt;
-	fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[5] - hdt);
+	//fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[5] - hdt);
 	m_ShipStaticState[5] = hdt;
 	m_ShipState[5] = hdt;
 	
@@ -788,6 +790,22 @@ bool CMapPlugin::NewSOG()
 		
 	m_ShipState[3] = m_ShipStaticState[3];
 	return true;
+}
+
+void CMapPlugin::SendShipData()
+{
+	if(!m_ShipValidFrequency)
+		return;
+	
+	m_PositionExists = false;
+	m_Position_0_Exists = false;
+	m_Position_1_Exists = false;
+	m_Interpolation = false;
+	m_HDT_Exists = false;
+
+	//m_ShipState[4] = UNDEFINED_DOUBLE;
+
+	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
 
 

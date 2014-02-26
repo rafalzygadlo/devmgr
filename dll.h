@@ -31,14 +31,14 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_OtherData;
 	double m_ShipState[MAX_SHIP_VALUES_LEN];
 	double m_ShipStaticState[MAX_SHIP_VALUES_LEN];
+	double m_ShipOldStaticState[MAX_SHIP_VALUES_LEN]; // dane starsze o jeden tick
 	double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
 	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
 	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
 	bool m_ShipValidFrequencyTable[MAX_SHIP_VALUES_LEN];
 	bool m_ShipValidFrequency;
 	double m_LastHDT;
-	int m_OldGlobalPositionTick,m_OldGlobalHDTTick;
-
+	int m_OldPositionTick, m_OldGlobalHDTTick;
 	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
