@@ -288,12 +288,12 @@ void CMapPlugin::OnTickerTick()
 
 	if( m_ShipTick >= m_ShipInterval ) 
 	{
-		GetMutex()->Lock();
+		//GetMutex()->Lock();
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
 		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-		GetMutex()->Unlock();
+		//GetMutex()->Unlock();
 		
 	}
 	
@@ -512,11 +512,11 @@ void CMapPlugin::BuildFontData(SAisData *ptr)
 
 void CMapPlugin::SetShip(SFunctionData *data)
 {
-	GetMutex()->Lock();
+	//GetMutex()->Lock();
 	memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 	Prepare();
-	GetMutex()->Unlock();
+	//GetMutex()->Unlock();
 }
 
 void CMapPlugin::SetFrequency(int id)
@@ -542,7 +542,7 @@ void CMapPlugin::SetFrequency(int id)
 		m_MaxFrequency = DEFAULT_FREQUENCY * 10; //10 sekund
 		for(size_t i = 0; i < MAX_SHIP_VALUES_LEN; i++)
 		{
-			if(m_ShipTicks[i] < m_MaxFrequency )
+			if(m_ShipTicks[i] < m_MaxFrequency && m_ShipValidFrequencyTable[i])
 			{	
 				m_MaxFrequencyID = i;
 				if(m_ShipTicks[i] > DEFAULT_MAX_FREQUENCY)
@@ -557,9 +557,9 @@ void CMapPlugin::SetFrequency(int id)
 	{
 		if(!m_ShipValidFrequencyTable[i])
 		{	
-			m_PositionExists = false;
-			m_Position_0_Exists = false;
-			m_Position_1_Exists = false;
+			//m_PositionExists = false;
+			//m_Position_0_Exists = false;
+			//m_Position_1_Exists = false;
 			return;
 		}
 	}
@@ -641,11 +641,10 @@ void CMapPlugin::Prepare()
 void CMapPlugin::Interpolate()
 {
 	
-	if(!m_ShipValidFrequency)
-		return;
+	
 	bool result = false;
 	m_GlobalTick = GetTickCount();
-	
+	Reset(m_ShipState);
 	result = InterpolatePosition();	
 	//if(!result)	
 		//return;				// dane z urzadzenia nie wyswietlamy
@@ -664,23 +663,33 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		//double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
-		fprintf(stdout,"\nLON LAT %4.10f %4.10f\n",m_ShipState[0],m_ShipState[1]);
+		double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
+		fprintf(stdout,"\nLON LAT %4.10f %4.10f %4.4f\n",m_ShipState[0],m_ShipState[1],distance);
 		m_OldPositionTick = 0;
 		return false;
 	}
 
+	if(!m_ShipValidFrequency)
+		return false;
 	
 	int time = 0;
-	
+	/*
 	if(m_OldPositionTick == 0)
 		time = m_GlobalTick - m_ShipTimes[1];
 	else
 		time = m_GlobalTick - m_OldPositionTick;
+	*/
 
+	if(m_OldPositionTick == 0)
+		time = m_GlobalTick - m_ShipTimes[1];
+	else
+		time = m_GlobalTick - m_OldPositionTick;
+	
+	
+	
 	m_OldPositionTick = m_GlobalTick;
 	//time = m_MaxFrequency;
-	fprintf(stdout,"Interpolowanie pozycji:[%d]%d\n",m_MaxFrequencyID,time);
+	fprintf(stdout,"Interpolowanie pozycji:[%d][%d] %d\n",m_ShipTicks[0],m_ShipTicks[1],time);
 	NewPosition(time);
 	
 	//m_OldGlobalPositionTick = m_GlobalTick;
@@ -698,7 +707,9 @@ bool CMapPlugin::InterpolateHDT()
 		return false;
 	}
 	
-	bool result = false;
+	if(!m_ShipValidFrequency)
+		return false;
+	
 	int time = 0;
 
 	if(m_OldHDTTick == 0)
@@ -730,10 +741,7 @@ bool CMapPlugin::NewPosition(int time)
 	double sog = m_ShipStaticState[3];
 	double cog = m_ShipStaticState[4];
 	double sec = (double)time/1000.0;
-
-	//sec = 1;
-	//fprintf(stdout,"%4.4f sog:%f cog:%f\n",sec,sog,cog);
-
+		
 	double rad360 = 2 * nvPI / 360.0;
 	double sogm = (1852.0 /3600) * sog;
 	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
@@ -747,8 +755,8 @@ bool CMapPlugin::NewPosition(int time)
 	// przypisz nowe wartosci 
 	m_ShipState[0] = nlon;
 	m_ShipState[1] = nlat;
-
-	m_ShipStaticState[0] = nlon;
+	
+	m_ShipStaticState[0] = nlon; 
 	m_ShipStaticState[1] = nlat;
 	
 	fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
@@ -798,8 +806,8 @@ bool CMapPlugin::NewSOG()
 
 void CMapPlugin::SendShipData()
 {
-	if(!m_ShipValidFrequency)
-		return;
+	//if(!m_ShipValidFrequency)
+		//return;
 	
 	m_PositionExists = false;
 	m_Position_0_Exists = false;
