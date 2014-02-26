@@ -55,6 +55,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_AisBufferTick = 0;
 	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
 	m_GlobalTick = m_OldGlobalTick = 0;	
+	m_OldPositionTick = m_OldHDTTick = 0;
 	
 
 	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
@@ -646,10 +647,10 @@ void CMapPlugin::Interpolate()
 	m_GlobalTick = GetTickCount();
 	
 	result = InterpolatePosition();	
-	if(!result)	
-		return;				// dane z urzadzenia nie wyswietlamy
+	//if(!result)	
+		//return;				// dane z urzadzenia nie wyswietlamy
 	
-	//result = InterpolateHDT();
+	result = InterpolateHDT();
 	//if(!result)	
 		//return;				// dane z urzadzenia nie wyswietlamy
 
@@ -664,7 +665,7 @@ bool CMapPlugin::InterpolatePosition()
 	if(m_PositionExists)
 	{
 		//double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
-		fprintf(stdout,"\nLON LAT %4.6f %4.6f\n",m_ShipState[0],m_ShipState[1]);
+		fprintf(stdout,"\nLON LAT %4.10f %4.10f\n",m_ShipState[0],m_ShipState[1]);
 		m_OldPositionTick = 0;
 		return false;
 	}
@@ -693,17 +694,19 @@ bool CMapPlugin::InterpolateHDT()
 	if(m_HDT_Exists)
 	{
 		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		m_OldHDTTick = 0;
 		return false;
 	}
 	
 	bool result = false;
 	int time = 0;
 
-	if(m_OldGlobalTick == 0)
+	if(m_OldHDTTick == 0)
 		time = m_GlobalTick - m_ShipTimes[5];
 	else
 		time = m_GlobalTick - m_OldGlobalTick;
 	
+	m_OldHDTTick = m_GlobalTick;
 	//fprintf(stdout,"HDT Time %d\n",time);
 	NewHDT(time);
 		
@@ -732,8 +735,9 @@ bool CMapPlugin::NewPosition(int time)
 	//fprintf(stdout,"%4.4f sog:%f cog:%f\n",sec,sog,cog);
 
 	double rad360 = 2 * nvPI / 360.0;
-	double dlatm = (sog * cos ( 2 * nvPI - cog * rad360 )) * sec;
-	double dlonm = (sog * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
+	double sogm = (1852.0 /3600) * sog;
+	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
+	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
 	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
 	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
 		

@@ -38,7 +38,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_ShipValidFrequencyTable[MAX_SHIP_VALUES_LEN];
 	bool m_ShipValidFrequency;
 	double m_LastHDT;
-	int m_OldPositionTick, m_OldGlobalHDTTick;
+	int m_OldPositionTick, m_OldHDTTick;
 	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
 	wxArrayPtrVoid *m_Devices;
