@@ -318,13 +318,14 @@ void CMapPlugin::PrepareBuffer()
 	
 	m_PointsBuffer0.Clear();
 	m_TriangleBuffer0.Clear();
+	m_TriangleIndicesBuffer0.Clear();
 	
 	for(size_t i = 0; i < buffer->Length(); i++)
 	{
 		SAisData *data = buffer->Get(i);
 		PreparePointsBuffer(data);
 		PrepareTriangleBuffer(data);
-		PrepareIndicesBuffer();
+		PrepareIndicesBuffer(data);
 	}
 	
 	m_CurrentPointsBufferPtr = &m_PointsBuffer0;
@@ -452,17 +453,19 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 
 }
 
-void CMapPlugin::PrepareIndicesBuffer()
+void CMapPlugin::PrepareIndicesBuffer(SAisData *ptr)
 {
-	int id = m_TriangleBuffer0.Length();
+	if(ptr->valid_dim && ptr->valid_pos)
+	{
+		int id = m_TriangleBuffer0.Length();
 
-	m_TriangleIndicesBuffer0.Append(id);
-	m_TriangleIndicesBuffer0.Append(id + 1);
-	m_TriangleIndicesBuffer0.Append(id + 3);
-	m_TriangleIndicesBuffer0.Append(id + 1);
-	m_TriangleIndicesBuffer0.Append(id + 2);
-	m_TriangleIndicesBuffer0.Append(id + 3);
-
+		m_TriangleIndicesBuffer0.Append(id);
+		m_TriangleIndicesBuffer0.Append(id + 1);
+		m_TriangleIndicesBuffer0.Append(id + 3);
+		m_TriangleIndicesBuffer0.Append(id + 1);
+		m_TriangleIndicesBuffer0.Append(id + 2);
+		m_TriangleIndicesBuffer0.Append(id + 3);
+	}
 }
 
 
@@ -644,7 +647,7 @@ void CMapPlugin::Interpolate()
 	
 	bool result = false;
 	m_GlobalTick = GetTickCount();
-	Reset(m_ShipState);
+	//Reset(m_ShipState);
 	result = InterpolatePosition();	
 	//if(!result)	
 		//return;				// dane z urzadzenia nie wyswietlamy
@@ -702,7 +705,7 @@ bool CMapPlugin::InterpolateHDT()
 {
 	if(m_HDT_Exists)
 	{
-		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
 		m_OldHDTTick = 0;
 		return false;
 	}
@@ -994,15 +997,25 @@ void CMapPlugin::Kill(void)
 
 }
 
-void CMapPlugin::CreateVBO()
+bool CMapPlugin::CreateVBO()
 {
-	
+	if(m_CurrentTriangleBufferPtr->Length() == 0)
+		return false;
+
 	glGenBuffers(1, &m_ShipsArrayBuffer );
 	glBindBuffer( GL_ARRAY_BUFFER, m_ShipsArrayBuffer );
-	glBufferData( GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentTriangleBufferPtr->Length(),NULL, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, 2 * m_CurrentTriangleBufferPtr->Length(),m_CurrentTriangleBufferPtr->GetRawData(), GL_STATIC_DRAW );
+	glBindBuffer( GL_ARRAY_BUFFER, 0);
 		
+	glGenBuffers(1, &m_ShipsIndicesBuffer );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ShipsIndicesBuffer );
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentTriangleIndicesBufferPtr->Length(), m_CurrentTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer( GL_ARRAY_BUFFER, 0 );
+	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	
-		
+	
+	
 	GLenum ErrorCheckValue = glGetError();
     if (ErrorCheckValue != GL_NO_ERROR)
     {
@@ -1010,7 +1023,8 @@ void CMapPlugin::CreateVBO()
  
         exit(-1);
     }
- 
+	
+	return true;
 			
 }
 
@@ -1026,28 +1040,31 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::RenderVBO()
 {
 
-	CreateVBO();
-	GLenum  err = 0;
-	//glPushMatrix();
+	if(CreateVBO())
+	{
+		return;
+		GLenum  err = 0;
+		//glPushMatrix();
 	      
     
-	//glEnable(GL_TEXTURE_2D);
-	glPointSize(10);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	//glEnableClientState(GL_COLOR_ARRAY);
-	glColor3f(1.0,0.0,0.0);
+		//glEnable(GL_TEXTURE_2D);
+		glPointSize(10);
+		glColor3f(1.0,0.0,0.0);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);	
+		glVertexPointer(2, GL_FLOAT,  0, 0);
+		
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsIndicesBuffer); 
+		//glDrawElements(GL_TRIANGLES, TriInsicesSize * 3, GL_UNSIGNED_INT, 0);
+		//glDrawArrays(GL_POINTS,0,m_CurrentTriangleBufferPtr->Length());
+		glDrawElements(GL_TRIANGLES, 3 * m_CurrentTriangleIndicesBufferPtr->Length(), GL_UNSIGNED_INT,0);
+		
+		glDisableClientState(GL_VERTEX_ARRAY);
 	
-	//glBindTexture( GL_TEXTURE_2D, m_TextureID_0);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);	
-	glVertexPointer(3, GL_FLOAT,  0, 0);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT,m_CurrentTriangleIndicesBufferPtr->GetRawData());
-				
-	
-	
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glBindBuffer(GL_ARRAY_BUFFER,0);
-
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+	}
 
 	//glDisable(GL_TEXTURE_2D);
 	//glDisable(GL_POINT_SPRITE);
@@ -1077,7 +1094,7 @@ void CMapPlugin::Render()
 	
 	glPointSize(1);
 	
-	//RenderVBO();
+	RenderVBO();
 
 	/*
 	glEnable(GL_BLEND);

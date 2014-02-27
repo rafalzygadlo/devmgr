@@ -155,7 +155,7 @@ void CDisplayPlugin::OnMenu(wxContextMenuEvent &event)
 
 bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 
-	if(SignalID->GetSignalID() == NDS_BROKER_BROADCAST && m_Broker == NULL)
+	if(SignalID->GetSignalID() == NDS_BROKER_BROADCAST)
 	{
 		m_Broker = (CNaviBroker*)SignalID->GetData();
 		m_MapPlugin = (CMapPlugin*)m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_GetParentPtr",NULL);
@@ -168,7 +168,16 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 	{
 		m_SignalType = SignalID->GetTag();
 		if(m_MapPlugin != NULL)
+		{
+			m_Broker = m_MapPlugin->GetBroker();
 			InitDisplay();
+		//}else{
+		
+			//if(m_Broker)
+				//m_MapPlugin = (CMapPlugin*)m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_GetParentPtr",NULL);
+				//if(m_MapPlugin != NULL)
+					//InitDisplay();
+		}
 		// kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
 		
 		
@@ -206,7 +215,7 @@ void CDisplayPlugin::GetSignal(CDisplaySignal *sig)
 	switch(m_SignalType)
 	{
 		case CLEAR_DISPLAY:		ClearDisplay(); break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
-		case INIT_SIGNAL:		InitDisplay();	break;		// inicjuje listê urzadzeñ
+		//case INIT_SIGNAL:		InitDisplay();	break;		// inicjuje listê urzadzeñ
 	}
 
 }
@@ -229,7 +238,7 @@ void CDisplayPlugin::ClearDisplay()
 {
 	m_FirstTime = true;
 	this->Disable();
-	
+	m_MapPlugin = NULL;
 	if(m_DevicesList != NULL)
 	{
 		delete m_DevicesList;

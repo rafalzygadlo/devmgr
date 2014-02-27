@@ -236,7 +236,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TICKER_SLEEP	100
 #define DEFAULT_FREQUENCY 1000					//milisekundy 
 #define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
-#define AIS_BUFFER_INTERVAL	1000	//co sekunde zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
 
 typedef struct SData
 {

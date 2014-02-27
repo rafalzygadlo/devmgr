@@ -69,7 +69,7 @@ class CMapPlugin :public CNaviMapIOApi
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsIndicesBuffer;
 
 	// bufory punktow
 	CNaviArray <nvPoint2d> m_PointsBuffer0;
@@ -109,10 +109,10 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareTriangleBuffer(SAisData *ptr);
+	void PrepareIndicesBuffer(SAisData *ptr);
 	void CopyPointsBuffer();
 	void CopyTriangleBuffer();
 	void CopyTriangleIndicesBuffer();
-	void PrepareIndicesBuffer();
 	void SendShipData();
 	bool NewPosition(int time);
 	bool NewHDT(int time);
@@ -125,7 +125,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
-	void CreateVBO();
+	bool CreateVBO();
 	void RenderVBO();
 	void SetInvalid();
 	void SetFrequency(int id);

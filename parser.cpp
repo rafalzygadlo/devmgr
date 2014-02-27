@@ -127,7 +127,7 @@ void CParser::Parse( char *line)
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
 				// ustawia funkcje definiowane w protocole
 //				SetValuesArray(m_Data);
-				m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&m_Data);
+				//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&m_Data);
 				SetValidData();
 			}
 			

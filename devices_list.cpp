@@ -60,10 +60,13 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	m_DeviceConfig = NULL;
-	m_Broker = plugin->GetBroker();
-
 	GetPanel();
-	SetDevices();
+	
+	if(m_MapPlugin)
+	{
+		m_Broker = m_MapPlugin->GetBroker();
+		SetDevices();
+	}
 
 }
 
