@@ -60,6 +60,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 	m_AisBufferInterval = AIS_BUFFER_INTERVAL;
 	m_CurrentTriangleBufferPtr = NULL;
+	m_CurrentPointsBufferPtr = NULL;
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
 	m_SignalID = -1;
@@ -82,6 +83,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
+
+	VBOCreated = false;
 
 	Reset(m_ShipState);			//wysylany do statku
 	Reset(m_ShipGlobalState);	
@@ -423,7 +426,7 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
 		pt.x = to_x;
 		pt.y = to_y;
-		
+
 		// translate
 		p1.x += pt.x; p1.y += pt.y;
 		p2.x += pt.x; p2.y += pt.y;
@@ -999,14 +1002,21 @@ void CMapPlugin::Kill(void)
 
 bool CMapPlugin::CreateVBO()
 {
+	
+	//if(VBOCreated)
+	//{
+
+		//return true;
+	//}
+	
 	if(m_CurrentTriangleBufferPtr->Length() == 0)
 		return false;
 
 	glGenBuffers(1, &m_ShipsArrayBuffer );
 	glBindBuffer( GL_ARRAY_BUFFER, m_ShipsArrayBuffer );
-	glBufferData( GL_ARRAY_BUFFER, 2 * m_CurrentTriangleBufferPtr->Length(),m_CurrentTriangleBufferPtr->GetRawData(), GL_STATIC_DRAW );
-	glBindBuffer( GL_ARRAY_BUFFER, 0);
-		
+	//glBufferData( GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentTriangleBufferPtr->Length(),NULL, GL_DYNAMIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentTriangleBufferPtr->Length(), m_CurrentTriangleBufferPtr->GetRawData(), GL_STATIC_DRAW );
+			
 	glGenBuffers(1, &m_ShipsIndicesBuffer );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_ShipsIndicesBuffer );
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentTriangleIndicesBufferPtr->Length(), m_CurrentTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
@@ -1023,7 +1033,7 @@ bool CMapPlugin::CreateVBO()
  
         exit(-1);
     }
-	
+	VBOCreated = true;
 	return true;
 			
 }
@@ -1039,41 +1049,26 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 
 void CMapPlugin::RenderVBO()
 {
-
-	if(CreateVBO())
-	{
-		return;
-		GLenum  err = 0;
-		//glPushMatrix();
-	      
-    
-		//glEnable(GL_TEXTURE_2D);
-		glPointSize(10);
-		glColor3f(1.0,0.0,0.0);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);	
-		glVertexPointer(2, GL_FLOAT,  0, 0);
-		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsIndicesBuffer); 
-		//glDrawElements(GL_TRIANGLES, TriInsicesSize * 3, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_POINTS,0,m_CurrentTriangleBufferPtr->Length());
-		glDrawElements(GL_TRIANGLES, 3 * m_CurrentTriangleIndicesBufferPtr->Length(), GL_UNSIGNED_INT,0);
-		
-		glDisableClientState(GL_VERTEX_ARRAY);
+	    
+	glPointSize(10);
+	glColor3f(1.0,0.0,0.0);
+	glEnableClientState(GL_VERTEX_ARRAY);			
+	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);	
+	glVertexPointer(2, GL_DOUBLE,  0, 0);
 	
-		glBindBuffer(GL_ARRAY_BUFFER,0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-	}
+	//glDrawArrays(GL_POINTS,0,m_CurrentTriangleBufferPtr->Length());
 
-	//glDisable(GL_TEXTURE_2D);
-	//glDisable(GL_POINT_SPRITE);
 
-	//glPopMatrix();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsIndicesBuffer);
+	//glDrawElements(GL_TRIANGLES, TriInsicesSize * 3, GL_UNSIGNED_INT, 0);
+		
+	glDrawElements(GL_TRIANGLES, m_CurrentTriangleIndicesBufferPtr->Length(), GL_UNSIGNED_INT,0);
+	
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
 }
-
-
 
 void CMapPlugin::Render()
 {
@@ -1092,9 +1087,45 @@ void CMapPlugin::Render()
 		glVertex2f(to_x,to_y*-1);
 	glEnd();
 	
+	double lon = m_ShipStaticState[0];
+	double lat = m_ShipStaticState[1];
+	double sog = m_ShipStaticState[3];
+	double cog = m_ShipStaticState[4];
+	double sec = (double)1000.0/1000.0;
+	
+	for(size_t i = 0; i < 10; i++)
+	{
+
+		double rad360 = 2 * nvPI / 360.0;
+		double sogm = (1852.0 /3600) * sog;
+		double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * sec;
+		double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * sec * -1;
+		double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
+		double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
+		
+		double nlon = lon + dlonm / (lonDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+		double nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+		
+		m_Broker->Unproject(nlon,nlat,&to_x,&to_y);
+
+		double distance = nvDistance(lon,lat,nlon,nlat);
+		fprintf(stdout,"Distance %4.4f\n",distance);
+		distance = distance / i;
+
+		glColor3f(1.0,0.0,0.0);
+		glBegin(GL_POINTS);
+			glVertex2f(to_x,to_y*-1);
+		glEnd();
+
+		sec = sec + 10;
+	}
+
+	//if(CreateVBO)
+	//	RenderVBO();
+	
 	glPointSize(1);
 	
-	RenderVBO();
+	
 
 	/*
 	glEnable(GL_BLEND);

@@ -66,6 +66,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_Interpolation;
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;
+	bool VBOCreated;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
