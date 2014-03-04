@@ -66,27 +66,44 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_Interpolation;
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;
-	bool VBOCreated;
+	double m_SmoothScaleFactor, m_Factor;
+	float m_MapScale;
+	double m_MapX,m_MapY;
+	nvPoint2d *m_SelectedShip;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer, m_ShipsIndicesBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsIndicesBuffer, m_ShipsTexCoordsBuffer;
 
-	// bufory punktow
+	// bufory punktów
 	CNaviArray <nvPoint2d> m_PointsBuffer0;
 	CNaviArray <nvPoint2d> m_PointsBuffer1;
 	// pointer na aktualny bufor
 	CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
 
+	// bufor punktów trójk¹tów
 	CNaviArray <nvPoint2d> m_TriangleBuffer0;
 	CNaviArray <nvPoint2d> m_TriangleBuffer1;
 	// pointer na aktualny bufor
 	CNaviArray <nvPoint2d> *m_CurrentTriangleBufferPtr;
 
+	// bufor indexów trójk¹tów
 	CNaviArray <int> m_TriangleIndicesBuffer0;
 	CNaviArray <int>  m_TriangleIndicesBuffer1;
 	// pointer na aktualny bufor
 	CNaviArray <int> *m_CurrentTriangleIndicesBufferPtr;
+	
+	// bufor koordynat tekstur
+	CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
+	CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
+	// pointer na aktualny bufor
+	CNaviArray <nvPoint2float> *m_CurrentTriangleTexCoordsBufferPtr;
+	
+	// bufor nazw obiektów mmsi, shipname
+	CNaviArray <wchar_t[128]> m_ShipNamesBuffer0;
+	CNaviArray <wchar_t[128]> m_ShipNamesBuffer1;
+	// pointer na aktualny bufor
+	CNaviArray <wchar_t[128]> *m_CurrentShipNamesBufferPtr;
 	
 	void Prepare();
 	void CreateApiMenu(void);
@@ -111,9 +128,14 @@ class CMapPlugin :public CNaviMapIOApi
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareTriangleBuffer(SAisData *ptr);
 	void PrepareIndicesBuffer(SAisData *ptr);
+	void PrepareShipNamesBuffer(SAisData *ptr);
+	void PrepareTexCoordsBuffer(SAisData *ptr);
+
 	void CopyPointsBuffer();
 	void CopyTriangleBuffer();
 	void CopyTriangleIndicesBuffer();
+	void CopyTriangleTexCoordsBuffer();
+	void CopyShipNamesBuffer();
 	void SendShipData();
 	bool NewPosition(int time);
 	bool NewHDT(int time);
@@ -127,10 +149,14 @@ class CMapPlugin :public CNaviMapIOApi
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
 	bool CreateVBO();
+	void DeleteVBO();
 	void RenderVBO();
+	void RenderShipNames();
 	void SetInvalid();
 	void SetFrequency(int id);
 	void SetShip(SFunctionData *data);
+	void SetSmoothScaleFactor(double _Scale);
+	void SetValues();
 
 public:
 

@@ -220,23 +220,20 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 // w bibliotece protocols definicja w tablicach parsera
 #define AIS_MESSAGE					25
-
 #define AIS_CHECKSUM			6
 #define AIS_MESSAGE_ID			3			
 #define AIS_FRAGMENT_NUMBER		2
 #define AIS_FRAGMENT_COUNTER	1
 #define AIS_DATA				5
 #define AIS_SHIPNAME_MAXLEN		20
-
 #define AIS_PARTS 7 // czesci wiadomosci
-
 #define MARKER_LENGTH 5
 #define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
-
 #define TICKER_SLEEP	100
 #define DEFAULT_FREQUENCY 1000					//milisekundy 
 #define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
 #define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
+#define DEFAULT_FONT_FACTOR 50.0
 
 typedef struct SData
 {
