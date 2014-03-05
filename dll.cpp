@@ -427,7 +427,7 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 	// na mile morskie
 	if(ptr->valid_dim && ptr->valid_pos)
 	{
-		double to_bow, to_stern, to_port, to_starboard;	
+		double to_bow, to_stern, to_port, to_starboard;
 		nvPoint2d p1, p2, p3, p4;
 		
 		to_bow = (double)ptr->to_bow/1852/yDistance; to_stern = (double)ptr->to_stern/1852/yDistance; to_port = (double)ptr->to_port/1852/yDistance; to_starboard = (double)ptr->to_starboard/1852/yDistance;
@@ -439,7 +439,7 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		double vy = (to_bow - to_stern)/2;
 
 		//wymiary rzeczywiste
-		p1.x = -0.5*width;	p1.y = 0.5*height;	p2.x = 0.5*width; p2.y =  0.5*height; p3.x = 0.5*width;	p3.y = -0.5*height;	p4.x = -0.5*width;	p4.y = -0.5*height;		
+		p1.x = -0.5*width;	p1.y = 0.5*height;	p2.x = 0.5*width; p2.y =  0.5*height; p3.x = 0.5*width;	p3.y = -0.5*height;	p4.x = -0.5*width;	p4.y = -0.5*height;
 		//pozycja GPSa
 		p1.x -= vx; p1.y -= vy;	p2.x -= vx; p2.y -= vy;	p3.x -= vx; p3.y -= vy;	p4.x -= vx; p4.y -= vy;
 
@@ -502,13 +502,16 @@ void CMapPlugin::PrepareTexCoordsBuffer(SAisData *ptr)
 	if(ptr->valid_dim && ptr->valid_pos)
 	{
 		nvPoint2float pt;
-		pt.x = 0.5; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//0
-		pt.x = 0.5; pt.y = 0.5;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
-		pt.x = 0.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//0
+		pt.x = 0.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
+		pt.x = 0.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		//pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
 		
-		pt.x = 0.0; pt.y = 0.5;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
-		pt.x = 0.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//2
-		pt.x = 0.5; pt.y = 0.5;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		pt.x = 0.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//2
+		pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
+		
+		pt.x = 1.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		//pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
 	}
 
 }
@@ -530,50 +533,6 @@ void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr)
 		m_ShipNamesBuffer0.Append(str);
 	}
 }
-
-/*
-void CMapPlugin::BuildFontData(SAisData *ptr)
-{
-	Font
-	
-	Font->Clear();
-	if(size == 0)
-		return;
-
-	size_t CaptionsSize = size;
-    vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );    // czêœæ ca³kowita jednostki sondowania
-    float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
-    float *Angle = (float*)malloc( CaptionsSize * sizeof( float ) );
-    float *vx = (float*)malloc( CaptionsSize * sizeof( float ) );
-    float *vy = (float*)malloc( CaptionsSize * sizeof( float ) );
-    wchar_t **CaptionsStr = (wchar_t**)malloc(  CaptionsSize * sizeof( wchar_t** ) );
-	
-	
-
-    for(size_t i = 0 ; i < Towns.Length(); i++ ) 
-	{
-		//STown Town = Towns.Get(i);
-		Positions[i][0] = TownsList[i].p1; 
-        Positions[i][1] = TownsList[i].p2  + (20.0/SmoothScaleFactor);
-		Scale[i] = TownsList[i].scale / SmoothScaleFactor / DEFAULT_FONT_FACTOR;
-        vx[i] = 0.5f;
-        vy[i] = 0.5f;
-		CaptionsStr[i] = TownsList[i].name;   // bez kopiowania ³añcucha!!! 
-		Angle[i] = Broker->GetAngle();
-    }
-
-	Font->Clear();
-    Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
-
-	free( CaptionsStr );    // ³añcuchy nie zosta³y skopiowane, nie ma koniecznoœci zwalniania ca³ej listy
-    free( Positions );
-    free( Scale );
-    free( Angle );
-    free( vx );
-    free( vy );
-
-}
-*/
 
 void CMapPlugin::SetShip(SFunctionData *data)
 {
@@ -1069,6 +1028,12 @@ bool CMapPlugin::CreateVBO()
 		
 	if(m_CurrentTriangleBufferPtr->Length() == 0)
 		return false;
+	
+	if(m_CurrentTriangleIndicesBufferPtr->Length() == 0)
+		return false;
+
+	if(m_CurrentTriangleTexCoordsBufferPtr->Length() == 0)
+		return false;
 
 	glGenBuffers(1, &m_ShipsArrayBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);
@@ -1080,7 +1045,7 @@ bool CMapPlugin::CreateVBO()
 
 	glGenBuffers(1, &m_ShipsTexCoordsBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsTexCoordsBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2f) * m_CurrentTriangleTexCoordsBufferPtr->Length(), m_CurrentTriangleTexCoordsBufferPtr->GetRawData(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2float) * m_CurrentTriangleTexCoordsBufferPtr->Length(), m_CurrentTriangleTexCoordsBufferPtr->GetRawData(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -1177,7 +1142,7 @@ void CMapPlugin::Render()
 	glEnable(GL_TEXTURE_2D);
 	glColor4f(1.0,1.0,1.0,1.0);
 	
-	wxMutexLocker Locker(*GetMutex());
+	GetMutex()->Lock();
 	
 	if(CreateVBO())
 	{
@@ -1187,7 +1152,6 @@ void CMapPlugin::Render()
 	
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
-	
 	
 	glColor4f(1.0,0.0,0.0,0.6);
 	glPointSize(5);
@@ -1199,6 +1163,7 @@ void CMapPlugin::Render()
 		RenderShipNames();
 	}
 	
+	GetMutex()->Unlock();
 
 	/*
 	glEnable(GL_BLEND);
