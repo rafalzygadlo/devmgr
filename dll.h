@@ -70,6 +70,7 @@ class CMapPlugin :public CNaviMapIOApi
 	float m_MapScale;
 	double m_MapX,m_MapY;
 	nvPoint2d *m_SelectedShip;
+	int m_SelectedVertexId;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;

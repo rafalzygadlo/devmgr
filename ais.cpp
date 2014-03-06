@@ -531,8 +531,7 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 
 	if(ais->valid[AIS_MSG_21])
 	{
-		ptr->to_bow			= ais->type21.to_bow;
-		ptr->to_stern		= ais->type21.to_stern;
+		ptr->to_bow			= ais->type21.to_bow;		ptr->to_stern		= ais->type21.to_stern;
 		ptr->to_port		= ais->type21.to_port;	
 		ptr->to_starboard	= ais->type21.to_starboard;
 		//memcpy(ptr->shipname,ais->type21. shipname,AIS_SHIPNAME_MAXLEN + 1);

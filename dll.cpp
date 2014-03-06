@@ -70,8 +70,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ShipValidFrequency = false;
 	m_Interpolation = false;
 	m_SelectedShip = NULL;
-
-
+	m_SelectedVertexId = 0;
+	
 
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
@@ -340,7 +340,6 @@ void CMapPlugin::PrepareBuffer()
 		PrepareIndicesBuffer(data);
 		PrepareTexCoordsBuffer(data);
 		PrepareShipNamesBuffer(data);
-		
 	}
 	
 	m_CurrentPointsBufferPtr = &m_PointsBuffer0;
@@ -442,17 +441,17 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 		p1.x = -0.5*width;	p1.y = 0.5*height;	p2.x = 0.5*width; p2.y =  0.5*height; p3.x = 0.5*width;	p3.y = -0.5*height;	p4.x = -0.5*width;	p4.y = -0.5*height;
 		//pozycja GPSa
 		p1.x -= vx; p1.y -= vy;	p2.x -= vx; p2.y -= vy;	p3.x -= vx; p3.y -= vy;	p4.x -= vx; p4.y -= vy;
-
+				
 		if(ptr->valid_hdg)
 		{
 			double out_x,out_y;
-			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->cog));
+			RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr->hdg));
 			p1.x = out_x;	p1.y = out_y;
-			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->cog));
+			RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr->hdg));
 			p2.x = out_x;	p2.y = out_y;
-			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->cog));
+			RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr->hdg));
 			p3.x = out_x;	p3.y = out_y;
-			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->cog));
+			RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr->hdg));
 			p4.x = out_x;	p4.y = out_y;
 		}
 		
@@ -502,16 +501,30 @@ void CMapPlugin::PrepareTexCoordsBuffer(SAisData *ptr)
 	if(ptr->valid_dim && ptr->valid_pos)
 	{
 		nvPoint2float pt;
-		pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//0
-		pt.x = 0.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
-		pt.x = 0.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
-		//pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
-		
+		pt.x = 0.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//0
+		pt.x = 1.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
+		pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+				
 		pt.x = 0.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//2
-		pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
 		
-		pt.x = 1.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		//pt.x = 1.0; pt.y = 0.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//1
 		//pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		
+		//pt.x = 1.0; pt.y = 1.0;		m_TriangleTexCoordsBuffer0.Append(pt);	//3
+		/*
+
+		glTexCoord2f(0.0f,1.0f); glVertex2f( -1.0, -4.0 );
+		glTexCoord2f(0.0f,0.0f); glVertex2f( -1.0, 4.0 );
+		glTexCoord2f(1.0f,0.0f); glVertex2f( 1.0, 4.0 );
+
+		glColor3f(0.0,1.0,0.0);
+		glTexCoord2f(0.0f,1.0f); glVertex2f( -1.0, -4.0 );
+		glTexCoord2f(1.0f,0.0f); glVertex2f( 1.0, 4.0 );
+		glTexCoord2f(1.0f,1.0f); glVertex2f( 1.0, -4.0 );
+	
+		
+		*/
+
 	}
 
 }
@@ -1140,7 +1153,7 @@ void CMapPlugin::Render()
 	SetValues();
 	glEnable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
-	glColor4f(1.0,1.0,1.0,1.0);
+	glColor4f(1.0,1.0,1.0,0.6);
 	
 	GetMutex()->Lock();
 	
@@ -1154,15 +1167,30 @@ void CMapPlugin::Render()
 	glDisable(GL_TEXTURE_2D);
 	
 	glColor4f(1.0,0.0,0.0,0.6);
-	glPointSize(5);
+	glPointSize(3);
 	RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length()); //miejsce przyczepienia GPS
 	glPointSize(1);
 		
-	if(m_MapScale > 10000.0)
+	if(m_MapScale > 50000.0)
 	{
 		RenderShipNames();
 	}
 	
+	if(m_CurrentTriangleBufferPtr->Length() > 0)
+	{
+		nvPoint2d pt0 =  m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId);
+ 		nvPoint2d pt1 = m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId + 1);
+		nvPoint2d pt2 = m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId + 2);
+		nvPoint2d pt3 = m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId + 3);
+	
+		glBegin(GL_QUADS);
+			glVertex2d(pt0.x,pt0.y);
+			glVertex2d(pt1.x,pt1.y);
+			glVertex2d(pt2.x,pt2.y);
+			glVertex2d(pt3.x,pt3.y);
+		glEnd();
+
+	}
 	GetMutex()->Unlock();
 
 	/*
@@ -1226,7 +1254,7 @@ void CMapPlugin::Config()
 void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
 	SetValues();
-	return;
+	
 	
 	if(!lmb)
 		return;
@@ -1266,10 +1294,14 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		
 
 		if(nvIsPointInPolygon(m_MapX,m_MapY,a,4))
-			m_SelectedShip = &m_CurrentTriangleBufferPtr->Get(i);
+		{
+			m_SelectedVertexId = i;
+			return;
+		}
 
 	}
 
+	m_SelectedVertexId = 0;
 	
 }
 
@@ -1408,7 +1440,7 @@ const NAVIMAPAPI wchar_t *NaviPluginIntroduce(int LangID)
 
 int NAVIMAPAPI GetNaviPluginType(void)
 {
-    return MAP_PLUGIN_RUN_ON_DEMAND;
+	return MAP_PLUGIN_RUN_ON_DEMAND | RENDER_PRIORITY_8;
 }
 #if defined(_WIN32) || defined(_WIN64)
 int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void*)
