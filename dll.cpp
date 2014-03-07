@@ -1183,7 +1183,14 @@ void CMapPlugin::Render()
 		nvPoint2d pt2 = m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId + 2);
 		nvPoint2d pt3 = m_CurrentTriangleBufferPtr->Get(m_SelectedVertexId + 3);
 	
-		glBegin(GL_QUADS);
+		glBegin(GL_LINES);
+			glVertex2d(pt0.x,pt0.y);
+			glVertex2d(pt1.x,pt1.y);
+			glVertex2d(pt2.x,pt2.y);
+			glVertex2d(pt3.x,pt3.y);
+		glEnd();
+
+		glBegin(GL_POINTS);
 			glVertex2d(pt0.x,pt0.y);
 			glVertex2d(pt1.x,pt1.y);
 			glVertex2d(pt2.x,pt2.y);
@@ -1191,6 +1198,7 @@ void CMapPlugin::Render()
 		glEnd();
 
 	}
+	
 	GetMutex()->Unlock();
 
 	/*
@@ -1263,6 +1271,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		return;
 		
 	nvPoint2d *RawPt  = m_CurrentTriangleBufferPtr->GetRawData();
+	
 	for (size_t i = 0; i < m_CurrentTriangleBufferPtr->Length(); i+=4)
 	{
 
@@ -1291,14 +1300,13 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		a[1].x = pt1.x;	a[1].y = pt1.y;
 		a[2].x = pt2.x;	a[2].y = pt2.y;
 		a[3].x = pt3.x;	a[3].y = pt3.y;
-		
-
+				
 		if(nvIsPointInPolygon(m_MapX,m_MapY,a,4))
 		{
 			m_SelectedVertexId = i;
 			return;
 		}
-
+		
 	}
 
 	m_SelectedVertexId = 0;
