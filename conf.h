@@ -254,8 +254,9 @@ typedef struct SFunctionData
 
 typedef struct
 {
+	bool valid[28];  //zaczynamy od 1 (czy komunikat wystepuje)
 	unsigned int mmsi;
-	double lon;		//pozycja lon,lat
+	double lon;			//pozycja lon,lat
 	double lat;
 	float cog;
 	float hdg;

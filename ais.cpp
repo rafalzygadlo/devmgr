@@ -465,6 +465,8 @@ void ais_prepare_buffer(ais_t *ais)
 	
 	if(ais_set_hdg(ais,AisData))
 		AisData->valid_hdg = true;
+	
+	memcpy(AisData->valid,ais->valid,sizeof(ais->valid));
 			
 	if(exists)
 	{

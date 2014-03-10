@@ -72,6 +72,7 @@ class CMapPlugin :public CNaviMapIOApi
 	nvPoint2d *m_SelectedShip;
 	int m_SelectedVertexId;
 	nvPoint2f ptt0,ptt1;
+	bool m_FirstTime;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
@@ -154,6 +155,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void DeleteVBO();
 	void RenderVBO();
 	void RenderShipNames();
+	void RenderSelection();
 	void SetInvalid();
 	void SetFrequency(int id);
 	void SetShip(SFunctionData *data);
