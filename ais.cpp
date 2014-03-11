@@ -531,6 +531,7 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		return true;
 	}
 
+	/*
 	if(ais->valid[AIS_MSG_21])
 	{
 		ptr->to_bow			= ais->type21.to_bow;		ptr->to_stern		= ais->type21.to_stern;
@@ -540,6 +541,7 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 	
 		return true;
 	}
+	*/
 
 	if(ais->valid[AIS_MSG_24])
 	{

@@ -73,34 +73,34 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_SelectedVertexId;
 	nvPoint2f ptt0,ptt1;
 	bool m_FirstTime;
+	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer, m_ShipsIndicesBuffer, m_ShipsTexCoordsBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer;
 
 	// bufory punktów
-	CNaviArray <nvPoint2d> m_PointsBuffer0;
-	CNaviArray <nvPoint2d> m_PointsBuffer1;
-	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
-
-	// bufor punktów trójk¹tów
-	CNaviArray <nvPoint2d> m_TriangleBuffer0;
-	CNaviArray <nvPoint2d> m_TriangleBuffer1;
-	// pointer na aktualny bufor
-	CNaviArray <nvPoint2d> *m_CurrentTriangleBufferPtr;
-
-	// bufor indexów trójk¹tów
-	CNaviArray <int> m_TriangleIndicesBuffer0;
-	CNaviArray <int>  m_TriangleIndicesBuffer1;
-	// pointer na aktualny bufor
-	CNaviArray <int> *m_CurrentTriangleIndicesBufferPtr;
+	// SHIP
+	CNaviArray <nvPoint2d> m_PointsBuffer0;	CNaviArray <nvPoint2d> m_PointsBuffer1; CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
+	// bufor punktów trójk¹tów SHIP
+	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;	CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;
+	// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_ShipTriangleIndicesBuffer0;	CNaviArray <int>  m_ShipTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
+	// bufor indexów lini SHIP
+	CNaviArray <int> m_ShipLineIndicesBuffer0;	CNaviArray <int>  m_ShipLineIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;
 	
+	// SHIP trójkat
+	CNaviArray <nvPoint2d> m_ShipTriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipTriangleVerticesBuffer1; CNaviArray <nvPoint2d> *m_CurrentShipTriangleVerticesBufferPtr;
+
+
+	// bufor punktów trójk¹tów ATON
+	CNaviArray <nvPoint2d> m_AtonTriangleBuffer0;	CNaviArray <nvPoint2d> m_AtonTriangleBuffer1; CNaviArray <nvPoint2d> *m_CurrentAtonTriangleBufferPtr;
+		
 	// bufor koordynat tekstur
-	CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
-	CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
+	//CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
+	//CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <nvPoint2float> *m_CurrentTriangleTexCoordsBufferPtr;
+	//CNaviArray <nvPoint2float> *m_CurrentTriangleTexCoordsBufferPtr;
 	
 	// bufor nazw obiektów mmsi, shipname
 	CNaviArray <wchar_t[128]> m_ShipNamesBuffer0;
@@ -129,16 +129,21 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
-	void PrepareTriangleBuffer(SAisData *ptr);
-	void PrepareIndicesBuffer(SAisData *ptr);
+	void PrepareShipVerticesBuffer(SAisData *ptr);
+	void PrepareShipTriangleVerticesBuffer(SAisData *ptr);
+	void PrepareShipTriangleIndicesBuffer(SAisData *ptr);
+	void PrepareShipLineIndicesBuffer(SAisData *ptr);
 	void PrepareShipNamesBuffer(SAisData *ptr);
-	void PrepareTexCoordsBuffer(SAisData *ptr);
-
+	void PrepareAtonTriangleBuffer(SAisData *ptr);
+	bool IsOnScreen(double x , double y);
+	
 	void CopyPointsBuffer();
-	void CopyTriangleBuffer();
-	void CopyTriangleIndicesBuffer();
-	void CopyTriangleTexCoordsBuffer();
+	void CopyShipVerticesBuffer();
+	void CopyShipTriangleVerticesBuffer();
+	void CopyShipTriangleIndicesBuffer();
+	void CopyShipLineIndicesBuffer();
 	void CopyShipNamesBuffer();
+	void CopyAtonTriangleBuffer();
 	void SendShipData();
 	bool NewPosition(int time);
 	bool NewHDT(int time);
