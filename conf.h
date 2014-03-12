@@ -207,10 +207,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_WAVE_PERIOD			138
 #define MSG_WAVE_DIR			139
 
-
-
 #define MAX_DATA_POSITIONS	10
+
 #define WORK_WIZARD 0
+#define WORK_RENDER_BUFFER	1
 
 #define CONNECTION_TYPE_SOCKET	0
 #define CONNECTION_TYPE_SERIAL	1
@@ -232,8 +232,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TICKER_SLEEP	100
 #define DEFAULT_FREQUENCY 1000					//milisekundy 
 #define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
-#define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
-#define DEFAULT_FONT_FACTOR 50.0
+#define AIS_BUFFER_INTERVAL	1/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
+#define DEFAULT_FONT_FACTOR 350.0
+
+#define SHIP_TRIANGLE_WIDTH		20.0
+#define SHIP_TRIANGLE_HEIGHT	20.0
+#define ATON_WIDTH				20.0
+#define ATON_HEIGHT				20.0
 
 typedef struct SData
 {

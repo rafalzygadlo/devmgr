@@ -35,7 +35,8 @@ void *CThread::Entry()
 {
 	switch(WorkId)
 	{
-		case WORK_WIZARD:	((CWizard*)Parent)->ThreadBegin(WorkId);	break;
+		case WORK_WIZARD:			((CWizard*)Parent)->ThreadBegin(WorkId);	break;
+		case WORK_RENDER_BUFFER:	((CMapPlugin*)Parent)->ThreadBegin();		break;
 	}
 	
 	return 0;
@@ -52,6 +53,7 @@ void CThread::OnExit()
 	
 	switch(WorkId)
 	{
-		case WORK_WIZARD:	((CWizard*)Parent)->ThreadEnd(WorkId);	break;
+		case WORK_WIZARD:			((CWizard*)Parent)->ThreadEnd(WorkId);	break;
+		case WORK_RENDER_BUFFER:	((CMapPlugin*)Parent)->ThreadEnd();		break;
 	}
 }

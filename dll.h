@@ -67,7 +67,7 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;
 	double m_SmoothScaleFactor, m_Factor;
-	float m_MapScale;
+	float m_MapScale,m_OldMapScale;
 	double m_MapX,m_MapY;
 	nvPoint2d *m_SelectedShip;
 	int m_SelectedVertexId;
@@ -77,7 +77,7 @@ class CMapPlugin :public CNaviMapIOApi
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer, m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer;
 
 	// bufory punktów
 	// SHIP
@@ -87,10 +87,15 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor indexów trójk¹tów SHIP
 	CNaviArray <int> m_ShipTriangleIndicesBuffer0;	CNaviArray <int>  m_ShipTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
 	// bufor indexów lini SHIP
-	CNaviArray <int> m_ShipLineIndicesBuffer0;	CNaviArray <int>  m_ShipLineIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;
+	CNaviArray <int> m_ShipLineIndicesBuffer0;		CNaviArray <int>  m_ShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;
+	
 	
 	// SHIP trójkat
-	CNaviArray <nvPoint2d> m_ShipTriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipTriangleVerticesBuffer1; CNaviArray <nvPoint2d> *m_CurrentShipTriangleVerticesBufferPtr;
+	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentTriangleVerticesBufferPtr;
+	// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;	CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;
+	// bufor indexów lini SHIP
+	CNaviArray <int> m_TrianglesLineIndicesBuffer0;		CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;
 
 
 	// bufor punktów trójk¹tów ATON
@@ -129,17 +134,29 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
-	void PrepareShipVerticesBuffer(SAisData *ptr);
-	void PrepareShipTriangleVerticesBuffer(SAisData *ptr);
-	void PrepareShipTriangleIndicesBuffer(SAisData *ptr);
-	void PrepareShipLineIndicesBuffer(SAisData *ptr);
+	
+	
+	// bufor trójkatów
+	void PrepareTriangleVerticesBuffer(SAisData *ptr);			//vertexy
+	void PrepareTriangleTriangleIndicesBuffer(SAisData *ptr);   //indexy
+	void PrepareTriangleLineIndicesBuffer(SAisData *ptr);		//indexy
+
+	// bufor statku
+	void PrepareShipVerticesBuffer(SAisData *ptr);	//vertexy
+	void PrepareShipTriangleIndicesBuffer(SAisData *ptr); //indexy trojkatow
+	void PrepareShipLineIndicesBuffer(SAisData *ptr); //indexy lini
 	void PrepareShipNamesBuffer(SAisData *ptr);
 	void PrepareAtonTriangleBuffer(SAisData *ptr);
 	bool IsOnScreen(double x , double y);
-	
+	bool VisibleStateChanged();
+	void RunThread();
 	void CopyPointsBuffer();
+	
+	void CopyTriangleVerticesBuffer();
+	void CopyTriangleTriangleIndicesBuffer();
+	void CopyTriangleLineIndicesBuffer();
+
 	void CopyShipVerticesBuffer();
-	void CopyShipTriangleVerticesBuffer();
 	void CopyShipTriangleIndicesBuffer();
 	void CopyShipLineIndicesBuffer();
 	void CopyShipNamesBuffer();
@@ -156,9 +173,10 @@ class CMapPlugin :public CNaviMapIOApi
 	void CreateSymbol(void *MemoryBlock,long MemoryBlockSize);
 	void CreateTexture(TTexture *Texture, GLuint *TextureID);
 	void CreateTextures(void);
-	bool CreateVBO();
-	void DeleteVBO();
-	void RenderVBO();
+	bool CreateShipsVBO();
+	bool CreateTrianglesVBO();
+	void DeleteShipsVBO();
+	void DeleteTrianglesVBO();
 	void RenderShipNames();
 	void RenderSelection();
 	void SetInvalid();
@@ -166,6 +184,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetShip(SFunctionData *data);
 	void SetSmoothScaleFactor(double _Scale);
 	void SetValues();
+	bool IsTriangleBuffer();
+	bool IsShipBuffer();
+	
 
 public:
 
@@ -184,6 +205,10 @@ public:
 	void StopDevice(CReader *ptr);
 	void ReindexDevics();
 	void RenderPosition();
+	void RenderShips();
+	void RenderTriangles();
+	void RenderPoints();
+
 	SData *GetData();
 	wxArrayPtrVoid *GetDevicesList();
 	
@@ -194,6 +219,9 @@ public:
 	void OnTickerStart();
 	void OnTickerStop();
 	void OnTickerTick();
+
+	void ThreadBegin();
+	void ThreadEnd();
 	
 	virtual void Run(void *Params);
 	virtual void Kill(void);
@@ -202,6 +230,7 @@ public:
 	virtual void Mouse(int x, int y, bool lmb, bool mmb, bool rmb );
 	virtual void MouseDBLClick(int x, int y);
 	virtual void OnInitGL();
+	virtual void OnZoom(double Scale);
 		
 	// funkcje dostêpne dla innych pluginów
 	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial signal (recnnec, on data etc...)
