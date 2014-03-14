@@ -232,13 +232,15 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TICKER_SLEEP	100
 #define DEFAULT_FREQUENCY 1000					//milisekundy 
 #define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
-#define AIS_BUFFER_INTERVAL	1/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL	1/TICKER_SLEEP		//co sekunde zbuduj bufory do renderu AIS
 #define DEFAULT_FONT_FACTOR 350.0
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
 #define ATON_WIDTH				20.0
 #define ATON_HEIGHT				20.0
+
+#define ROTATE
 
 typedef struct SData
 {
@@ -265,6 +267,7 @@ typedef struct
 	double lat;
 	float cog;
 	float hdg;
+	float sog;
 	int to_bow;
 	int to_stern;
 	int to_port;
@@ -275,6 +278,7 @@ typedef struct
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		//czy cog
 	bool valid_hdg;
+	bool valid_sog;
 
 }SAisData;
 

@@ -1060,6 +1060,7 @@ bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
 bool ais_set_dim(ais_t *ais, SAisData *dim);
 bool ais_set_cog(ais_t *ais, SAisData *ptr);
 bool ais_set_hdg(ais_t *ais, SAisData *ptr);
+bool ais_set_sog(ais_t *ais, SAisData *ptr);
 CNaviArray <SAisData*> *ais_get_buffer();
 
 float get_speed(unsigned int v);

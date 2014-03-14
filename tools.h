@@ -34,4 +34,5 @@ bool IsUndefined(double *idx, size_t size);
 void SetFrequencyTable(int id);
 int GetMaxFrequency();
 int GetFrequency(int id);
+void NewLonLat(int seconds, double lon, double lat, double sog, double cog, double *new_lon, double *new_lat);
 #endif

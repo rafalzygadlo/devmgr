@@ -79,6 +79,9 @@ class CMapPlugin :public CNaviMapIOApi
 	GLuint m_TextureID_0;
 	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer, m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer;
 
+	int m_TrianglesTriangleLength, m_TrianglesLineLength;
+	int m_ShipTriangleLength, m_ShipLineLength;
+	bool m_Ready;
 	// bufory punktów
 	// SHIP
 	CNaviArray <nvPoint2d> m_PointsBuffer0;	CNaviArray <nvPoint2d> m_PointsBuffer1; CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
@@ -96,6 +99,12 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;	CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;
 	// bufor indexów lini SHIP
 	CNaviArray <int> m_TrianglesLineIndicesBuffer0;		CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;
+
+	// SHIP linie COG
+	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;	CNaviArray <nvPoint2d> m_COGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;
+	// SHIP linie HDG
+	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;	CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;
+	
 
 
 	// bufor punktów trójk¹tów ATON
@@ -145,6 +154,12 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareShipVerticesBuffer(SAisData *ptr);	//vertexy
 	void PrepareShipTriangleIndicesBuffer(SAisData *ptr); //indexy trojkatow
 	void PrepareShipLineIndicesBuffer(SAisData *ptr); //indexy lini
+
+	// bufor lini COG
+	void PrepareCOGVerticesBuffer(SAisData *ptr);
+	// bufor linii HDG
+	void PrepareHDGVerticesBuffer(SAisData *ptr);
+
 	void PrepareShipNamesBuffer(SAisData *ptr);
 	void PrepareAtonTriangleBuffer(SAisData *ptr);
 	bool IsOnScreen(double x , double y);
@@ -186,6 +201,14 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetValues();
 	bool IsTriangleBuffer();
 	bool IsShipBuffer();
+	void SetSelection();
+	void CopyInt(CNaviArray <int> *a, CNaviArray <int> *b);
+	void CopyNvPoint2d(CNaviArray <nvPoint2d> *src, CNaviArray <nvPoint2d> *dst);
+	void SetPtr0();
+	void SetPtr1();
+	void CopyBuffers();
+	void SetBuffers();
+	void ClearBuffers();
 	
 
 public:

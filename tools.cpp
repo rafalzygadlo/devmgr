@@ -502,3 +502,27 @@ int GetMaxFrequency()
 {
 	return MaxFrequency;
 }
+
+void NewLonLat(int seconds, double lon, double lat, double sog, double cog, double *new_lon, double *new_lat)
+{
+	
+	double _sec = (double)seconds;
+		
+	//sog = 1000.0;
+	cog = cog - 180;
+
+	double rad360 = 2 * nvPI / 360.0;
+	double sogm = (1852.0 /3600) * sog;
+	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * _sec;
+	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * _sec;
+	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
+	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
+		
+	double nlon = lon + dlonm / (lonDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+	double nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
+			
+	// przypisz nowe wartosci 
+	*new_lon = nlon;
+	*new_lat = nlat;
+	
+}

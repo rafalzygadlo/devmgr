@@ -466,6 +466,9 @@ void ais_prepare_buffer(ais_t *ais)
 	if(ais_set_hdg(ais,AisData))
 		AisData->valid_hdg = true;
 	
+	if(ais_set_sog(ais,AisData))
+		AisData->valid_sog = true;
+
 	memcpy(AisData->valid,ais->valid,sizeof(ais->valid));
 			
 	if(exists)
@@ -583,6 +586,24 @@ bool ais_set_hdg(ais_t *ais, SAisData *ptr)
 		}else{
 			
 			ptr->hdg = get_hdg(ais->type1.heading);
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+bool ais_set_sog(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
+	{
+		if(ais->type1.speed == AIS_SPEED_NOT_AVAILABLE)
+		{
+			return false;
+		}else{
+			
+			ptr->sog = get_speed(ais->type1.speed);
 			return true;
 		}
 	}
