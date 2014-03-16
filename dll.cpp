@@ -65,6 +65,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentPointsBufferPtr = NULL;
 	m_CurrentShipLineIndicesBufferPtr = NULL;
 	m_CurrentTriangleVerticesBufferPtr = NULL;
+	m_CurrentCOGVerticesBufferPtr = NULL;
+	m_CurrentHDGVerticesBufferPtr = NULL;
 
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -91,6 +93,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Font->SetGlowCenter( 4.0f );
 
 	m_Ready = false;
+	m_Render = false;
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
@@ -278,11 +281,7 @@ void CMapPlugin::CreateTextures(void)
 
 void CMapPlugin::OnInitGL()
 {
-	if(m_FirstTime)
-	{
-		CreateTextures();
-		m_FirstTime = false;
-	}
+	
 	
 	m_Font->InitGL();
 }
@@ -995,6 +994,8 @@ void CMapPlugin::SetBuffers()
 
 void CMapPlugin::PrepareBuffer()
 {
+	//if(m_Render)
+		//return;
 	
 	GetMutex()->Lock();
 	//m_Font->Clear();
@@ -1007,99 +1008,6 @@ void CMapPlugin::PrepareBuffer()
 
 	GetMutex()->Unlock();
 	
-}
-
-void CMapPlugin::CopyPointsBuffer()
-{
-	m_PointsBuffer1.Clear();
-	m_PointsBuffer1.SetSize(m_PointsBuffer0.Length());
-	
-	for(size_t i = 0; i < m_PointsBuffer0.Length(); i++)
-		m_PointsBuffer1.Set(i,m_PointsBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyShipVerticesBuffer()
-{
-	m_ShipVerticesBuffer1.Clear();
-	m_ShipVerticesBuffer1.SetSize(m_ShipVerticesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_ShipVerticesBuffer0.Length(); i++)
-		m_ShipVerticesBuffer1.Set(i,m_ShipVerticesBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyTriangleTriangleIndicesBuffer()
-{
-	m_TrianglesTriangleIndicesBuffer1.Clear();
-	m_TrianglesTriangleIndicesBuffer1.SetSize(m_TrianglesTriangleIndicesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_TrianglesTriangleIndicesBuffer0.Length(); i++)
-		m_TrianglesTriangleIndicesBuffer1.Set(i,m_TrianglesTriangleIndicesBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyTriangleLineIndicesBuffer()
-{
-	m_TrianglesLineIndicesBuffer1.Clear();
-	m_TrianglesLineIndicesBuffer1.SetSize(m_TrianglesLineIndicesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_TrianglesLineIndicesBuffer0.Length(); i++)
-		m_TrianglesLineIndicesBuffer1.Set(i,m_TrianglesLineIndicesBuffer0.Get(i));
-}
-
-
-void CMapPlugin::CopyTriangleVerticesBuffer()
-{
-	m_TriangleVerticesBuffer1.Clear();
-	m_TriangleVerticesBuffer1.SetSize(m_TriangleVerticesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_TriangleVerticesBuffer0.Length(); i++)
-		m_TriangleVerticesBuffer1.Set(i,m_TriangleVerticesBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyShipTriangleIndicesBuffer()
-{
-	m_ShipTriangleIndicesBuffer1.Clear();
-	m_ShipTriangleIndicesBuffer1.SetSize(m_ShipTriangleIndicesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_ShipTriangleIndicesBuffer0.Length(); i++)
-		m_ShipTriangleIndicesBuffer1.Set(i,m_ShipTriangleIndicesBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyShipLineIndicesBuffer()
-{
-	m_ShipLineIndicesBuffer1.Clear();
-	m_ShipLineIndicesBuffer1.SetSize(m_ShipLineIndicesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_ShipLineIndicesBuffer0.Length(); i++)
-		m_ShipLineIndicesBuffer1.Set(i,m_ShipLineIndicesBuffer0.Get(i));
-}
-
-/*
-void CMapPlugin::CopyTriangleTexCoordsBuffer()
-{
-	m_TriangleTexCoordsBuffer1.Clear();
-	m_TriangleTexCoordsBuffer1.SetSize(m_TriangleTexCoordsBuffer0.Length());
-	
-	for(size_t i = 0; i < m_TriangleTexCoordsBuffer0.Length(); i++)
-		m_TriangleTexCoordsBuffer1.Set(i,m_TriangleTexCoordsBuffer0.Get(i));
-}
-*/
-
-void CMapPlugin::CopyAtonTriangleBuffer()
-{
-	m_AtonTriangleBuffer1.Clear();
-	m_AtonTriangleBuffer1.SetSize(m_AtonTriangleBuffer0.Length());
-	
-	for(size_t i = 0; i < m_AtonTriangleBuffer0.Length(); i++)
-		m_AtonTriangleBuffer1.Set(i,m_AtonTriangleBuffer0.Get(i));
-}
-
-void CMapPlugin::CopyShipNamesBuffer()
-{
-	m_ShipNamesBuffer1.Clear();
-	m_ShipNamesBuffer1.SetSize(m_ShipNamesBuffer0.Length());
-	
-	for(size_t i = 0; i < m_ShipNamesBuffer0.Length(); i++)
-		m_ShipNamesBuffer1.Set(i,m_ShipNamesBuffer0.Get(i));
 }
 
 void CMapPlugin::CopyNvPoint2d(CNaviArray <nvPoint2d> *src, CNaviArray <nvPoint2d> *dst)
@@ -1495,9 +1403,9 @@ void CMapPlugin::DeleteShipsVBO()
 
 void CMapPlugin::DeleteTrianglesVBO()
 {
-	glDeleteBuffers(1, &m_TrianglesArrayBuffer);
-	glDeleteBuffers(1, &m_TrianglesTriangleIndicesBuffer);
-	glDeleteBuffers(1, &m_TrianglesLineIndicesBuffer);
+	//glDeleteBuffers(1, &m_TrianglesArrayBuffer);
+	//glDeleteBuffers(1, &m_TrianglesTriangleIndicesBuffer);
+	//glDeleteBuffers(1, &m_TrianglesLineIndicesBuffer);
 }
 
 
@@ -1575,23 +1483,19 @@ bool CMapPlugin::IsTriangleBuffer()
 
 bool CMapPlugin::CreateTrianglesVBO()
 {
-	if(!m_Ready)
-		return false;
+	//if(!m_Ready)
+		//return false;
 					
 	//trójkaty
-	glGenBuffers(1, &m_TrianglesArrayBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_TrianglesArrayBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentTriangleVerticesBufferPtr->Length(), m_CurrentTriangleVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 			
-	glGenBuffers(1, &m_TrianglesTriangleIndicesBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_TrianglesTriangleIndicesBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentTrianglesTriangleIndicesBufferPtr->Length(), m_CurrentTrianglesTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 			
-	glGenBuffers(1, &m_TrianglesLineIndicesBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_TrianglesLineIndicesBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentTrianglesLineIndicesBufferPtr->Length(), m_CurrentTrianglesLineIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 	
-
 	m_TrianglesTriangleLength = m_CurrentTrianglesTriangleIndicesBufferPtr->Length();
 	m_TrianglesLineLength = m_CurrentTrianglesLineIndicesBufferPtr->Length();
 
@@ -1610,19 +1514,16 @@ bool CMapPlugin::CreateTrianglesVBO()
 bool CMapPlugin::CreateShipsVBO()
 {
 	
-	if(!m_Ready)
-		return false;
+	//if(!m_Ready)
+		//return false;
 	
 	//statki
-	glGenBuffers(1, &m_ShipsArrayBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsArrayBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentShipVerticesBufferPtr->Length(), m_CurrentShipVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 			
-	glGenBuffers(1, &m_ShipsTriangleIndicesBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsTriangleIndicesBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentShipTriangleIndicesBufferPtr->Length(), m_CurrentShipTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 
-	glGenBuffers(1, &m_ShipsLineIndicesBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsLineIndicesBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentShipLineIndicesBufferPtr->Length(), m_CurrentShipLineIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 		
@@ -1745,7 +1646,21 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::Render()
 {
-		
+	if(m_FirstTime)
+	{
+		CreateTextures();
+		m_FirstTime = false;
+		glGenBuffers(1, &m_TrianglesArrayBuffer);
+		glGenBuffers(1, &m_TrianglesTriangleIndicesBuffer);
+		glGenBuffers(1, &m_TrianglesLineIndicesBuffer);
+
+		glGenBuffers(1, &m_ShipsArrayBuffer);
+		glGenBuffers(1, &m_ShipsTriangleIndicesBuffer);
+		glGenBuffers(1, &m_ShipsLineIndicesBuffer);
+	
+	}
+
+	m_Render = true;	
 	SetValues();
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
@@ -1766,13 +1681,13 @@ void CMapPlugin::Render()
 		DeleteTrianglesVBO();
 	}
 
-	if(m_CurrentCOGVerticesBufferPtr->Length() > 0)
+	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
 		RenderGeometry(GL_POINTS,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG punkty
 	}
 	
-	if(m_CurrentHDGVerticesBufferPtr->Length() > 0)
+	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
 		RenderGeometry(GL_POINTS,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG punkty
@@ -1784,7 +1699,7 @@ void CMapPlugin::Render()
 			
 	RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length());			//miejsce przyczepienia GPS
 		
-	//RenderSelection();
+	RenderSelection();
 	//glPointSize(1);
 	//glLineWidth(1);
 
@@ -1792,7 +1707,7 @@ void CMapPlugin::Render()
 	
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-		
+	m_Render = false;	
 		
 }
 
@@ -1878,16 +1793,15 @@ void CMapPlugin::RunThread()
 void CMapPlugin::ThreadBegin()
 {
 	m_Ready = false;
-	fprintf(stdout,"Prepare Start\n");
 	PrepareBuffer();
-	fprintf(stdout,"Prepare Stop\n");
 	m_Ready = true;
-	//SetSelection();
+	SetSelection();
 }
 
 void CMapPlugin::ThreadEnd()
 {
 	m_Broker->Refresh(m_Broker->GetParentPtr());
+	m_Broker->consolef(m_Broker->GetParentPtr(),L"Refresh");
 }
 
 //bool CMapPlugin::VisibleStateChanged()

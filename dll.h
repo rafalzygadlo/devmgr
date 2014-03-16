@@ -82,6 +82,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_TrianglesTriangleLength, m_TrianglesLineLength;
 	int m_ShipTriangleLength, m_ShipLineLength;
 	bool m_Ready;
+	bool m_Render;
 	// bufory punktów
 	// SHIP
 	CNaviArray <nvPoint2d> m_PointsBuffer0;	CNaviArray <nvPoint2d> m_PointsBuffer1; CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
@@ -165,17 +166,6 @@ class CMapPlugin :public CNaviMapIOApi
 	bool IsOnScreen(double x , double y);
 	bool VisibleStateChanged();
 	void RunThread();
-	void CopyPointsBuffer();
-	
-	void CopyTriangleVerticesBuffer();
-	void CopyTriangleTriangleIndicesBuffer();
-	void CopyTriangleLineIndicesBuffer();
-
-	void CopyShipVerticesBuffer();
-	void CopyShipTriangleIndicesBuffer();
-	void CopyShipLineIndicesBuffer();
-	void CopyShipNamesBuffer();
-	void CopyAtonTriangleBuffer();
 	void SendShipData();
 	bool NewPosition(int time);
 	bool NewHDT(int time);
