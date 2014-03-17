@@ -74,42 +74,37 @@ class CMapPlugin :public CNaviMapIOApi
 	nvPoint2f ptt0,ptt1;
 	bool m_FirstTime;
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
+	int m_CurrentId;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer, m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer, m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer, m_TrianglesColorBuffer;
 
-	int m_TrianglesTriangleLength, m_TrianglesLineLength;
+	int m_TrianglesTriangleLength, m_TrianglesLineLength, m_TrianglesColorLength;
 	int m_ShipTriangleLength, m_ShipLineLength;
 	bool m_Ready;
-	bool m_Render;
+	
 	// bufory punktów
 	// SHIP
-	CNaviArray <nvPoint2d> m_PointsBuffer0;	CNaviArray <nvPoint2d> m_PointsBuffer1; CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;
-	// bufor punktów trójk¹tów SHIP
-	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;	CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;
-	// bufor indexów trójk¹tów SHIP
+	CNaviArray <nvPoint2d> m_PointsBuffer0;			CNaviArray <nvPoint2d> m_PointsBuffer1;			CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;			// bufor punktów trójk¹tów SHIP
+	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;	CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;		// bufor indexów trójk¹tów SHIP
 	CNaviArray <int> m_ShipTriangleIndicesBuffer0;	CNaviArray <int>  m_ShipTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
-	// bufor indexów lini SHIP
-	CNaviArray <int> m_ShipLineIndicesBuffer0;		CNaviArray <int>  m_ShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;
-	
+	CNaviArray <int> m_ShipLineIndicesBuffer0;		CNaviArray <int>  m_ShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;		// bufor indexów lini SHIP
 	
 	// SHIP trójkat
 	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentTriangleVerticesBufferPtr;
-	// bufor indexów trójk¹tów SHIP
-	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;	CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;
-	// bufor indexów lini SHIP
-	CNaviArray <int> m_TrianglesLineIndicesBuffer0;		CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;
-
-	// SHIP linie COG
-	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;	CNaviArray <nvPoint2d> m_COGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;
-	// SHIP linie HDG
-	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;	CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;
+	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;	CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;	// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_TrianglesLineIndicesBuffer0;		CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;		// bufor indexów lini SHIP
+	CNaviArray <nvRGBAf> m_TrianglesColorBuffer0;		CNaviArray <nvRGBAf> m_TrianglesColorBuffer1;			CNaviArray <nvRGBAf> *m_CurrentTrianglesColorBufferPtr;
 	
-
-
+	//SHIP linie
+	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;	CNaviArray <nvPoint2d> m_COGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;	// SHIP linie COG
+	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;	CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;	// SHIP linie HDG
+	
 	// bufor punktów trójk¹tów ATON
 	CNaviArray <nvPoint2d> m_AtonTriangleBuffer0;	CNaviArray <nvPoint2d> m_AtonTriangleBuffer1; CNaviArray <nvPoint2d> *m_CurrentAtonTriangleBufferPtr;
+
+	CNaviArray <SIdToId> m_IdToId;
 		
 	// bufor koordynat tekstur
 	//CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
@@ -150,6 +145,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareTriangleVerticesBuffer(SAisData *ptr);			//vertexy
 	void PrepareTriangleTriangleIndicesBuffer(SAisData *ptr);   //indexy
 	void PrepareTriangleLineIndicesBuffer(SAisData *ptr);		//indexy
+	void PrepareTriangleColorBuffer(SAisData *ptr);
 
 	// bufor statku
 	void PrepareShipVerticesBuffer(SAisData *ptr);	//vertexy
@@ -194,12 +190,19 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetSelection();
 	void CopyInt(CNaviArray <int> *a, CNaviArray <int> *b);
 	void CopyNvPoint2d(CNaviArray <nvPoint2d> *src, CNaviArray <nvPoint2d> *dst);
+	void CopyNvRGBAf(CNaviArray <nvRGBAf> *src, CNaviArray <nvRGBAf> *dst);
 	void SetPtr0();
 	void SetPtr1();
 	void CopyBuffers();
 	void SetBuffers();
 	void ClearBuffers();
-	
+
+	void RenderGPS();
+	void RenderCOG();
+	void RenderHDG();
+	void RenderRealShips();
+	void RenderShipTriangles();
+		
 
 public:
 

@@ -240,7 +240,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define ATON_WIDTH				20.0
 #define ATON_HEIGHT				20.0
 
-#define ROTATE
+#define ROTATE //czy obracaæ obiekty
+#define MIN_SHIP_SPEED	0.5 // 0.5 kn
 
 typedef struct SData
 {
@@ -282,6 +283,12 @@ typedef struct
 
 }SAisData;
 
+typedef struct 
+{
+	int id0;
+	int id1;
+
+}SIdToId;
 
 typedef struct 
 {
