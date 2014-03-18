@@ -76,8 +76,8 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_FirstTime;
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 	int m_CurrentId;
-	SAisData *m_SelectedPtr;
-	bool m_MouseLmb;
+	SAisData *m_SelectedPtr,*m_OldSelectedPtr;
+	bool m_MouseLmb, m_FromMouse;
 	CMyFrame *m_MyFrame;
 
 	TTexture *m_TextureTGA_0;

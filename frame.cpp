@@ -190,7 +190,7 @@ void CMyFrame::ShowWindow(bool show)
 		pt.x = (int)((-vm[0] + to_x) * scale) + ParentX;
 		pt.y = (int)((-vm[1] + -to_y) * scale) + ParentY;
 			
-		//this->SetPosition(pt);
+		this->SetPosition(pt);
 		textdescription->Clear();
 		textdescription->AppendText(wxString::Format(_("MMSI: %d\n"),SelectedPtr->mmsi));
 		wxString str(SelectedPtr->shipname,wxConvUTF8);

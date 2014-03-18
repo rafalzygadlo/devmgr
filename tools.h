@@ -40,4 +40,5 @@ bool IsPointInsideMesh(nvPoint2f *point, nvPoint2d *points, int points_length, i
 wxString ConvertDegree(float degree);
 wxString FormatLongitude(float x); 
 wxString FormatLatitude(float y);
+void InitMutex();
 #endif

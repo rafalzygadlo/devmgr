@@ -4,7 +4,7 @@
 #include "protocol.h"
 #include "GeometryTools.h"
 
-wxMutex *mutex = new wxMutex();
+wxMutex *mutex = NULL;
 int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
@@ -360,6 +360,10 @@ void FreeMutex()
 	if(mutex)
 		delete mutex;
 	mutex = NULL;
+}
+void InitMutex()
+{
+	mutex = new wxMutex();
 }
 
 wxMutex *GetMutex()

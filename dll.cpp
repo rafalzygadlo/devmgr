@@ -79,9 +79,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_SelectedShip = NULL;
 	m_SelectedVertexId = -1;
 	m_ThreadCounter = 0;
+	m_MouseLmb = m_FromMouse = false;
 	
 	m_TrianglesTriangleLength = m_TrianglesLineLength = 0;
-	m_SelectedPtr = NULL;
+	m_SelectedPtr = m_OldSelectedPtr = NULL;
+	m_MyFrame = NULL;
 	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
 
 	m_Font = new nvFastFont();
@@ -114,6 +116,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	
 	SetTickerTick();
+	InitMutex();
 	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -1223,8 +1226,8 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	double width =  SHIP_TRIANGLE_WIDTH/m_SmoothScaleFactor;
 	double height = SHIP_TRIANGLE_HEIGHT/m_SmoothScaleFactor;
 			
-	width =  SHIP_TRIANGLE_WIDTH/m_MapScale;
-	height = SHIP_TRIANGLE_HEIGHT/m_MapScale;
+	//width =  SHIP_TRIANGLE_WIDTH/m_MapScale;
+	//height = SHIP_TRIANGLE_HEIGHT/m_MapScale;
 
 	p1.x = -0.5 * width;	p1.y =  1.0 * height;
 	p2.x =  0.0 * width;	p2.y =	-1.0 * height;
@@ -1927,13 +1930,18 @@ void CMapPlugin::OnZoom(double Scale)
 
 void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
+	if(!lmb && m_MouseLmb)
+	{
+		SetValues();
+		RunThread();
+		m_MouseLmb = false;
+		m_FromMouse = true;
+	}
 	
 	if(!lmb)
 		return;
 	
-	SetValues();
 	m_MouseLmb = true;
-	RunThread();
 		
 	
 		
@@ -1953,11 +1961,11 @@ void CMapPlugin::ThreadBegin()
 	m_ThreadCounter++;
 	
 	PrepareBuffer();
-	if(m_MouseLmb)
+	if(m_FromMouse)
 	{
 		m_SelectedPtr = NULL;
 		SetSelection();
-		m_MouseLmb = false;
+		
 	}
 }
 
@@ -1967,12 +1975,13 @@ void CMapPlugin::ThreadEnd()
 
 	if(m_ThreadCounter == 0)
 	{
-		if(m_SelectedPtr == NULL)
-			ShowFrameWindow(false);
-		else
+		if(m_SelectedPtr != NULL && m_FromMouse)
 			ShowFrameWindow(true);
+		else
+			ShowFrameWindow(false);
 	}
 	
+	m_FromMouse = false;
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 				
 }
