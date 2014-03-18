@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include "NaviBroker.h"
 #include "reader.h"
+#include "GeometryConfig.h"
 
 
 wxString GetProductInfo();
@@ -35,4 +36,8 @@ void SetFrequencyTable(int id);
 int GetMaxFrequency();
 int GetFrequency(int id);
 void NewLonLat(int seconds, double lon, double lat, double sog, double cog, double *new_lon, double *new_lat);
+bool IsPointInsideMesh(nvPoint2f *point, nvPoint2d *points, int points_length, int *indices, int indices_length );
+wxString ConvertDegree(float degree);
+wxString FormatLongitude(float x); 
+wxString FormatLatitude(float y);
 #endif

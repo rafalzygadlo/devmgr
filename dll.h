@@ -17,6 +17,7 @@
 #include "reader.h"
 #include "conf.h"
 #include "ticker.h"
+#include "frame.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,6 +76,9 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_FirstTime;
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 	int m_CurrentId;
+	SAisData *m_SelectedPtr;
+	bool m_MouseLmb;
+	CMyFrame *m_MyFrame;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
@@ -83,6 +87,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_TrianglesTriangleLength, m_TrianglesLineLength, m_TrianglesColorLength;
 	int m_ShipTriangleLength, m_ShipLineLength;
 	bool m_Ready;
+	int m_ThreadCounter;
 	
 	// bufory punktów
 	// SHIP
@@ -104,8 +109,9 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor punktów trójk¹tów ATON
 	CNaviArray <nvPoint2d> m_AtonTriangleBuffer0;	CNaviArray <nvPoint2d> m_AtonTriangleBuffer1; CNaviArray <nvPoint2d> *m_CurrentAtonTriangleBufferPtr;
 
-	CNaviArray <SIdToId> m_IdToId;
-		
+	CNaviArray <SIdToId> m_IdToTriangleId;
+	CNaviArray <SIdToId> m_IdToShipId;
+
 	// bufor koordynat tekstur
 	//CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
 	//CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
@@ -196,13 +202,24 @@ class CMapPlugin :public CNaviMapIOApi
 	void CopyBuffers();
 	void SetBuffers();
 	void ClearBuffers();
+	void SelectShip();
+	void SelectTriangle();
+	void ShowFrameWindow(bool show);
+	
+
+	void PrepareShipBuffer(SAisData *ptr);
+	void PrepareAtonBuffer(SAisData *ptr);
+	void PrepareTriangleBuffer(SAisData *ptr);
 
 	void RenderGPS();
 	void RenderCOG();
 	void RenderHDG();
 	void RenderRealShips();
 	void RenderShipTriangles();
-		
+	void RenderPosition();
+	void RenderShips();
+	void RenderTriangles();
+	void RenderPoints();	
 
 public:
 
@@ -220,11 +237,8 @@ public:
 	void StartDevice(CReader *ptr);
 	void StopDevice(CReader *ptr);
 	void ReindexDevics();
-	void RenderPosition();
-	void RenderShips();
-	void RenderTriangles();
-	void RenderPoints();
-
+	SAisData *GetSelectedPtr();
+	
 	SData *GetData();
 	wxArrayPtrVoid *GetDevicesList();
 	
@@ -257,6 +271,7 @@ public:
 	static void *OnNewAisObject(void *NaviMapIOApiPtr, void *Params);	// nowe dane do tablicy ais
 	static void *OnData(void *NaviMapIOApiPtr, void *Params); // dane
 	static void *GetAisBuffer(void *NaviMapIOApiPtr, void *Params); // ais buffer
+
 	
 };	
 

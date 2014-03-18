@@ -4,7 +4,7 @@
 #include "protocol.h"
 #include "GeometryTools.h"
 
-wxMutex *mutex = NULL;
+wxMutex *mutex = new wxMutex();
 int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
@@ -364,10 +364,7 @@ void FreeMutex()
 
 wxMutex *GetMutex()
 {
-	if(mutex == NULL)
-		mutex = new wxMutex();
 	return mutex;
-
 }
 
 bool SetGlobalPrioryty(int fid)
@@ -525,4 +522,67 @@ void NewLonLat(int seconds, double lon, double lat, double sog, double cog, doub
 	*new_lon = nlon;
 	*new_lat = nlat;
 	
+}
+
+bool IsPointInsideMesh(nvPoint2f *point, nvPoint2d *points, int points_length, int *indices, int indices_length )
+{
+	for(size_t i = 0; i < indices_length; i+=3)
+	{
+		nvPoint2d p0 = points[indices[i]];
+		nvPoint2d p1 = points[indices[i + 1]];
+		nvPoint2d p2 = points[indices[i + 2]];
+		
+		if(IsPointInTriangle(point,(nvPoint2f*)&p0,(nvPoint2f*)&p1,(nvPoint2f*)&p2))
+			return true;
+	}
+	
+	return false;
+
+}
+wxString ConvertDegree(float degree) 
+{
+	int decimal = (int)degree;
+    double minutes = (float)(degree - decimal) * 60;
+    double second = (float)(minutes - (int)(minutes)) * 60;
+	return wxString::Format(_("%02d° %02d' %02.2f''"),decimal, (int)minutes, second);
+      
+}
+
+wxString FormatLongitude(float x) 
+{
+      wxString str;
+
+      if(x == 0)
+		  return str = wxString::Format(_("%s"), ConvertDegree(0).wc_str());
+	  
+	  if (x > 0.0f) 
+	  {
+        if (x <= 180.0f)
+			str = wxString::Format(_("%s E"), ConvertDegree(x).wc_str());
+        else
+			str = wxString::Format(_("%s W"), ConvertDegree(360 - x).wc_str());
+      } else {
+        if (x >= -180.0f)
+			str = wxString::Format(_("%s W"), ConvertDegree(-x).wc_str());
+        else
+			str = wxString::Format(_("%s E"), ConvertDegree(x+360).wc_str());
+            
+      }
+      return str;
+}
+
+wxString FormatLatitude(float y) 
+{
+	
+	wxString str;
+	 if(y == 0)
+		  return str = wxString::Format(_("%s"), ConvertDegree(0).wc_str());
+
+    if (y > 0)
+		str = wxString::Format(_("%s N"), ConvertDegree(y).wc_str());
+    else
+		str = wxString::Format(_("%s S"), ConvertDegree(-y).wc_str());
+
+    return str;
+
 }

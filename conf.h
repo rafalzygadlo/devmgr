@@ -241,7 +241,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define ATON_HEIGHT				20.0
 
 #define ROTATE //czy obracaæ obiekty
-#define MIN_SHIP_SPEED	0.5 // 0.5 kn
+#define MIN_SHIP_SPEED			0.5 // 0.5 kn
+#define TRIANGLE_VERTICES_LEN	3
+#define SHIP_VERTICES_LENGTH	7
+#define SHIP_INDICES_LENGTH		15
 
 typedef struct SData
 {
@@ -274,12 +277,12 @@ typedef struct
 	int to_port;
 	int to_starboard;
 	char shipname[AIS_SHIPNAME_MAXLEN + 1];
-	int index;			//index w glownej tablicy danych
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		//czy cog
 	bool valid_hdg;
 	bool valid_sog;
+	void *ais_ptr;
 
 }SAisData;
 

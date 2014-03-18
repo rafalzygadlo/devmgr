@@ -469,7 +469,7 @@ void ais_prepare_buffer(ais_t *ais)
 	if(ais_set_sog(ais,AisData))
 		AisData->valid_sog = true;
 	
-	AisData->index = vAisBuffer.Length();
+	AisData->ais_ptr = ais;
 
 	memcpy(AisData->valid,ais->valid,sizeof(ais->valid));
 			

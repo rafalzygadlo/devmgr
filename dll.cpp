@@ -78,8 +78,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Interpolation = false;
 	m_SelectedShip = NULL;
 	m_SelectedVertexId = -1;
+	m_ThreadCounter = 0;
 	
 	m_TrianglesTriangleLength = m_TrianglesLineLength = 0;
+	m_SelectedPtr = NULL;
+	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
 
 	m_Font = new nvFastFont();
 	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
@@ -124,6 +127,7 @@ CMapPlugin::~CMapPlugin()
 	delete m_Devices;
 	delete m_DisplaySignal;
 	delete m_Font;
+	delete m_MyFrame;
 	FreeMutex();
 }
 
@@ -816,47 +820,94 @@ bool CMapPlugin::IsOnScreen(double x, double y)
 }
 
 void CMapPlugin::SetSelection()
+{	
+
+	SelectTriangle();
+	SelectShip();
+	
+}
+
+void CMapPlugin::SelectTriangle()
 {
 	if(m_CurrentTriangleVerticesBufferPtr == NULL)
 		return;
 
 	nvPoint2d *RawPt  = m_CurrentTriangleVerticesBufferPtr->GetRawData();
 	
+	nvPoint2f pt;
+	pt.x = m_MapX;
+	pt.y = m_MapY;
+	int selected = -1;
+	
 	for (size_t i = 0; i < m_CurrentTriangleVerticesBufferPtr->Length(); i+=3)
 	{
-
-		nvPoint2f pt;
-		pt.x = m_MapX;
-		pt.y = m_MapY;
-		
-		nvPoint2f pt0,pt1,pt2,pt3;
+			
+		nvPoint2f pt0, pt1, pt2;
 				
-		pt0.x = RawPt[i].x;	pt0.y = RawPt[i].y;
+		pt0.x = RawPt[i].x;		pt0.y = RawPt[i].y;
 		pt1.x = RawPt[i + 1].x;	pt1.y = RawPt[i + 1].y;
 		pt2.x = RawPt[i + 2].x;	pt2.y = RawPt[i + 2].y;
-				
-		
-		fprintf(stdout,"%f %f\n",m_MapX,m_MapY);
 		
 		if(IsPointInTriangle(&pt,&pt0,&pt1,&pt2))
 		{
-			m_SelectedVertexId = i;
-			
-			for(size_t i = 0; i < m_IdToId.Length(); i++)
+			selected = i;
+			for(size_t i = 0; i < m_IdToTriangleId.Length(); i++)
 			{
-				//fprintf(stdout,"id:[%d] id:[%d] %d\n",m_IdToId.Get(i).id0,m_IdToId.Get(i).id1,m_SelectedVertexId);
-				if(m_IdToId.Get(i).id1 == m_SelectedVertexId)
+				if(m_IdToTriangleId.Get(i).id1 == selected)
 				{
-					SAisData *a = ais_get_buffer()->Get(m_IdToId.Get(i).id0);
-					fprintf(stdout,"%d %s\n",a->mmsi,a->shipname);
+					m_SelectedPtr = ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0);
+					return;
 				}
 			}
-			return;
+			
 		}
 		
 	}
+}
 
-	m_SelectedVertexId = -1;
+void CMapPlugin::SelectShip()
+{
+	if(m_CurrentShipVerticesBufferPtr == NULL)
+		return;
+
+	nvPoint2d *RawPt  = m_CurrentShipVerticesBufferPtr->GetRawData();
+	nvPoint2f pt;
+	pt.x = m_MapX;
+	pt.y = m_MapY;
+	int selected = -1;
+		
+	for( size_t i = 0; i < m_CurrentShipVerticesBufferPtr->Length(); i+=SHIP_VERTICES_LENGTH )
+	{
+		nvPoint2d v[SHIP_VERTICES_LENGTH];
+
+		v[0].x = RawPt[i + 0].x; v[0].y = RawPt[i + 0].y;
+		v[1].x = RawPt[i + 1].x; v[1].y = RawPt[i + 1].y;
+		v[2].x = RawPt[i + 2].x; v[2].y = RawPt[i + 2].y;
+		v[3].x = RawPt[i + 3].x; v[3].y = RawPt[i + 3].y;
+		v[4].x = RawPt[i + 4].x; v[4].y = RawPt[i + 4].y;
+		v[5].x = RawPt[i + 5].x; v[5].y = RawPt[i + 5].y;
+		v[6].x = RawPt[i + 6].x; v[6].y = RawPt[i + 6].y;
+				
+		int in[SHIP_INDICES_LENGTH];
+		in[0] = 0;	in[1] = 1;	in[2] = 6;
+		in[3] = 1;	in[4] = 2;	in[5] = 6;
+		in[6] =	2;	in[7] =	3;	in[8] =	6;
+		in[9] = 6;	in[10] = 5;	in[11] = 3;
+		in[12] = 3;	in[13] = 4;	in[14] = 5;
+		
+		if(IsPointInsideMesh(&pt,v,SHIP_VERTICES_LENGTH,in,SHIP_INDICES_LENGTH))
+		{
+			selected = i;	
+			for(size_t i = 0; i < m_IdToShipId.Length(); i++)
+			{
+				if(m_IdToShipId.Get(i).id1 == selected)
+				{
+					m_SelectedPtr = ais_get_buffer()->Get(m_IdToShipId.Get(i).id0);
+					return;
+				}
+			}	
+		}
+	}
 	
 }
 
@@ -944,7 +995,8 @@ void CMapPlugin::ClearBuffers()
 	m_HDGVerticesBuffer0.Clear();
 
 	//indeksy
-	m_IdToId.Clear();
+	m_IdToTriangleId.Clear();
+	m_IdToShipId.Clear();
 	
 }
 
@@ -994,14 +1046,18 @@ void CMapPlugin::SetBuffers()
 		{
 			PreparePointsBuffer(data);
 
-			PrepareTriangleVerticesBuffer(data);		// bufor verteksów trojkata
-			PrepareTriangleTriangleIndicesBuffer(data);	// bufor indexów
-			PrepareTriangleLineIndicesBuffer(data);		// bufor indexów
-			PrepareTriangleColorBuffer(data);			// bufor kolorow
 
-			PrepareShipVerticesBuffer(data);			// bufor verteksów statku
-			PrepareShipTriangleIndicesBuffer(data);		// indexy
-			PrepareShipLineIndicesBuffer(data);			// indexy
+			PrepareShipBuffer(data);
+			PrepareTriangleBuffer(data);
+
+			//PrepareTriangleVerticesBuffer(data);		// bufor verteksów trojkata
+			//PrepareTriangleTriangleIndicesBuffer(data);	// bufor indexów
+			//PrepareTriangleLineIndicesBuffer(data);		// bufor indexów
+			//PrepareTriangleColorBuffer(data);			// bufor kolorow
+
+			//PrepareShipVerticesBuffer(data);			// bufor verteksów statku
+			//PrepareShipTriangleIndicesBuffer(data);		// indexy
+			//PrepareShipLineIndicesBuffer(data);			// indexy
 			
 			PrepareShipNamesBuffer(data);			
 			PrepareAtonTriangleBuffer(data);
@@ -1024,7 +1080,7 @@ void CMapPlugin::PrepareBuffer()
 	SetBuffers();	
 	CopyBuffers();
 	SetPtr1();
-	SetSelection();
+	
 	GetMutex()->Unlock();
 	m_Ready = true;
 		
@@ -1068,51 +1124,92 @@ void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
 	
 }
 
-void CMapPlugin::PrepareAtonTriangleBuffer(SAisData *ptr)
+void CMapPlugin::PrepareAtonBuffer(SAisData *ptr)
 {
 	if(!ptr->valid_pos)
 		return;
 
 	if(ptr->valid[AIS_MSG_21])
 	{
-		double to_x, to_y;
-		nvPoint2d pt;
-		pt.x = ptr->lon;
-		pt.y = -ptr->lat;
-		nvPoint2d p1, p2, p3, p4;
-		
-		m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
-		pt.x = to_x;
-		pt.y = to_y;
-		
-		double width = ATON_WIDTH/m_SmoothScaleFactor;
-		double height = ATON_HEIGHT/m_SmoothScaleFactor;
-			
-		p1.x = -0.5 * width;	p1.y =  0.5 * height;
-		p2.x =  0.5 * width;	p2.y =  0.5 * height;
-		p3.x =  0.5 * width;	p3.y = -0.5 * height;
-		p4.x = -0.5 * width;	p4.y = -0.5 * height;
-
-		p1.x += pt.x; p1.y += pt.y;
-		p2.x += pt.x; p2.y += pt.y;
-		p3.x += pt.x; p3.y += pt.y;
-		p4.x += pt.x; p4.y += pt.y;
-	
-		m_AtonTriangleBuffer0.Append(p1);
-		m_AtonTriangleBuffer0.Append(p2);
-		m_AtonTriangleBuffer0.Append(p3);
-		m_AtonTriangleBuffer0.Append(p4);
-
+		PrepareAtonTriangleBuffer(ptr);
 	}
+
+}
+
+void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
+{
+	if(!ptr->valid_dim || !ptr->valid_pos)
+		return;
+
+	PrepareShipVerticesBuffer(ptr);
+	PrepareShipTriangleIndicesBuffer(ptr);
+	PrepareShipLineIndicesBuffer(ptr);
+
+	SIdToId id;
+	id.id0 = m_CurrentId;
+	id.id1 = m_ShipVerticesBuffer0.Length() - SHIP_VERTICES_LENGTH;
+	m_IdToShipId.Append(id);
+	
+}
+
+void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
+{
+			
+	if(!ptr->valid_pos)
+		return;
+	
+	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
+	{
+		PrepareTriangleVerticesBuffer(ptr);
+		PrepareTriangleTriangleIndicesBuffer(ptr);
+		PrepareTriangleLineIndicesBuffer(ptr);
+		PrepareTriangleColorBuffer(ptr);
+
+		SIdToId id;
+		id.id0 = m_CurrentId;
+		id.id1 = m_TriangleVerticesBuffer0.Length() - TRIANGLE_VERTICES_LEN;
+		m_IdToTriangleId.Append(id);
+	}
+
+}
+
+
+void CMapPlugin::PrepareAtonTriangleBuffer(SAisData *ptr)
+{
+	
+	double to_x, to_y;
+	nvPoint2d pt;
+	pt.x = ptr->lon;
+	pt.y = -ptr->lat;
+	nvPoint2d p1, p2, p3, p4;
+		
+	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+		
+	double width = ATON_WIDTH/m_SmoothScaleFactor;
+	double height = ATON_HEIGHT/m_SmoothScaleFactor;
+			
+	p1.x = -0.5 * width;	p1.y =  0.5 * height;
+	p2.x =  0.5 * width;	p2.y =  0.5 * height;
+	p3.x =  0.5 * width;	p3.y = -0.5 * height;
+	p4.x = -0.5 * width;	p4.y = -0.5 * height;
+
+	p1.x += pt.x; p1.y += pt.y;
+	p2.x += pt.x; p2.y += pt.y;
+	p3.x += pt.x; p3.y += pt.y;
+	p4.x += pt.x; p4.y += pt.y;
+	
+	m_AtonTriangleBuffer0.Append(p1);
+	m_AtonTriangleBuffer0.Append(p2);
+	m_AtonTriangleBuffer0.Append(p3);
+	m_AtonTriangleBuffer0.Append(p4);
+
 }
 
 void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 {
-	if(!ptr->valid_pos)
-		return;
-	if(ptr->valid[AIS_MSG_21])
-		return;
-
+	
 	double to_x, to_y;
 	nvPoint2d pt;
 	pt.x = ptr->lon;
@@ -1126,6 +1223,9 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	double width =  SHIP_TRIANGLE_WIDTH/m_SmoothScaleFactor;
 	double height = SHIP_TRIANGLE_HEIGHT/m_SmoothScaleFactor;
 			
+	width =  SHIP_TRIANGLE_WIDTH/m_MapScale;
+	height = SHIP_TRIANGLE_HEIGHT/m_MapScale;
+
 	p1.x = -0.5 * width;	p1.y =  1.0 * height;
 	p2.x =  0.0 * width;	p2.y =	-1.0 * height;
 	p3.x =  0.5 * width;	p3.y =  1.0 * height;
@@ -1153,19 +1253,10 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	m_TriangleVerticesBuffer0.Append(p2);
 	m_TriangleVerticesBuffer0.Append(p3);
 
-	SIdToId id;
-	id.id0 = m_CurrentId;
-	id.id1 = m_TriangleVerticesBuffer0.Length() - 3;
-	m_IdToId.Append(id);
-
 }
 // indexy verteksów dla ma³ych trójkacików
 void CMapPlugin::PrepareTriangleTriangleIndicesBuffer(SAisData *ptr)
 {
-	if(!ptr->valid_pos)
-		return;
-	if(ptr->valid[AIS_MSG_21])
-		return;
 	
 	int id = m_TriangleVerticesBuffer0.Length();
 
@@ -1178,12 +1269,7 @@ void CMapPlugin::PrepareTriangleTriangleIndicesBuffer(SAisData *ptr)
 }
 
 void CMapPlugin::PrepareTriangleLineIndicesBuffer(SAisData *ptr)
-{
-	if(!ptr->valid_pos)
-		return;
-	if(ptr->valid[AIS_MSG_21])
-		return;
-	
+{	
 	int id = m_TriangleVerticesBuffer0.Length();
 
 	//1
@@ -1199,11 +1285,6 @@ void CMapPlugin::PrepareTriangleLineIndicesBuffer(SAisData *ptr)
 }
 void CMapPlugin::PrepareTriangleColorBuffer(SAisData *ptr)
 {
-	
-	if(!ptr->valid_pos)
-		return;
-	if(ptr->valid[AIS_MSG_21])
-		return;
 
 	nvRGBAf green;	green.R = 0.0f;	green.G = 1.0f;	green.B = 0.0f; green.A = 0.6f;	
 	nvRGBAf yellow; yellow.R = 0.98f; yellow.G = 0.91f; yellow.B = 0.0f; yellow.A = 0.6f; 
@@ -1225,9 +1306,6 @@ void CMapPlugin::PrepareTriangleColorBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 {
-
-	if(!ptr->valid_dim || !ptr->valid_pos)
-		return;
 	
 	nvPoint2d pt;
 	pt.x = ptr->lon;
@@ -1242,6 +1320,9 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	double width = to_port + to_starboard;
 	double height = to_bow + to_stern;
 			
+	if(width == 0 || height == 0)
+		return;
+
 	//wymiary rzeczywiste
 	p1.x = -0.5 * width;	p1.y =  0.5    * height;	
 	p2.x =  0.5 * width;	p2.y =  0.5    * height; 
@@ -1307,64 +1388,60 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareShipTriangleIndicesBuffer(SAisData *ptr)
 {
-	if(ptr->valid_dim && ptr->valid_pos)
-	{
-		int id = m_ShipVerticesBuffer0.Length();
+	
+	int id = m_ShipVerticesBuffer0.Length();
+	//1
+	m_ShipTriangleIndicesBuffer0.Append(id - 7);	//0
+	m_ShipTriangleIndicesBuffer0.Append(id - 6);	//1
+	m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
+		
+	//2
+	m_ShipTriangleIndicesBuffer0.Append(id - 6);	//1
+	m_ShipTriangleIndicesBuffer0.Append(id - 5);	//2
+	m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
+		
+	//3
+	m_ShipTriangleIndicesBuffer0.Append(id - 5);	//2
+	m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
+	m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
+		
+	//4
+	m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
+	m_ShipTriangleIndicesBuffer0.Append(id - 2);	//5
+	m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
+		
+	//5
+	m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
+	m_ShipTriangleIndicesBuffer0.Append(id - 3);	//4
+	m_ShipTriangleIndicesBuffer0.Append(id - 2);	//5
 
-		//1
-		m_ShipTriangleIndicesBuffer0.Append(id - 7);	//0
-		m_ShipTriangleIndicesBuffer0.Append(id - 6);	//1
-		m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
-		
-		//2
-		m_ShipTriangleIndicesBuffer0.Append(id - 6);	//1
-		m_ShipTriangleIndicesBuffer0.Append(id - 5);	//2
-		m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
-		
-		//3
-		m_ShipTriangleIndicesBuffer0.Append(id - 5);	//2
-		m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
-		m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
-		
-		//4
-		m_ShipTriangleIndicesBuffer0.Append(id - 1);	//6
-		m_ShipTriangleIndicesBuffer0.Append(id - 2);	//5
-		m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
-		
-		//5
-		m_ShipTriangleIndicesBuffer0.Append(id - 4);	//3
-		m_ShipTriangleIndicesBuffer0.Append(id - 3);	//4
-		m_ShipTriangleIndicesBuffer0.Append(id - 2);	//5
-	}
 }
 
 void CMapPlugin::PrepareShipLineIndicesBuffer(SAisData *ptr)
 {
-	if(ptr->valid_dim && ptr->valid_pos)
-	{
-		int id = m_ShipVerticesBuffer0.Length();
+	int id = m_ShipVerticesBuffer0.Length();
 		
-		m_ShipLineIndicesBuffer0.Append(id - 7); //0
-		m_ShipLineIndicesBuffer0.Append(id - 6); //1
+	m_ShipLineIndicesBuffer0.Append(id - 7); //0
+	m_ShipLineIndicesBuffer0.Append(id - 6); //1
 
-		m_ShipLineIndicesBuffer0.Append(id - 6); //1
-		m_ShipLineIndicesBuffer0.Append(id - 5); //2
+	m_ShipLineIndicesBuffer0.Append(id - 6); //1
+	m_ShipLineIndicesBuffer0.Append(id - 5); //2
 
-		m_ShipLineIndicesBuffer0.Append(id - 5); //2
-		m_ShipLineIndicesBuffer0.Append(id - 4); //3
+	m_ShipLineIndicesBuffer0.Append(id - 5); //2
+	m_ShipLineIndicesBuffer0.Append(id - 4); //3
 
-		m_ShipLineIndicesBuffer0.Append(id - 4); //3
-		m_ShipLineIndicesBuffer0.Append(id - 3); //4
+	m_ShipLineIndicesBuffer0.Append(id - 4); //3
+	m_ShipLineIndicesBuffer0.Append(id - 3); //4
 
-		m_ShipLineIndicesBuffer0.Append(id - 3); //4
-		m_ShipLineIndicesBuffer0.Append(id - 2); //5
+	m_ShipLineIndicesBuffer0.Append(id - 3); //4
+	m_ShipLineIndicesBuffer0.Append(id - 2); //5
 
-		m_ShipLineIndicesBuffer0.Append(id - 2); //5
-		m_ShipLineIndicesBuffer0.Append(id - 1); //6
+	m_ShipLineIndicesBuffer0.Append(id - 2); //5
+	m_ShipLineIndicesBuffer0.Append(id - 1); //6
 		
-		m_ShipLineIndicesBuffer0.Append(id - 1); //6
-		m_ShipLineIndicesBuffer0.Append(id - 7); //0
-	}
+	m_ShipLineIndicesBuffer0.Append(id - 1); //6
+	m_ShipLineIndicesBuffer0.Append(id - 7); //0
+	
 }
 
 void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr) 
@@ -1850,20 +1927,16 @@ void CMapPlugin::OnZoom(double Scale)
 
 void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
-		
+	
 	if(!lmb)
 		return;
-
-	RunThread();
-
+	
 	SetValues();
-						
-	if(m_CurrentTriangleVerticesBufferPtr == NULL)
-		return;
+	m_MouseLmb = true;
+	RunThread();
+		
 	
-	
-	
-	
+		
 }
 
 void CMapPlugin::RunThread()
@@ -1877,12 +1950,41 @@ void CMapPlugin::RunThread()
 
 void CMapPlugin::ThreadBegin()
 {
+	m_ThreadCounter++;
+	
 	PrepareBuffer();
+	if(m_MouseLmb)
+	{
+		m_SelectedPtr = NULL;
+		SetSelection();
+		m_MouseLmb = false;
+	}
 }
 
 void CMapPlugin::ThreadEnd()
 {
+	m_ThreadCounter--;
+
+	if(m_ThreadCounter == 0)
+	{
+		if(m_SelectedPtr == NULL)
+			ShowFrameWindow(false);
+		else
+			ShowFrameWindow(true);
+	}
+	
 	m_Broker->Refresh(m_Broker->GetParentPtr());
+				
+}
+
+void CMapPlugin::ShowFrameWindow(bool show)
+{
+	m_MyFrame->ShowWindow(show);
+}
+
+SAisData *CMapPlugin::GetSelectedPtr()
+{
+	return m_SelectedPtr;
 }
 
 //bool CMapPlugin::VisibleStateChanged()
@@ -1957,6 +2059,8 @@ void *CMapPlugin::GetAisBuffer(void *NaviMapIOApiPtr, void *Params)
 	//Params = ais_get_buffer();
 	return NULL;
 }
+
+
 
 
 SData *CMapPlugin::GetData()
