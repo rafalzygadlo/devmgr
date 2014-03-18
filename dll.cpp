@@ -1229,9 +1229,9 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	//width =  SHIP_TRIANGLE_WIDTH/m_MapScale;
 	//height = SHIP_TRIANGLE_HEIGHT/m_MapScale;
 
-	p1.x = -0.5 * width;	p1.y =  1.0 * height;
-	p2.x =  0.0 * width;	p2.y =	-1.0 * height;
-	p3.x =  0.5 * width;	p3.y =  1.0 * height;
+	p1.x = -0.5 * width;	p1.y =  0.8 * height;
+	p2.x =  0.0 * width;	p2.y =	-0.8 * height;
+	p3.x =  0.5 * width;	p3.y =  0.8 * height;
 				
 	//obrót
 	double angle = 0;
