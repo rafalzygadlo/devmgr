@@ -239,6 +239,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_TRIANGLE_HEIGHT	20.0
 #define ATON_WIDTH				20.0
 #define ATON_HEIGHT				20.0
+#define ATON_ANGLE				45.0
 
 #define ROTATE //czy obracaæ obiekty
 #define MIN_SHIP_SPEED			0.5 // 0.5 kn

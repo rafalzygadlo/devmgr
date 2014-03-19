@@ -445,6 +445,7 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid_dim = false;
 		AisData->valid_cog = false;
 		AisData->valid_hdg = false;
+		AisData->valid_sog = false;
 		add = true;
 	}
 		
@@ -566,11 +567,18 @@ bool ais_set_cog(ais_t *ais, SAisData *ptr)
 {
 	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
 	{
-		if(ais->type1.course == AIS_COURSE_NOT_AVAILABLE)
+		if(ais->type1.course != AIS_COURSE_NOT_AVAILABLE)
 		{
-			return false;
-		}else{
 			ptr->cog = get_cog(ais->type1.course);
+			return true;
+		}
+	}
+
+	if(ais->valid[AIS_MSG_18])
+	{
+		if(ais->type18.course != AIS_COURSE_NOT_AVAILABLE)
+		{
+			ptr->cog = get_cog(ais->type18.course);
 			return true;
 		}
 	}
@@ -582,12 +590,18 @@ bool ais_set_hdg(ais_t *ais, SAisData *ptr)
 {
 	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
 	{
-		if(ais->type1.heading == AIS_HEADING_NOT_AVAILABLE)
+		if(ais->type1.heading != AIS_HEADING_NOT_AVAILABLE)
 		{
-			return false;
-		}else{
-			
 			ptr->hdg = get_hdg(ais->type1.heading);
+			return true;
+		}
+	}
+
+	if(ais->valid[AIS_MSG_18])
+	{
+		if(ais->type18.heading != AIS_HEADING_NOT_AVAILABLE)
+		{
+			ptr->hdg = get_hdg(ais->type18.heading);
 			return true;
 		}
 	}
@@ -600,16 +614,22 @@ bool ais_set_sog(ais_t *ais, SAisData *ptr)
 {
 	if(ais->valid[AIS_MSG_1] || ais->valid[AIS_MSG_2] || ais->valid[AIS_MSG_3])
 	{
-		if(ais->type1.speed == AIS_SPEED_NOT_AVAILABLE)
+		if(ais->type1.speed != AIS_SPEED_NOT_AVAILABLE)
 		{
-			return false;
-		}else{
-			
 			ptr->sog = get_speed(ais->type1.speed);
 			return true;
 		}
 	}
-
+	
+	if(ais->valid[AIS_MSG_18])
+	{
+		if(ais->type18.speed != AIS_SPEED_NOT_AVAILABLE)
+		{
+			ptr->sog = get_speed(ais->type1.speed);
+			return true;
+		}
+	}
+	
 	return false;
 
 }

@@ -68,6 +68,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentCOGVerticesBufferPtr = NULL;
 	m_CurrentHDGVerticesBufferPtr = NULL;
 	m_CurrentTrianglesColorBufferPtr = NULL;
+	m_CurrentAtonVerticesBufferPtr = NULL;
+
 
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -930,10 +932,15 @@ void CMapPlugin::SetPtr0()
 	m_CurrentTrianglesLineIndicesBufferPtr = &m_TrianglesLineIndicesBuffer1;			// indexy
 	m_CurrentTrianglesColorBufferPtr = &m_TrianglesColorBuffer1;						// kolory
 		
+	//ATON
+	m_CurrentAtonVerticesBufferPtr = &m_AtonVerticesBuffer1;
+	m_CurrentAtonTriangleIndicesBufferPtr = &m_AtonTriangleIndicesBuffer1;
+	m_CurrentAtonLineIndicesBufferPtr = &m_AtonLineIndicesBuffer1;
+	m_CurrentAtonColorBufferPtr = &m_AtonColorBuffer1;
+	
 	//nazwy
 	m_CurrentShipNamesBufferPtr = &m_ShipNamesBuffer1;
-	//ATON
-	m_CurrentAtonTriangleBufferPtr = &m_AtonTriangleBuffer1;
+	
 	//COG
 	m_CurrentCOGVerticesBufferPtr = &m_COGVerticesBuffer1;
 	//HDG
@@ -957,9 +964,15 @@ void CMapPlugin::SetPtr1()
 	m_CurrentTrianglesLineIndicesBufferPtr = &m_TrianglesLineIndicesBuffer0;
 	m_CurrentTrianglesColorBufferPtr = &m_TrianglesColorBuffer0;
 
-	m_CurrentShipNamesBufferPtr = &m_ShipNamesBuffer0;
 	//atony
-	m_CurrentAtonTriangleBufferPtr = &m_AtonTriangleBuffer0;
+	m_CurrentAtonVerticesBufferPtr = &m_AtonVerticesBuffer0;
+	m_CurrentAtonTriangleIndicesBufferPtr = &m_AtonTriangleIndicesBuffer0;
+	m_CurrentAtonLineIndicesBufferPtr = &m_AtonLineIndicesBuffer0;
+	m_CurrentAtonColorBufferPtr = &m_AtonColorBuffer0;
+
+	
+	m_CurrentShipNamesBufferPtr = &m_ShipNamesBuffer0;
+	
 
 	//COG
 	m_CurrentCOGVerticesBufferPtr = &m_COGVerticesBuffer0;
@@ -975,21 +988,25 @@ void CMapPlugin::ClearBuffers()
 	m_PointsBuffer0.Clear();
 	
 	//trojkaty
-	m_TriangleVerticesBuffer0.Clear();
-	m_TrianglesTriangleIndicesBuffer0.Clear();
-	m_TrianglesLineIndicesBuffer0.Clear();
-	m_TrianglesColorBuffer0.Clear();
+	m_TriangleVerticesBuffer0.Clear();			//
+	m_TrianglesTriangleIndicesBuffer0.Clear();	//indexy trojkatow
+	m_TrianglesLineIndicesBuffer0.Clear();		//indexy lini
+	m_TrianglesColorBuffer0.Clear();			//kolory
 
 	//statki
 	m_ShipVerticesBuffer0.Clear();
 	m_ShipTriangleIndicesBuffer0.Clear();
 	m_ShipLineIndicesBuffer0.Clear();
 	
+	//ATON
+	m_AtonVerticesBuffer0.Clear();
+	m_AtonLineIndicesBuffer0.Clear();
+	m_AtonTriangleIndicesBuffer0.Clear();
+	m_AtonColorBuffer0.Clear();
+		
 	//nazwy
 	m_ShipNamesBuffer0.Clear();
-	
-	//ATON
-	m_AtonTriangleBuffer0.Clear();
+		
 	
 	//COG
 	m_COGVerticesBuffer0.Clear();
@@ -1021,11 +1038,11 @@ void CMapPlugin::CopyBuffers()
 	CopyInt(&m_ShipTriangleIndicesBuffer0,&m_ShipTriangleIndicesBuffer1);
 	CopyInt(&m_ShipLineIndicesBuffer0,&m_ShipLineIndicesBuffer1);
 
-	//czcionki
-	//CopyShipNamesBuffer();
-	//atony
-	//CopyAtonTriangleBuffer();
-	
+	//aton
+	CopyNvPoint2d(&m_AtonVerticesBuffer0,&m_AtonVerticesBuffer1);
+	CopyInt(&m_AtonTriangleIndicesBuffer0,&m_AtonTriangleIndicesBuffer1);
+	CopyInt(&m_AtonLineIndicesBuffer0,&m_AtonLineIndicesBuffer1);
+			
 	//COG
 	CopyNvPoint2d(&m_COGVerticesBuffer0,&m_COGVerticesBuffer1);
 
@@ -1048,25 +1065,12 @@ void CMapPlugin::SetBuffers()
 		if(IsOnScreen(to_x,to_y))
 		{
 			PreparePointsBuffer(data);
-
-
+			
 			PrepareShipBuffer(data);
 			PrepareTriangleBuffer(data);
-
-			//PrepareTriangleVerticesBuffer(data);		// bufor verteksów trojkata
-			//PrepareTriangleTriangleIndicesBuffer(data);	// bufor indexów
-			//PrepareTriangleLineIndicesBuffer(data);		// bufor indexów
-			//PrepareTriangleColorBuffer(data);			// bufor kolorow
-
-			//PrepareShipVerticesBuffer(data);			// bufor verteksów statku
-			//PrepareShipTriangleIndicesBuffer(data);		// indexy
-			//PrepareShipLineIndicesBuffer(data);			// indexy
-			
-			PrepareShipNamesBuffer(data);			
-			PrepareAtonTriangleBuffer(data);
+			PrepareAtonBuffer(data);
 
 			PrepareCOGVerticesBuffer(data);				// linia cog
-
 			PrepareHDGVerticesBuffer(data);
 		}
 	}
@@ -1134,7 +1138,10 @@ void CMapPlugin::PrepareAtonBuffer(SAisData *ptr)
 
 	if(ptr->valid[AIS_MSG_21])
 	{
-		PrepareAtonTriangleBuffer(ptr);
+		PrepareAtonVerticesBuffer(ptr);
+		PrepareAtonTriangleIndicesBuffer(ptr);
+		PrepareAtonLineIndicesBuffer(ptr);
+		PrepareAtonColorBuffer(ptr);
 	}
 
 }
@@ -1158,10 +1165,10 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 {
 			
-	if(!ptr->valid_pos)
-		return;
-	
-	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
+	//if(!ptr->valid_pos)
+	//	return;
+		
+	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
 	{
 		PrepareTriangleVerticesBuffer(ptr);
 		PrepareTriangleTriangleIndicesBuffer(ptr);
@@ -1177,14 +1184,14 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 }
 
 
-void CMapPlugin::PrepareAtonTriangleBuffer(SAisData *ptr)
+void CMapPlugin::PrepareAtonVerticesBuffer(SAisData *ptr)
 {
 	
 	double to_x, to_y;
 	nvPoint2d pt;
 	pt.x = ptr->lon;
 	pt.y = -ptr->lat;
-	nvPoint2d p1, p2, p3, p4;
+	nvPoint2d p1, p2, p3, p4, p5, p6, p7, p8;
 		
 	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
 	pt.x = to_x;
@@ -1198,15 +1205,107 @@ void CMapPlugin::PrepareAtonTriangleBuffer(SAisData *ptr)
 	p3.x =  0.5 * width;	p3.y = -0.5 * height;
 	p4.x = -0.5 * width;	p4.y = -0.5 * height;
 
+	p5.x = -0.3 * width;	p5.y =  0.3 * height;
+	p6.x =  0.3 * width;	p6.y =  0.3 * height;
+	p7.x =  0.3 * width;	p7.y = -0.3 * height;
+	p8.x = -0.3 * width;	p8.y = -0.3 * height;
+
+	double out_x,out_y;
+	double angle = ATON_ANGLE; 
+
+#ifdef ROTATE
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(angle));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(angle));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(angle));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(angle));	p4.x = out_x;	p4.y = out_y;
+	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(angle));	p5.x = out_x;	p5.y = out_y;
+	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(angle));	p6.x = out_x;	p6.y = out_y;
+	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(angle));	p7.x = out_x;	p7.y = out_y;
+	RotateZ(p8.x,p8.y,out_x,out_y,nvToRad(angle));	p8.x = out_x;	p8.y = out_y;
+#endif	
+
+
 	p1.x += pt.x; p1.y += pt.y;
 	p2.x += pt.x; p2.y += pt.y;
 	p3.x += pt.x; p3.y += pt.y;
 	p4.x += pt.x; p4.y += pt.y;
+	p5.x += pt.x; p5.y += pt.y;
+	p6.x += pt.x; p6.y += pt.y;
+	p7.x += pt.x; p7.y += pt.y;
+	p8.x += pt.x; p8.y += pt.y;
+		
+	m_AtonVerticesBuffer0.Append(p1);
+	m_AtonVerticesBuffer0.Append(p2);
+	m_AtonVerticesBuffer0.Append(p3);
+	m_AtonVerticesBuffer0.Append(p4);
+	m_AtonVerticesBuffer0.Append(p5);
+	m_AtonVerticesBuffer0.Append(p6);
+	m_AtonVerticesBuffer0.Append(p7);
+	m_AtonVerticesBuffer0.Append(p8);
+
+
+}
+
+void CMapPlugin::PrepareAtonTriangleIndicesBuffer(SAisData *ptr)
+{
+	int id = m_AtonVerticesBuffer0.Length();
+
+	//1
+	m_AtonTriangleIndicesBuffer0.Append(id - 8);	//0
+	m_AtonTriangleIndicesBuffer0.Append(id - 7);	//1
+	m_AtonTriangleIndicesBuffer0.Append(id - 6);	//2
+
+	m_AtonTriangleIndicesBuffer0.Append(id - 8);	//0
+	m_AtonTriangleIndicesBuffer0.Append(id - 6);	//2
+	m_AtonTriangleIndicesBuffer0.Append(id - 5);	//3
+
+
+	m_AtonTriangleIndicesBuffer0.Append(id - 4);	//4
+	m_AtonTriangleIndicesBuffer0.Append(id - 3);	//5
+	m_AtonTriangleIndicesBuffer0.Append(id - 2);	//6
+
+	m_AtonTriangleIndicesBuffer0.Append(id - 4);	//4
+	m_AtonTriangleIndicesBuffer0.Append(id - 2);	//6
+	m_AtonTriangleIndicesBuffer0.Append(id - 1);	//7
+
+}
+
+void CMapPlugin::PrepareAtonLineIndicesBuffer(SAisData *ptr)
+{
+	int id = m_AtonVerticesBuffer0.Length();
+
+	//
+	m_AtonLineIndicesBuffer0.Append(id - 4);	//4
+	m_AtonLineIndicesBuffer0.Append(id - 2);	//6
+	m_AtonLineIndicesBuffer0.Append(id - 3);	//5
+	m_AtonLineIndicesBuffer0.Append(id - 1);	//7
+
+	//obrys
+	m_AtonLineIndicesBuffer0.Append(id - 8);	//0
+	m_AtonLineIndicesBuffer0.Append(id - 7);	//1
+	m_AtonLineIndicesBuffer0.Append(id - 7);	//1
+	m_AtonLineIndicesBuffer0.Append(id - 6);	//2
+	m_AtonLineIndicesBuffer0.Append(id - 6);	//2
+	m_AtonLineIndicesBuffer0.Append(id - 5);	//3
+	m_AtonLineIndicesBuffer0.Append(id - 5);	//3
+	m_AtonLineIndicesBuffer0.Append(id - 8);	//0
+
+}
+
+
+
+void CMapPlugin::PrepareAtonColorBuffer(SAisData *ptr)
+{
+	nvRGBAf green;	green.R = 0.0f;	green.G = 1.0f;	green.B = 0.0f; green.A = 0.0f;	
 	
-	m_AtonTriangleBuffer0.Append(p1);
-	m_AtonTriangleBuffer0.Append(p2);
-	m_AtonTriangleBuffer0.Append(p3);
-	m_AtonTriangleBuffer0.Append(p4);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
+	m_AtonColorBuffer0.Append(green);
 
 }
 
@@ -1446,7 +1545,7 @@ void CMapPlugin::PrepareShipLineIndicesBuffer(SAisData *ptr)
 	m_ShipLineIndicesBuffer0.Append(id - 7); //0
 	
 }
-
+/*
 void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr) 
 {
 	wchar_t str[128];
@@ -1468,7 +1567,7 @@ void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr)
 		m_ShipNamesBuffer0.Append(str);
 	}
 }
-
+*/
 void CMapPlugin::PrepareCOGVerticesBuffer(SAisData *ptr)
 {
 	if(!ptr->valid_cog || !ptr->valid_sog)
@@ -1596,6 +1695,17 @@ void CMapPlugin::RenderShipNames()
     free( vy );
 }
 
+bool CMapPlugin::IsAtonBuffer()
+{
+	if(m_CurrentAtonVerticesBufferPtr == NULL)
+		return false;
+
+	if(m_CurrentAtonVerticesBufferPtr->Length() == 0)
+		return false;
+	
+	return true;
+}
+
 bool CMapPlugin::IsShipBuffer()
 {
 	if(m_CurrentShipVerticesBufferPtr == NULL)
@@ -1607,7 +1717,6 @@ bool CMapPlugin::IsShipBuffer()
 	return true;
 }
 
-
 bool CMapPlugin::IsTriangleBuffer()
 {
 	if(m_CurrentTriangleVerticesBufferPtr == NULL)
@@ -1618,6 +1727,31 @@ bool CMapPlugin::IsTriangleBuffer()
 	
 	return true;
 }
+
+bool CMapPlugin::CreateAtonsVBO()
+{
+	if(!m_Ready)
+		return false;
+	
+	//trójkaty
+	glBindBuffer(GL_ARRAY_BUFFER, m_AtonArrayBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentAtonVerticesBufferPtr->Length(), m_CurrentAtonVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+			
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_AtonTriangleIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentAtonTriangleIndicesBufferPtr->Length(), m_CurrentAtonTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_AtonLineIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentAtonLineIndicesBufferPtr->Length(), m_CurrentAtonLineIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_AtonColorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBAf) * m_CurrentAtonColorBufferPtr->Length(), m_CurrentAtonColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
+	
+	m_AtonTriangleLength = m_CurrentAtonTriangleIndicesBufferPtr->Length();
+	m_AtonLineLength = m_CurrentAtonLineIndicesBufferPtr->Length();
+
+	return true;
+}
+
 
 bool CMapPlugin::CreateTrianglesVBO()
 {
@@ -1680,6 +1814,32 @@ bool CMapPlugin::CreateShipsVBO()
 	else
 		return false;
 				
+}
+
+void CMapPlugin::RenderAtons()
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_AtonArrayBuffer);
+	glVertexPointer(2, GL_DOUBLE,  0, 0);
+		
+	glBindBuffer(GL_ARRAY_BUFFER, m_AtonColorBuffer);
+	glColorPointer(4, GL_FLOAT,  0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_AtonTriangleIndicesBuffer);
+	glDrawElements(GL_TRIANGLES, m_AtonTriangleLength, GL_UNSIGNED_INT,0);
+
+	glDisableClientState(GL_COLOR_ARRAY);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_AtonLineIndicesBuffer);
+	glDrawElements(GL_LINES, m_AtonLineLength, GL_UNSIGNED_INT,0);
+		
+	glDisableClientState(GL_VERTEX_ARRAY);
+	
+	
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 
 void CMapPlugin::RenderTriangles()
@@ -1815,6 +1975,16 @@ void CMapPlugin::RenderGPS()
 
 }
 
+void CMapPlugin::RenderRealAtons()
+{
+	if(!IsAtonBuffer())
+		return;
+		
+	CreateAtonsVBO();
+	RenderAtons();
+
+}
+
 void CMapPlugin::RenderShipTriangles()
 {
 	if(!IsTriangleBuffer())
@@ -1822,8 +1992,6 @@ void CMapPlugin::RenderShipTriangles()
 		
 	CreateTrianglesVBO();
 	RenderTriangles();
-	DeleteTrianglesVBO();
-	
 
 }
 
@@ -1834,14 +2002,38 @@ void CMapPlugin::RenderRealShips()
 	
 	CreateShipsVBO();
 	RenderShips();
-	DeleteShipsVBO();
 	
 }
 
 
+
 void CMapPlugin::Render()
 {
-
+		
+	Generate();
+	SetValues();
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1);	
+	
+	wxMutexLocker locker(*GetMutex());
+	
+	RenderRealShips();
+	RenderShipTriangles();
+	RenderRealAtons();
+	RenderCOG();
+	RenderHDG();
+	RenderGPS();
+	RenderSelection();
+	
+	glLineWidth(1);		
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	
+		
+}
+void CMapPlugin::Generate()
+{
 	if(m_FirstTime)
 	{
 		CreateTextures();
@@ -1854,28 +2046,15 @@ void CMapPlugin::Render()
 		glGenBuffers(1, &m_ShipsArrayBuffer);
 		glGenBuffers(1, &m_ShipsTriangleIndicesBuffer);
 		glGenBuffers(1, &m_ShipsLineIndicesBuffer);
+
+		glGenBuffers(1, &m_AtonArrayBuffer);
+		glGenBuffers(1, &m_AtonTriangleIndicesBuffer);
+		glGenBuffers(1, &m_AtonLineIndicesBuffer);
+		glGenBuffers(1, &m_AtonColorBuffer);
 	
 	}
-		
-	SetValues();
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1);	
 	
-	RenderRealShips();
-	RenderShipTriangles();
-	RenderCOG();
-	RenderHDG();
-	RenderGPS();
-	RenderSelection();
-	
-	glLineWidth(1);		
-	glDisable(GL_BLEND);
-	glDisable(GL_LINE_SMOOTH);
-	
-		
 }
-
 void CMapPlugin::SetValues()
 {
 	double mom[2];
@@ -1942,7 +2121,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		return;
 	
 	m_MouseLmb = true;
-		
+	ShowFrameWindow(false);	
 	
 		
 }
@@ -1965,7 +2144,6 @@ void CMapPlugin::ThreadBegin()
 	{
 		m_SelectedPtr = NULL;
 		SetSelection();
-		
 	}
 }
 
