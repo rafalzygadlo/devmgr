@@ -1900,6 +1900,27 @@ void CMapPlugin::RenderShips()
 
 void  CMapPlugin::RenderSelection()
 {
+	if(m_SelectedPtr == NULL)
+		return;
+	
+	double to_x,to_y;
+	m_Broker->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
+
+	wchar_t str[128];
+	wchar_t wc[64];
+	
+	if(m_SelectedPtr->valid_dim && m_SelectedPtr->valid_pos)
+	{
+		mbstowcs(wc, m_SelectedPtr->shipname, 128);
+		swprintf(str,L"%d %ls",m_SelectedPtr->mmsi,wc);
+		m_Font->Clear();
+		m_Font->Print(to_x,-to_y,0.1/m_MapScale,0.0,str,0.5,0.5);
+		m_Font->ClearBuffers();
+		m_Font->CreateBuffers();
+		m_Font->Render();
+	}
+
+	/*
 	if(m_SelectedVertexId == -1)
 		return;
 	
@@ -1942,7 +1963,7 @@ void  CMapPlugin::RenderSelection()
 		glPointSize(1);
 
 	}
-	
+	*/
 }
 
 void CMapPlugin::RenderHDG()
@@ -2114,7 +2135,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		SetValues();
 		RunThread();
 		m_MouseLmb = false;
-		m_FromMouse = true;
+		
 	}
 	
 	if(!lmb)
@@ -2125,6 +2146,12 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	
 		
 }
+
+void CMapPlugin::MouseDBLClick(int x, int y)
+{
+	m_FromMouse = true;
+}
+
 
 void CMapPlugin::RunThread()
 {
@@ -2183,10 +2210,6 @@ SAisData *CMapPlugin::GetSelectedPtr()
 
 //}
 
-void CMapPlugin::MouseDBLClick(int x, int y)
-{
-
-}
 
 void *CMapPlugin::GetParentPtr(void *NaviMapIOApiPtr, void *Params)
 {

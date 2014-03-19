@@ -377,6 +377,7 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 		if(add)
 		{
 			vAisData.Append(ais);
+			fprintf(stdout,"%d MB\n",(vAisData.Length()*sizeof(ais_t))/1000000);
 		}
 	}else{
 		
