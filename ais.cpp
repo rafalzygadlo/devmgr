@@ -377,8 +377,8 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 		if(add)
 		{
 			vAisData.Append(ais);
-			fprintf(stdout,"%d MB\n",(vAisData.Length()*sizeof(ais_t))/1000000);
 		}
+	
 	}else{
 		
 		if(add)
@@ -1776,15 +1776,15 @@ wxString GetHtmlHeader(int type)
 	}
 
 	wxString str;
-	str.Append(_("<table border=0 cellpadding=4 cellspacing=0>"));
-	str.Append(wxString::Format(_("<tr><td colspan=2><b><a name=\"%d\">%s</a></b></td></tr>"),type,msg.wc_str()));
+	str.Append(_("<table border=0 cellpadding=3 cellspacing=0>"));
+	str.Append(wxString::Format(_("<tr><td colspan=2><b><a name=\"%d\">[%d] %s</a></b></td></tr>"),type,type,msg.wc_str()));
 	
 	return str;
 }
 wxString GetHtmlFooter()
 {
 	wxString str;
-	str.Append(_("</table><hr>"));
+	str.Append(_("</table><br>"));
 	return str;
 }
 
@@ -1991,7 +1991,6 @@ wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
 	return ar;
 
 }
-
 
 
 const wchar_t *GetTurn(int v)

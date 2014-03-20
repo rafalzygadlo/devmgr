@@ -70,14 +70,13 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_SmoothScaleFactor, m_Factor;
 	float m_MapScale,m_OldMapScale;
 	double m_MapX,m_MapY;
-	nvPoint2d *m_SelectedShip;
 	int m_SelectedVertexId;
 	nvPoint2f ptt0,ptt1;
 	bool m_FirstTime;
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 	int m_CurrentId;
 	SAisData *m_SelectedPtr,*m_OldSelectedPtr;
-	bool m_MouseLmb, m_FromMouse;
+	bool m_MouseLmb, m_FromMouse1,m_FromMouse2;
 	CMyFrame *m_MyFrame;
 
 	TTexture *m_TextureTGA_0;
@@ -115,10 +114,9 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_AtonLineIndicesBuffer0;			CNaviArray <int> m_AtonLineIndicesBuffer1;				CNaviArray <int> *m_CurrentAtonLineIndicesBufferPtr;
 	CNaviArray <nvRGBAf> m_AtonColorBuffer0;			CNaviArray <nvRGBAf> m_AtonColorBuffer1;				CNaviArray <nvRGBAf> *m_CurrentAtonColorBufferPtr;
 
-
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
-
+	CNaviArray <SIdToId> m_IdToAtonId;
 	// bufor koordynat tekstur
 	//CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
 	//CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
@@ -217,6 +215,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ClearBuffers();
 	void SelectShip();
 	void SelectTriangle();
+	void SelectAton();
 	void ShowFrameWindow(bool show);
 	
 	void PrepareShipBuffer(SAisData *ptr);

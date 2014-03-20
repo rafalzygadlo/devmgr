@@ -78,10 +78,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	memset(m_ShipValidFrequencyTable,0,MAX_SHIP_VALUES_LEN);
 	m_ShipValidFrequency = false;
 	m_Interpolation = false;
-	m_SelectedShip = NULL;
 	m_SelectedVertexId = -1;
 	m_ThreadCounter = 0;
-	m_MouseLmb = m_FromMouse = false;
+	m_MouseLmb = m_FromMouse1 = m_FromMouse2 = false;
 	
 	m_TrianglesTriangleLength = m_TrianglesLineLength = 0;
 	m_SelectedPtr = m_OldSelectedPtr = NULL;
@@ -133,6 +132,8 @@ CMapPlugin::~CMapPlugin()
 	delete m_DisplaySignal;
 	delete m_Font;
 	delete m_MyFrame;
+	
+	ClearBuffers();
 	FreeMutex();
 }
 
@@ -826,10 +827,9 @@ bool CMapPlugin::IsOnScreen(double x, double y)
 
 void CMapPlugin::SetSelection()
 {	
-
 	SelectTriangle();
 	SelectShip();
-	
+	SelectAton();
 }
 
 void CMapPlugin::SelectTriangle()
@@ -855,6 +855,7 @@ void CMapPlugin::SelectTriangle()
 		
 		if(IsPointInTriangle(&pt,&pt0,&pt1,&pt2))
 		{
+			
 			selected = i;
 			for(size_t i = 0; i < m_IdToTriangleId.Length(); i++)
 			{
@@ -881,6 +882,7 @@ void CMapPlugin::SelectShip()
 	pt.y = m_MapY;
 	int selected = -1;
 		
+
 	for( size_t i = 0; i < m_CurrentShipVerticesBufferPtr->Length(); i+=SHIP_VERTICES_LENGTH )
 	{
 		nvPoint2d v[SHIP_VERTICES_LENGTH];
@@ -902,6 +904,7 @@ void CMapPlugin::SelectShip()
 		
 		if(IsPointInsideMesh(&pt,v,SHIP_VERTICES_LENGTH,in,SHIP_INDICES_LENGTH))
 		{
+			
 			selected = i;	
 			for(size_t i = 0; i < m_IdToShipId.Length(); i++)
 			{
@@ -916,6 +919,51 @@ void CMapPlugin::SelectShip()
 	
 }
 
+void CMapPlugin::SelectAton()
+{
+	if(m_CurrentTriangleVerticesBufferPtr == NULL)
+		return;
+
+	nvPoint2d *RawPt  = m_CurrentAtonVerticesBufferPtr->GetRawData();
+	
+	nvPoint2f pt;
+	pt.x = m_MapX;
+	pt.y = m_MapY;
+	int selected = -1;
+	
+	for (size_t i = 0; i < m_CurrentAtonVerticesBufferPtr->Length(); i+=8)
+	{
+			
+		nvPoint2f pt0, pt1, pt2 , pt4;
+				
+		nvPoint2d v[ATON_VERTICES_LENGTH/2]; // tylko skrajne punkty
+
+		v[0].x = RawPt[i + 0].x; v[0].y = RawPt[i + 0].y;
+		v[1].x = RawPt[i + 1].x; v[1].y = RawPt[i + 1].y;
+		v[2].x = RawPt[i + 2].x; v[2].y = RawPt[i + 2].y;
+		v[3].x = RawPt[i + 3].x; v[3].y = RawPt[i + 3].y;
+		
+		int in[ATON_INDICES_LENGTH];
+		in[0] = 0;	in[1] = 1;	in[2] = 2;
+		in[3] = 0;	in[4] = 2;	in[5] = 3;
+		
+		if(IsPointInsideMesh(&pt,v,ATON_VERTICES_LENGTH,in,ATON_INDICES_LENGTH))
+		{
+			
+			selected = i;
+			for(size_t i = 0; i < m_IdToAtonId.Length(); i++)
+			{
+				if(m_IdToAtonId.Get(i).id1 == selected)
+				{
+					m_SelectedPtr = ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0);
+					return;
+				}
+			}
+			
+		}
+		
+	}
+}
 void CMapPlugin::SetPtr0()
 {
 	// przygotuj bufory do renderu
@@ -1017,6 +1065,7 @@ void CMapPlugin::ClearBuffers()
 	//indeksy
 	m_IdToTriangleId.Clear();
 	m_IdToShipId.Clear();
+	m_IdToAtonId.Clear();
 	
 }
 
@@ -1142,6 +1191,11 @@ void CMapPlugin::PrepareAtonBuffer(SAisData *ptr)
 		PrepareAtonTriangleIndicesBuffer(ptr);
 		PrepareAtonLineIndicesBuffer(ptr);
 		PrepareAtonColorBuffer(ptr);
+
+		SIdToId id;
+		id.id0 = m_CurrentId;
+		id.id1 = m_AtonVerticesBuffer0.Length() - ATON_VERTICES_LENGTH;
+		m_IdToAtonId.Append(id);
 	}
 
 }
@@ -1164,10 +1218,6 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 {
-			
-	//if(!ptr->valid_pos)
-	//	return;
-		
 	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
 	{
 		PrepareTriangleVerticesBuffer(ptr);
@@ -1200,15 +1250,15 @@ void CMapPlugin::PrepareAtonVerticesBuffer(SAisData *ptr)
 	double width = ATON_WIDTH/m_SmoothScaleFactor;
 	double height = ATON_HEIGHT/m_SmoothScaleFactor;
 			
-	p1.x = -0.5 * width;	p1.y =  0.5 * height;
-	p2.x =  0.5 * width;	p2.y =  0.5 * height;
-	p3.x =  0.5 * width;	p3.y = -0.5 * height;
-	p4.x = -0.5 * width;	p4.y = -0.5 * height;
+	p1.x = -1.0 * width;	p1.y =  1.0 * height;
+	p2.x =  1.0 * width;	p2.y =  1.0 * height;
+	p3.x =  1.0 * width;	p3.y = -1.0 * height;
+	p4.x = -1.0 * width;	p4.y = -1.0 * height;
 
-	p5.x = -0.3 * width;	p5.y =  0.3 * height;
-	p6.x =  0.3 * width;	p6.y =  0.3 * height;
-	p7.x =  0.3 * width;	p7.y = -0.3 * height;
-	p8.x = -0.3 * width;	p8.y = -0.3 * height;
+	p5.x = -0.7 * width;	p5.y =  0.7 * height;
+	p6.x =  0.7 * width;	p6.y =  0.7 * height;
+	p7.x =  0.7 * width;	p7.y = -0.7 * height;
+	p8.x = -0.7 * width;	p8.y = -0.7 * height;
 
 	double out_x,out_y;
 	double angle = ATON_ANGLE; 
@@ -1905,65 +1955,99 @@ void  CMapPlugin::RenderSelection()
 	
 	double to_x,to_y;
 	m_Broker->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
+	to_y = -to_y;
 
-	wchar_t str[128];
+	wchar_t str[64];
+	wchar_t mmsi[16];
 	wchar_t wc[64];
 	
-	if(m_SelectedPtr->valid_dim && m_SelectedPtr->valid_pos)
+	m_Font->Clear();
+	
+	if(m_SelectedPtr->valid_pos)
+	{
+		swprintf(mmsi,L"%d",m_SelectedPtr->mmsi);	
+		m_Font->Print(to_x,to_y,0.12/m_MapScale,0.0,mmsi,0.5,3.2);
+	}	
+	
+	if(m_SelectedPtr->valid_dim)
 	{
 		mbstowcs(wc, m_SelectedPtr->shipname, 128);
-		swprintf(str,L"%d %ls",m_SelectedPtr->mmsi,wc);
-		m_Font->Clear();
-		m_Font->Print(to_x,-to_y,0.1/m_MapScale,0.0,str,0.5,0.5);
-		m_Font->ClearBuffers();
-		m_Font->CreateBuffers();
-		m_Font->Render();
+		swprintf(str,L"%ls",wc);
+		m_Font->Print(to_x,to_y,0.12/m_MapScale,0.0,str,0.5,4.4);
 	}
-
-	/*
-	if(m_SelectedVertexId == -1)
-		return;
-	
-	if(m_CurrentTriangleVerticesBufferPtr->Length() > 0)
-	{
-		nvPoint2d pt0 = m_CurrentTriangleVerticesBufferPtr->Get(m_SelectedVertexId);
- 		nvPoint2d pt1 = m_CurrentTriangleVerticesBufferPtr->Get(m_SelectedVertexId + 1);
-		nvPoint2d pt2 = m_CurrentTriangleVerticesBufferPtr->Get(m_SelectedVertexId + 2);
-				
-		double size = 10.0/m_SmoothScaleFactor;
-		//glBegin(GL_);
-			//glVertex2d(pt0.x, pt0.y);
-			//glVertex2d(pt0.x + size,pt0.y);
-			//glVertex2d(pt0.x, pt0.y);
-			//glVertex2d(pt0.x ,pt0.y + size);
-
-			//glVertex2d(pt1.x, pt1.y);
-			//glVertex2d(pt1.x - size,pt1.y);
-			//glVertex2d(pt1.x, pt1.y);
-			//glVertex2d(pt1.x ,pt1.y + size);
-
-			//glVertex2d(pt2.x,pt2.y);
-			//glVertex2d(pt2.x + size,pt2.y);
-			//glVertex2d(pt2.x,pt2.y);
-			//glVertex2d(pt2.x ,pt2.y - size);
-		//glEnd();
-		glPointSize(5);
-		glBegin(GL_POINTS);
-			
-			glColor3f(1.0,0.0,0.0);
-			glVertex2d(pt0.x,pt0.y);
-			
-			glColor3f(0.0,1.0,0.0);
-			glVertex2d(pt1.x,pt1.y);
-			
-			glColor3f(0.0,0.0,1.0);
-			glVertex2d(pt2.x,pt2.y);
 		
-			glEnd();
-		glPointSize(1);
+	m_Font->ClearBuffers();
+	m_Font->CreateBuffers();
+	m_Font->Render();
 
-	}
-	*/
+	// quad selection
+	double width =  SHIP_QUAD_WIDTH/m_SmoothScaleFactor;
+	double height = SHIP_QUAD_HEIGHT/m_SmoothScaleFactor;
+	nvPoint2d p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16;		
+	
+	p1.x = -1.0 * width;	p1.y =  1.0 * height;
+	p2.x = -0.7 * width;	p2.y =  1.0 * height;
+	
+	p3.x =  0.7 * width;	p3.y =  1.0 * height;
+	p4.x =  1.0 * width;	p4.y =  1.0 * height;
+	
+	p5.x =  1.0 * width;	p5.y =  1.0 * height;
+	p6.x =  1.0 * width;	p6.y =  0.7 * height;
+		
+	p7.x =	1.0 * width;	p7.y = -0.7 * height;
+	p8.x =  1.0 * width;	p8.y = -1.0 * height;
+	
+	p9.x =  1.0 * width;	p9.y = -1.0 * height;
+	p10.x =  0.7 * width;	p10.y = -1.0 * height;
+	
+	p11.x = -0.7 * width;	p11.y = -1.0 * height;
+	p12.x = -1.0 * width;	p12.y = -1.0 * height;
+		
+	p13.x = -1.0 * width;	p13.y = -1.0 * height;
+	p14.x = -1.0 * width;	p14.y = -0.7 * height;
+
+	p15.x = -1.0 * width;	p15.y =  0.7 * height;
+	p16.x = -1.0 * width;	p16.y =  1.0 * height;
+	
+	
+	p1.x += to_x; p1.y += to_y;
+	p2.x += to_x; p2.y += to_y;
+	p3.x += to_x; p3.y += to_y;
+	p4.x += to_x; p4.y += to_y;
+	p5.x += to_x; p5.y += to_y;
+	p6.x += to_x; p6.y += to_y;
+	p7.x += to_x; p7.y += to_y;
+	p8.x += to_x; p8.y += to_y;
+	p9.x += to_x; p9.y += to_y;
+	p10.x += to_x; p10.y += to_y;
+	p11.x += to_x; p11.y += to_y;
+	p12.x += to_x; p12.y += to_y;
+	p13.x += to_x; p13.y += to_y;
+	p14.x += to_x; p14.y += to_y;
+	p15.x += to_x; p15.y += to_y;
+	p16.x += to_x; p16.y += to_y;
+
+	glLineWidth(2);
+	glBegin(GL_LINES);
+		glVertex2d(p1.x ,p1.y);
+		glVertex2d(p2.x ,p2.y);
+		glVertex2d(p3.x ,p3.y);
+		glVertex2d(p4.x ,p4.y);
+		glVertex2d(p5.x ,p5.y);
+		glVertex2d(p6.x ,p6.y);
+		glVertex2d(p7.x ,p7.y);
+		glVertex2d(p8.x ,p8.y);
+		glVertex2d(p9.x ,p9.y);
+		glVertex2d(p10.x,p10.y);
+		glVertex2d(p11.x,p11.y);
+		glVertex2d(p12.x,p12.y);
+		glVertex2d(p13.x,p13.y);
+		glVertex2d(p14.x,p14.y);
+		glVertex2d(p15.x,p15.y);
+		glVertex2d(p16.x,p16.y);
+	glEnd();
+	glLineWidth(1);
+	
 }
 
 void CMapPlugin::RenderHDG()
@@ -2135,7 +2219,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		SetValues();
 		RunThread();
 		m_MouseLmb = false;
-		
+		m_FromMouse1 = true;	
 	}
 	
 	if(!lmb)
@@ -2149,9 +2233,8 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 
 void CMapPlugin::MouseDBLClick(int x, int y)
 {
-	m_FromMouse = true;
+	m_FromMouse2 = true;
 }
-
 
 void CMapPlugin::RunThread()
 {
@@ -2167,7 +2250,7 @@ void CMapPlugin::ThreadBegin()
 	m_ThreadCounter++;
 	
 	PrepareBuffer();
-	if(m_FromMouse)
+	if(m_FromMouse1)
 	{
 		m_SelectedPtr = NULL;
 		SetSelection();
@@ -2180,13 +2263,14 @@ void CMapPlugin::ThreadEnd()
 
 	if(m_ThreadCounter == 0)
 	{
-		if(m_SelectedPtr != NULL && m_FromMouse)
+		if(m_SelectedPtr != NULL && m_FromMouse2)
 			ShowFrameWindow(true);
 		else
 			ShowFrameWindow(false);
 	}
 	
-	m_FromMouse = false;
+	m_FromMouse1 = false;
+	m_FromMouse2 = false;
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 				
 }

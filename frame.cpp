@@ -19,7 +19,7 @@ extern CNaviBroker *BrokerPtr;
 //FRAME
 
 CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
-	:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize)
+	:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_3D)
 {
 	m_DLL = (CMapPlugin*)Parent;
 	_ParentPtr = ParentPtr;
@@ -31,7 +31,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 		
 	Panel->SetSizer(PanelSizer);
 	
-	Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,400));
+	Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxSize(350,400));
 	PanelSizer->Add(Html,1,wxALL|wxEXPAND,0);
 			
 	//Other

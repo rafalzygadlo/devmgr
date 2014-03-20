@@ -237,15 +237,21 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
-#define ATON_WIDTH				20.0
-#define ATON_HEIGHT				20.0
+
+#define ATON_WIDTH				10.0
+#define ATON_HEIGHT				10.0
 #define ATON_ANGLE				45.0
+
+#define SHIP_QUAD_WIDTH			20.0
+#define SHIP_QUAD_HEIGHT		20.0
 
 #define ROTATE //czy obracaæ obiekty
 #define MIN_SHIP_SPEED			0.5 // 0.5 kn
 #define TRIANGLE_VERTICES_LEN	3
 #define SHIP_VERTICES_LENGTH	7
 #define SHIP_INDICES_LENGTH		15
+#define ATON_VERTICES_LENGTH	8
+#define ATON_INDICES_LENGTH		6
 
 typedef struct SData
 {
