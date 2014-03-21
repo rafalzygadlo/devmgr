@@ -76,20 +76,21 @@ class CMapPlugin :public CNaviMapIOApi
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 	int m_CurrentId;
 	SAisData *m_SelectedPtr,*m_OldSelectedPtr;
-	bool m_MouseLmb, m_FromMouse1,m_FromMouse2;
+	bool m_MouseLmb, m_MouseDLmb,m_MouseUp;
 	CMyFrame *m_MyFrame;
 
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
-	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer;
+	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer,m_ShipsColorBuffer;
 	GLuint m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer, m_TrianglesColorBuffer;
 	GLuint m_AtonArrayBuffer, m_AtonTriangleIndicesBuffer, m_AtonLineIndicesBuffer, m_AtonColorBuffer;
 
 	int m_TrianglesTriangleLength, m_TrianglesLineLength, m_TrianglesColorLength;
-	int m_ShipTriangleLength, m_ShipLineLength;
+	int m_ShipTriangleLength, m_ShipLineLength, m_ShipColorLength;
 	int m_AtonTriangleLength, m_AtonLineLength;
 	bool m_Ready;
 	int m_ThreadCounter;
+	bool m_ShipRender;
 	
 	// bufory punktów
 	// SHIP
@@ -97,6 +98,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;			// bufor indexów trójk¹tów SHIP
 	CNaviArray <int> m_ShipTriangleIndicesBuffer0;		CNaviArray <int>  m_ShipTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
 	CNaviArray <int> m_ShipLineIndicesBuffer0;			CNaviArray <int>  m_ShipLineIndicesBuffer1;				CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;			// bufor indexów lini SHIP
+	CNaviArray <nvRGBAf> m_ShipColorBuffer0;			CNaviArray <nvRGBAf> m_ShipColorBuffer1;				CNaviArray <nvRGBAf> *m_CurrentShipColorBufferPtr;
 	
 	// SHIP trójkat
 	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentTriangleVerticesBufferPtr;
@@ -154,13 +156,14 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor trójkatów
 	void PrepareTriangleVerticesBuffer(SAisData *ptr);			//vertexy
 	void PrepareTriangleTriangleIndicesBuffer(SAisData *ptr);   //indexy
-	void PrepareTriangleLineIndicesBuffer(SAisData *ptr);		//indexy
-	void PrepareTriangleColorBuffer(SAisData *ptr);
+	void PrepareTriangleLineIndicesBuffer(SAisData *ptr);		//indexy lini
+	void PrepareTriangleColorBuffer(SAisData *ptr);				//kolory
 
 	// bufor statku
-	void PrepareShipVerticesBuffer(SAisData *ptr);	//vertexy
-	void PrepareShipTriangleIndicesBuffer(SAisData *ptr); //indexy trojkatow
-	void PrepareShipLineIndicesBuffer(SAisData *ptr); //indexy lini
+	void PrepareShipVerticesBuffer(SAisData *ptr);				//vertexy
+	void PrepareShipTriangleIndicesBuffer(SAisData *ptr);		//indexy trojkatow
+	void PrepareShipLineIndicesBuffer(SAisData *ptr);			//indexy lini
+	void PrepareShipColorBuffer(SAisData *ptr);					//kolory
 
 	// bufor aton
 	void PrepareAtonVerticesBuffer(SAisData *ptr);
@@ -221,6 +224,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);
 	void PrepareTriangleBuffer(SAisData *ptr);
+	void CheckTriangleBuffer(SAisData *ptr);
+		
 	void Generate();
 	void RenderGPS();
 	void RenderCOG();

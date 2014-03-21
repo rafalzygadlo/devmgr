@@ -442,15 +442,18 @@ void ais_prepare_buffer(ais_t *ais)
 	if(AisData == NULL)
 	{
 		AisData = (SAisData*)malloc(sizeof(SAisData));
+		memset(AisData,0,sizeof(SAisData));
 		AisData->valid_pos = false;
 		AisData->valid_dim = false;
 		AisData->valid_cog = false;
 		AisData->valid_hdg = false;
 		AisData->valid_sog = false;
+		
 		add = true;
 	}
 		
 	AisData->mmsi = ais->mmsi;
+	AisData->time = GetTickCount();
 	bool exists = false;
 	
 	if(ais_set_lon_lat(ais,&AisData->lon,&AisData->lat))

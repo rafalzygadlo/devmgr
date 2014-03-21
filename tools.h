@@ -41,4 +41,15 @@ wxString ConvertDegree(float degree);
 wxString FormatLongitude(float x); 
 wxString FormatLatitude(float y);
 void InitMutex();
+double GetShipHeight(SAisData *ptr);
+double GetShipWidth(SAisData *ptr);
+double ToPort(SAisData *ptr);
+double ToBow(SAisData *ptr);
+double ToStern(SAisData *ptr);
+double ToStarboard(SAisData *ptr);
+
+
+double GetTriangleWidth(double smooth_scale);
+double GetTriangleHeight(double smooth_scale);
+
 #endif

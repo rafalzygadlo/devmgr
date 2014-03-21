@@ -590,3 +590,54 @@ wxString FormatLatitude(float y)
     return str;
 
 }
+
+double GetMilesPerDegree(double x, double y)
+{
+	return nvDistance( x, y, x + 1.0, y );	// iloœæ mil na stopieñ w aktualnej pozycji y
+}
+
+double ToBow(SAisData *ptr)
+{
+	return  (double)ptr->to_bow/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
+}
+
+double ToStern(SAisData *ptr)
+{
+	return (double)ptr->to_stern/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
+}
+
+double ToPort(SAisData *ptr)
+{
+	return (double)ptr->to_port/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
+}
+
+double ToStarboard(SAisData *ptr)
+{
+	return (double)ptr->to_starboard/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
+}
+
+double GetShipHeight(SAisData *ptr)
+{
+	//if(ptr->valid_dim)
+	return ToBow(ptr) + ToStern(ptr);
+	//else
+		//return 0.0;
+}
+
+double GetShipWidth(SAisData *ptr)
+{
+	//if(ptr->valid_dim)
+		return ToPort(ptr) + ToStarboard(ptr);
+	//else
+		//return 0.0;
+}
+
+double GetTriangleHeight(double smooth_scale)
+{
+	return SHIP_TRIANGLE_HEIGHT/smooth_scale;
+}
+
+double GetTriangleWidth(double smooth_scale)
+{
+	return SHIP_TRIANGLE_WIDTH/smooth_scale;
+}
