@@ -253,6 +253,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define ATON_VERTICES_LENGTH	8
 #define ATON_INDICES_LENGTH		6
 #define AIS_TIMEOUT				1*60*1000 // timeout 1 minut w milisekundach
+#define AIS_FILE				"ais.data"
 
 #define TRIANGLE_WIDTH_FACTOR	1.6
 #define TRIANGLE_HEIGHT_FACTOR	1.6

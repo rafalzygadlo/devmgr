@@ -265,6 +265,31 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 };
 
+void ais_save_file()
+{
+
+}
+
+void ais_load_file()
+{
+	FILE *f;
+	
+	const char *fname = GetAisFile().char_str();
+	if( (f = fopen(fname , "rb" )) == NULL )
+		return;
+	
+	size_t size = nvFileSize(fname);
+	if( fread( Buffer->Memory, sizeof(char), size, f ) != size ) 
+	{
+		FreeMemBlock( Buffer );
+		fclose( f );
+		return;
+	}
+	
+	
+	fclose( f );
+
+}
 
 void ais_sort()
 {

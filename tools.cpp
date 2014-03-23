@@ -641,3 +641,8 @@ double GetTriangleWidth(double smooth_scale)
 {
 	return SHIP_TRIANGLE_WIDTH/smooth_scale;
 }
+
+wxString GetAisFile()
+{
+	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),_(AIS_FILE));
+}

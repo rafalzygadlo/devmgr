@@ -47,9 +47,8 @@ double ToPort(SAisData *ptr);
 double ToBow(SAisData *ptr);
 double ToStern(SAisData *ptr);
 double ToStarboard(SAisData *ptr);
-
-
 double GetTriangleWidth(double smooth_scale);
 double GetTriangleHeight(double smooth_scale);
+wxString GetAisFile();
 
 #endif
