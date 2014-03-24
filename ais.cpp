@@ -267,6 +267,26 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 void ais_save_file()
 {
+	FILE *f;
+		
+	wxString str = GetAisFile();
+	wxCharBuffer buffer = str.ToUTF8();
+	const char *fname = buffer.data();
+
+	if( (f = fopen(fname , "wb" )) == NULL )
+		return;
+
+	for(size_t i = 0; i < vAisData.Length(); i++)
+	{
+		ais_t *ais = vAisData.Get(i);
+		if(ais->valid[AIS_MSG_5])
+		{
+			fwrite(&ais->mmsi,sizeof(unsigned int),1,f);		//mmsi
+			fwrite(&ais->type5,sizeof(ais_t::msg5),1,f);		//msg5
+		}
+	}
+
+	fclose(f);
 
 }
 
@@ -274,19 +294,37 @@ void ais_load_file()
 {
 	FILE *f;
 	
-	const char *fname = GetAisFile().char_str();
-	if( (f = fopen(fname , "rb" )) == NULL )
-		return;
+	wxString str = GetAisFile();
+	wxCharBuffer buffer = str.ToUTF8(); 
+	const char *fname = buffer.data();
+		
+	f = fopen(fname , "rb" );
 	
+	if( f == NULL )
+		return;
+
 	size_t size = nvFileSize(fname);
-	if( fread( Buffer->Memory, sizeof(char), size, f ) != size ) 
+	int count = size / sizeof(ais_t);
+	rewind(f);
+	
+	while(!feof(f))
 	{
-		FreeMemBlock( Buffer );
-		fclose( f );
-		return;
+		ais_t *ais = (ais_t*)malloc(sizeof(ais_t));
+		memset(ais,0,sizeof(ais_t));
+
+		size_t rec = fread(&ais->mmsi,sizeof(unsigned int),1,f);		//mmsi
+		rec = fread(&ais->type5,sizeof(ais_t::msg5),1,f);				//msg5
+		
+		if(rec == 1)
+		{
+			ais->valid[AIS_MSG_5] = true;
+			vAisData.Append(ais);
+		}else{
+			free(ais);
+		}
+	
 	}
-	
-	
+			
 	fclose( f );
 
 }
@@ -473,6 +511,7 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid_cog = false;
 		AisData->valid_hdg = false;
 		AisData->valid_sog = false;
+		AisData->valid_aton = false;
 		
 		add = true;
 	}
@@ -487,9 +526,12 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid_pos = true;
 	}	
 	
+	if(ais_set_aton_name(ais,AisData))
+		AisData->valid_aton = true;
+
 	if(ais_set_dim(ais,AisData))
 		AisData->valid_dim = true;
-	
+
 	if(ais_set_cog(ais,AisData))
 		AisData->valid_cog = true;
 	
@@ -509,7 +551,7 @@ void ais_prepare_buffer(ais_t *ais)
 			vAisBuffer.Append(AisData);
 	}else{
 	
-		if(add) // dane nie istnieja ale by³a zaalokowana pamiec wiec zwalniamy
+		if(add) // dane nie istnieja ale byÅ‚a zaalokowana pamiec wiec zwalniamy
 			free(AisData);
 	}
 
@@ -540,6 +582,15 @@ bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 	}
 	*/
 	return false;
+}
+bool ais_set_aton_name(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_21])
+	{
+		memcpy(ptr->aton_name,ais->type21.name,AIS_ATON_NAME);
+	}
+	
+	return true;
 }
 
 bool ais_set_dim(ais_t *ais, SAisData *ptr)

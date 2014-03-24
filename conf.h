@@ -40,21 +40,21 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_BAD_CRC					2
 #define MAX_INVALID_NMEA			2
 
-// sygna³y do display
-#define SIGNAL_RECONNECT			1	// sygna³ urzadzenia o ponownym polaczeniu
-#define SIGNAL_ONDATA				2	// sygna³ z portu o danych
-#define SIGNAL_NEW_SIGNAL			3	// linia nowego typu dostêpna
+// sygnaÅ‚y do display
+#define SIGNAL_RECONNECT			1	// sygnaÅ‚ urzadzenia o ponownym polaczeniu
+#define SIGNAL_ONDATA				2	// sygnaÅ‚ z portu o danych
+#define SIGNAL_NEW_SIGNAL			3	// linia nowego typu dostÄ™pna
 #define SIGNAL_NO_SIGNAL			4	// polaczony ale brak sygnalu
 #define SIGNAL_NMEA_LINE			5	// nmea line
 #define SIGNAL_NEW_AIS_OBJECT		6
 #define	SIGNAL_CONNECTED			7
-#define CLEAR_DISPLAY				8	// wyczyszczenie kontrolek nie u¿ywamy narazie
+#define CLEAR_DISPLAY				8	// wyczyszczenie kontrolek nie uÅ¼ywamy narazie
 #define INIT_SIGNAL					9	// zainicjowanie kontrolek
-#define ADD_DEVICE					10	// dodanie urz¹dzenia
+#define ADD_DEVICE					10	// dodanie urzÄ…dzenia
 #define REMOVE_DEVICE				11	// usuwanie urzadzenia
 #define START_DEVICE				12  // sygnal startu urzadzenia
 #define STOP_DEVICE					13	// sygnal zatrzymania urzadzenia
-#define DATA_SIGNAL					14	// sygna³ danych
+#define DATA_SIGNAL					14	// sygnaÅ‚ danych
 #define CLEAR_AIS_LIST				15	// set item count na 0
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
@@ -228,7 +228,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_SHIPNAME_MAXLEN		20
 #define AIS_PARTS 7 // czesci wiadomosci
 #define MARKER_LENGTH 5
-#define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
+#define MAX_VALUE_LENGTH 82 //NMEA 0183â€™s 82 dla AIS
 #define TICKER_SLEEP	100
 #define DEFAULT_FREQUENCY 1000					//milisekundy 
 #define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
@@ -245,13 +245,19 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_QUAD_WIDTH			20.0
 #define SHIP_QUAD_HEIGHT		20.0
 
-#define ROTATE //czy obracaæ obiekty
-#define MIN_SHIP_SPEED			0.5 // 0.5 kn
-#define TRIANGLE_VERTICES_LEN	3
-#define SHIP_VERTICES_LENGTH	7
-#define SHIP_INDICES_LENGTH		15
-#define ATON_VERTICES_LENGTH	8
-#define ATON_INDICES_LENGTH		6
+#define SMALL_SHIP_WIDTH		10.0
+#define SMALL_SHIP_HEIGHT		35.0
+
+#define ROTATE //czy obracaÄ‡ obiekty
+#define MIN_SHIP_SPEED				0.5 // 0.5 kn
+#define TRIANGLE_VERTICES_LENGTH	3
+#define SHIP_VERTICES_LENGTH		7
+#define SHIP_INDICES_LENGTH			15
+#define ATON_VERTICES_LENGTH		8
+#define ATON_INDICES_LENGTH			6
+#define SMALL_SHIP_VERTICES_LENGTH	7
+#define SMALL_SHIP_INDICES_LENGTH	15
+
 #define AIS_TIMEOUT				1*60*1000 // timeout 1 minut w milisekundach
 #define AIS_FILE				"ais.data"
 
@@ -262,7 +268,7 @@ typedef struct SData
 {
 	int		id;
 	char	marker[MARKER_LENGTH + 1];	// id definicji danych
-	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183’s 82
+	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183â€™s 82
 	float	interval;
 
 }SData;
@@ -290,11 +296,13 @@ typedef struct
 	int to_starboard;
 	char shipname[AIS_SHIPNAME_MAXLEN + 1];
 	int time;
+	char aton_name[35];
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		// czy cog
 	bool valid_hdg;
 	bool valid_sog;
+	bool valid_aton;
 	void *ais_ptr;
 
 }SAisData;
@@ -314,7 +322,7 @@ typedef struct
 }SFrequency;
 
 
-// globalne identyfikatory eventów
+// globalne identyfikatory eventÃ³w
 enum
 {
 	ID_SET_LOG = 5232,

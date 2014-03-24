@@ -211,7 +211,7 @@ wxString GetWorkDir(void)
 {
 	static wxString buffer;
 	wxStandardPaths *Paths = new wxStandardPaths();
- 	buffer.Printf(wxT("%s%s%s"), Paths->GetUserDataDir().wc_str(wxConvUTF8),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
+ 	buffer.Printf(wxT("%s%s%s"), Paths->GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
 	delete Paths;
 	return buffer;
 }
@@ -644,5 +644,5 @@ double GetTriangleWidth(double smooth_scale)
 
 wxString GetAisFile()
 {
-	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),_(AIS_FILE));
+	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),wxT(AIS_FILE));
 }

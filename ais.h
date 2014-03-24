@@ -900,8 +900,9 @@ struct ais_t
 	} type20;
 	/* Type 21 - Aids to Navigation Report */
 	struct {
+#define AIS_ATON_NAME 35+1
 	    unsigned int aid_type;	/* aid type */
-	    char name[35];		/* name of aid to navigation */
+	    char name[AIS_ATON_NAME];		/* name of aid to navigation */
 	    bool accuracy;		/* position accuracy */
 	    int lon;			/* longitude */
 	    int lat;			/* latitude */
@@ -1056,12 +1057,15 @@ size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
 void ais_prepare_buffer(ais_t *ais);
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
+bool ais_set_aton_name(ais_t *ais, SAisData *ptr);
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
 bool ais_set_dim(ais_t *ais, SAisData *dim);
 bool ais_set_cog(ais_t *ais, SAisData *ptr);
 bool ais_set_hdg(ais_t *ais, SAisData *ptr);
 bool ais_set_sog(ais_t *ais, SAisData *ptr);
 CNaviArray <SAisData*> *ais_get_buffer();
+void ais_save_file();
+void ais_load_file();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
