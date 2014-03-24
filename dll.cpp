@@ -69,6 +69,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentHDGVerticesBufferPtr = NULL;
 	m_CurrentTrianglesColorBufferPtr = NULL;
 	m_CurrentAtonVerticesBufferPtr = NULL;
+	m_CurrentSmallShipVerticesBufferPtr = NULL;
+	m_CurrentSmallShipColorBufferPtr = NULL;
 
 
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
