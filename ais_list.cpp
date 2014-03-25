@@ -96,7 +96,9 @@ void CAisList::OnSearchText(wxCommandEvent &event)
 
 void CAisList::ThreadBegin()
 {
+	GetMutex()->Lock();
 	ais_set_search_buffer(m_SearchText->GetValue().char_str());
+	GetMutex()->Unlock();
 }
 
 void CAisList::ThreadEnd()

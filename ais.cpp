@@ -337,7 +337,8 @@ void ais_set_search_buffer(char *str)
 	for(size_t i = 0; i < vAisData.Length(); i++)
 	{
 		ais_t *ais = ais_get_item(i);
-		if( strstr(ais->type5.shipname, str) != NULL) 
+		char mmsi[12];
+		if( strstr(ais->type5.shipname, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) 
 			vAisSearch.Append(ais);
 	}
 
