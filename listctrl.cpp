@@ -109,13 +109,18 @@ void CListCtrl::OnSelected(wxListEvent &event)
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	
-	ais_t *ais = ais_get_item(n_item);
+	ais_t *ais = NULL;
+
+	if(ais_get_search_item_count() > 0)
+		ais = ais_get_search_item(n_item);
+	else
+		ais = ais_get_item(n_item);
 	
 	_AisList->ClearHtml();
 	_AisList->SetHtml(_("<a name='top'></a><br>"));
 	_AisList->SetHtml(PrintHtmlAnchors(ais));
 	
-	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
+	for(size_t i = 1; i < AIS_MESSAGES_LENGTH; i++)
 	{
 		if(ais->valid[i])
 		{
@@ -133,13 +138,19 @@ void CListCtrl::OnActivate(wxListEvent &event)
 	long n_item = -1;
 	n_item = GetNextItem(n_item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	
-	ais_t *ais = ais_get_item(n_item);
+	ais_t *ais = NULL;
+
+	if(ais_get_search_item_count() > 0)
+		ais = ais_get_search_item(n_item);
+	else
+		ais = ais_get_item(n_item);
+
 	
 	_AisList->ClearHtml();
 	_AisList->SetHtml(_("<a name='top'></a><br>"));
 	_AisList->SetHtml(PrintHtmlAnchors(ais));
 	
-	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
+	for(size_t i = 1; i < AIS_MESSAGES_LENGTH; i++)
 	{
 		if(ais->valid[i])
 		{
@@ -213,10 +224,16 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	wxString str;
 	wxString name;
 	GetMutex()->Lock();
-	ais_t *ais = ais_get_item(item);
+	ais_t *ais = NULL;
+	
+	if(ais_get_search_item_count() > 0)
+		ais = ais_get_search_item(item);
+	else
+		ais = ais_get_item(item);
 	GetMutex()->Unlock();
+	
 	wxString mes;
-	for(size_t i = 0; i < AIS_MESSAGES_LENGTH;i++)
+	for(size_t i = 1; i < AIS_MESSAGES_LENGTH;i++)
 	{
 		if(ais->valid[i])
 			mes.Append(wxString::Format(_("[%d]"),i));

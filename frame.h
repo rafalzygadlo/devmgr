@@ -28,6 +28,7 @@ class CMyFrame: public wxDialog
 	void SetHtml(wxString html);
 	void ShowHtmlPanel();
 	void ClearHtml();
+	bool IsOnScreen(int x, int y);
 					
 public:
 		

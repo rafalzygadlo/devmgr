@@ -35,9 +35,6 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	this->Disable();
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
-	
-	m_ControlType = CONTROL_DEVICES_LIST;
-		
 	m_DevicesList = NULL;
 	m_AisList = NULL;
 	m_Data = NULL;
@@ -65,13 +62,24 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	}
 	
 	delete Definition;
+
+	Name = parent->GetLabel();
+	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
+	if(!m_FileConfig->Read(wxString::Format(_("%s/%s"),Name.wc_str(),_(KEY_CONTROL_TYPE)),&m_ControlType))
+		m_ControlType = DEFAULT_CONTROL_TYPE;
+
+	delete m_FileConfig;
 	
 }
 
 CDisplayPlugin::~CDisplayPlugin()
 {
+	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
+	m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),m_ControlType);
+	delete m_FileConfig;
+
 	delete m_Menu;
-	//RemoveControl(m_ControlType);
+	
 }
 
 int CDisplayPlugin::GetControlType()
@@ -251,7 +259,13 @@ void CDisplayPlugin::InitDisplay()
 	if(m_FirstTime)
 	{
 		m_FirstTime = false;
-		GetDevicesList();
+				
+		switch(m_ControlType)
+		{
+			case CONTROL_DEVICES_LIST:	GetDevicesList();	break;
+			case CONTROL_AIS_LIST:		GetAisList();		break;
+		}
+	
 		this->Enable();
 	}
 

@@ -85,11 +85,14 @@ class CMapPlugin :public CNaviMapIOApi
 	GLuint m_ShipsArrayBuffer, m_ShipsLineIndicesBuffer, m_ShipsTriangleIndicesBuffer,m_ShipsColorBuffer;
 	GLuint m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer, m_TrianglesColorBuffer;
 	GLuint m_AtonArrayBuffer, m_AtonTriangleIndicesBuffer, m_AtonLineIndicesBuffer, m_AtonColorBuffer;
-	
+	GLuint m_BSArrayBuffer, m_BSTriangleIndicesBuffer, m_BSLineIndicesBuffer, m_BSColorBuffer;
+
 	int m_SmallShipTriangleLength, m_SmallShipLineLength;
 	int m_TrianglesTriangleLength, m_TrianglesLineLength ;
-	int m_ShipTriangleLength, m_ShipLineLength, m_ShipColorLength;
+	int m_ShipTriangleLength, m_ShipLineLength;
 	int m_AtonTriangleLength, m_AtonLineLength;
+	int m_BSTriangleLength, m_BSLineLength;
+
 	bool m_Ready;
 	int m_ThreadCounter;
 	bool m_ShipRender;
@@ -114,7 +117,6 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_SmallShipLineIndicesBuffer0;		CNaviArray <int>  m_SmallShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentSmallShipLineIndicesBufferPtr;		// bufor indexów lini SHIP
 	CNaviArray <nvRGBAf> m_SmallShipColorBuffer0;		CNaviArray <nvRGBAf> m_SmallShipColorBuffer1;			CNaviArray <nvRGBAf> *m_CurrentSmallShipColorBufferPtr;
 
-
 	//SHIP linie HDG,COG
 	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;		CNaviArray <nvPoint2d> m_COGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;			// SHIP linie COG
 	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;		CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;			// SHIP linie HDG
@@ -125,12 +127,18 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_AtonLineIndicesBuffer0;			CNaviArray <int> m_AtonLineIndicesBuffer1;				CNaviArray <int> *m_CurrentAtonLineIndicesBufferPtr;
 	CNaviArray <nvRGBAf> m_AtonColorBuffer0;			CNaviArray <nvRGBAf> m_AtonColorBuffer1;				CNaviArray <nvRGBAf> *m_CurrentAtonColorBufferPtr;
 
+	// bufor punktów trójk¹tów BS
+	CNaviArray <nvPoint2d> m_BSVerticesBuffer0;			CNaviArray <nvPoint2d> m_BSVerticesBuffer1;				CNaviArray <nvPoint2d> *m_CurrentBSVerticesBufferPtr;
+	CNaviArray <int> m_BSTriangleIndicesBuffer0;		CNaviArray <int> m_BSTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentBSTriangleIndicesBufferPtr;
+	CNaviArray <int> m_BSLineIndicesBuffer0;			CNaviArray <int> m_BSLineIndicesBuffer1;				CNaviArray <int> *m_CurrentBSLineIndicesBufferPtr;
+	CNaviArray <nvRGBAf> m_BSColorBuffer0;				CNaviArray <nvRGBAf> m_BSColorBuffer1;					CNaviArray <nvRGBAf> *m_CurrentBSColorBufferPtr;
 
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
 	CNaviArray <SIdToId> m_IdToAtonId;
 	CNaviArray <SIdToId> m_IdToSmallShipId;
+	CNaviArray <SIdToId> m_IdToBSId;
 	// bufor koordynat tekstur
 	//CNaviArray <nvPoint2float> m_TriangleTexCoordsBuffer0;
 	//CNaviArray <nvPoint2float>  m_TriangleTexCoordsBuffer1;
@@ -190,6 +198,13 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareAtonTriangleIndicesBuffer(SAisData *ptr);
 	void PrepareAtonLineIndicesBuffer(SAisData *ptr);
 	void PrepareAtonColorBuffer(SAisData *ptr);
+
+	// bufor base station
+	void PrepareBSVerticesBuffer(SAisData *ptr);
+	void PrepareBSTriangleIndicesBuffer(SAisData *ptr);
+	void PrepareBSLineIndicesBuffer(SAisData *ptr);
+	void PrepareBSColorBuffer(SAisData *ptr);
+	
 	
 	// bufor lini COG
 	void PrepareCOGVerticesBuffer(SAisData *ptr);
@@ -215,6 +230,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool CreateTrianglesVBO();
 	bool CreateSmallShipsVBO();
 	bool CreateAtonsVBO();
+	bool CreateBSVBO();
 
 	void DeleteShipsVBO();
 	void DeleteTrianglesVBO();
@@ -229,6 +245,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool IsShipBuffer();
 	bool IsSmallShipBuffer();
 	bool IsAtonBuffer();
+	bool IsBSBuffer();
 	void SetSelection();
 	void CopyInt(CNaviArray <int> *a, CNaviArray <int> *b);
 	void CopyNvPoint2d(CNaviArray <nvPoint2d> *src, CNaviArray <nvPoint2d> *dst);
@@ -242,10 +259,12 @@ class CMapPlugin :public CNaviMapIOApi
 	void SelectSmallShip();
 	void SelectTriangle();
 	void SelectAton();
+	void SelectBS();
 	void ShowFrameWindow(bool show);
 	
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);
+	void PrepareBSBuffer(SAisData *ptr);
 	void PrepareTriangleBuffer(SAisData *ptr);
 	void CheckTriangleBuffer(SAisData *ptr);
 		
@@ -253,10 +272,12 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderGPS();
 	void RenderCOG();
 	void RenderHDG();
+	void RenderBS();
 	void _RenderShips();
 	void _RenderSmallShips();
 	void _RenderTriangles();
 	void _RenderAtons();
+	void _RenderBS();
 
 	void RenderSmallShips();
 	void RenderPosition();

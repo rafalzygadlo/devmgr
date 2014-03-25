@@ -71,6 +71,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentAtonVerticesBufferPtr = NULL;
 	m_CurrentSmallShipVerticesBufferPtr = NULL;
 	m_CurrentSmallShipColorBufferPtr = NULL;
+	m_CurrentBSVerticesBufferPtr = NULL;
 
 
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
@@ -836,6 +837,7 @@ void CMapPlugin::SetSelection()
 	SelectSmallShip();
 	SelectShip();
 	SelectAton();
+	SelectBS();
 }
 
 void CMapPlugin::SelectTriangle()
@@ -976,7 +978,7 @@ void CMapPlugin::SelectShip()
 
 void CMapPlugin::SelectAton()
 {
-	if(m_CurrentTriangleVerticesBufferPtr == NULL)
+	if(m_CurrentAtonVerticesBufferPtr == NULL)
 		return;
 
 	nvPoint2d *RawPt  = m_CurrentAtonVerticesBufferPtr->GetRawData();
@@ -986,7 +988,7 @@ void CMapPlugin::SelectAton()
 	pt.y = m_MapY;
 	int selected = -1;
 	
-	for (size_t i = 0; i < m_CurrentAtonVerticesBufferPtr->Length(); i+=8)
+	for (size_t i = 0; i < m_CurrentAtonVerticesBufferPtr->Length(); i+=ATON_VERTICES_LENGTH)
 	{
 			
 		nvPoint2f pt0, pt1, pt2 , pt4;
@@ -1019,6 +1021,54 @@ void CMapPlugin::SelectAton()
 		
 	}
 }
+
+void CMapPlugin::SelectBS()
+{
+	if(m_CurrentBSVerticesBufferPtr == NULL)
+		return;
+
+	nvPoint2d *RawPt  = m_CurrentBSVerticesBufferPtr->GetRawData();
+	
+	nvPoint2f pt;
+	pt.x = m_MapX;
+	pt.y = m_MapY;
+	int selected = -1;
+	
+	for (size_t i = 0; i < m_CurrentBSVerticesBufferPtr->Length(); i+=BS_VERTICES_LENGTH)
+	{
+			
+		//nvPoint2f pt0, pt1, pt2 , pt4;
+				
+		nvPoint2d v[BS_VERTICES_LENGTH];
+
+		v[0].x = RawPt[i + 0].x; v[0].y = RawPt[i + 0].y;
+		v[1].x = RawPt[i + 1].x; v[1].y = RawPt[i + 1].y;
+		v[2].x = RawPt[i + 2].x; v[2].y = RawPt[i + 2].y;
+		v[3].x = RawPt[i + 3].x; v[3].y = RawPt[i + 3].y;
+		
+		int in[BS_INDICES_LENGTH];
+		in[0] = 0;	in[1] = 1;	in[2] = 2;
+		in[3] = 0;	in[4] = 2;	in[5] = 3;
+		
+		if(IsPointInsideMesh(&pt,v,BS_VERTICES_LENGTH,in,BS_INDICES_LENGTH))
+		{
+			
+			selected = i;
+			for(size_t i = 0; i < m_IdToBSId.Length(); i++)
+			{
+				if(m_IdToBSId.Get(i).id1 == selected)
+				{
+					m_SelectedPtr = ais_get_buffer()->Get(m_IdToBSId.Get(i).id0);
+					return;
+				}
+			}
+			
+		}
+		
+	}
+}
+
+
 void CMapPlugin::SetPtr0()
 {
 	// przygotuj bufory do renderu
@@ -1038,9 +1088,9 @@ void CMapPlugin::SetPtr0()
 	
 	//trójkaty
 	m_CurrentTriangleVerticesBufferPtr = &m_TriangleVerticesBuffer1;
-	m_CurrentTrianglesTriangleIndicesBufferPtr = &m_TrianglesTriangleIndicesBuffer1;	// indexy
-	m_CurrentTrianglesLineIndicesBufferPtr = &m_TrianglesLineIndicesBuffer1;			// indexy
-	m_CurrentTrianglesColorBufferPtr = &m_TrianglesColorBuffer1;						// kolory
+	m_CurrentTrianglesTriangleIndicesBufferPtr = &m_TrianglesTriangleIndicesBuffer1;
+	m_CurrentTrianglesLineIndicesBufferPtr = &m_TrianglesLineIndicesBuffer1;
+	m_CurrentTrianglesColorBufferPtr = &m_TrianglesColorBuffer1;
 		
 	//ATON
 	m_CurrentAtonVerticesBufferPtr = &m_AtonVerticesBuffer1;
@@ -1048,6 +1098,12 @@ void CMapPlugin::SetPtr0()
 	m_CurrentAtonLineIndicesBufferPtr = &m_AtonLineIndicesBuffer1;
 	m_CurrentAtonColorBufferPtr = &m_AtonColorBuffer1;
 	
+	//BS
+	m_CurrentBSVerticesBufferPtr = &m_BSVerticesBuffer1;
+	m_CurrentBSTriangleIndicesBufferPtr = &m_BSTriangleIndicesBuffer1;
+	m_CurrentBSLineIndicesBufferPtr = &m_BSLineIndicesBuffer1;
+	m_CurrentBSColorBufferPtr = &m_BSColorBuffer1;
+
 	//nazwy
 	m_CurrentShipNamesBufferPtr = &m_ShipNamesBuffer1;
 	
@@ -1070,7 +1126,7 @@ void CMapPlugin::SetPtr1()
 	m_CurrentShipColorBufferPtr = &m_ShipColorBuffer0;
 	
 	//ma³e statki
-	m_CurrentSmallShipVerticesBufferPtr = &m_SmallShipVerticesBuffer0; 
+	m_CurrentSmallShipVerticesBufferPtr = &m_SmallShipVerticesBuffer0;
 	m_CurrentSmallShipTriangleIndicesBufferPtr = &m_SmallShipTriangleIndicesBuffer0;
 	m_CurrentSmallShipLineIndicesBufferPtr = &m_SmallShipLineIndicesBuffer0;
 	m_CurrentSmallShipColorBufferPtr = &m_SmallShipColorBuffer0;
@@ -1087,7 +1143,12 @@ void CMapPlugin::SetPtr1()
 	m_CurrentAtonLineIndicesBufferPtr = &m_AtonLineIndicesBuffer0;
 	m_CurrentAtonColorBufferPtr = &m_AtonColorBuffer0;
 
-	
+	//BS
+	m_CurrentBSVerticesBufferPtr = &m_BSVerticesBuffer0;
+	m_CurrentBSTriangleIndicesBufferPtr = &m_BSTriangleIndicesBuffer0;
+	m_CurrentBSLineIndicesBufferPtr = &m_BSLineIndicesBuffer0;
+	m_CurrentBSColorBufferPtr = &m_BSColorBuffer0;
+
 	m_CurrentShipNamesBufferPtr = &m_ShipNamesBuffer0;
 	
 	//COG
@@ -1110,16 +1171,16 @@ void CMapPlugin::ClearBuffers()
 	m_TrianglesColorBuffer0.Clear();			//kolory
 
 	//ma³e statki
-	m_SmallShipVerticesBuffer0.Clear();				
+	m_SmallShipVerticesBuffer0.Clear();
 	m_SmallShipTriangleIndicesBuffer0.Clear();
 	m_SmallShipLineIndicesBuffer0.Clear();
-	m_SmallShipColorBuffer0.Clear();					//kolory
+	m_SmallShipColorBuffer0.Clear();
 
 	//statki
-	m_ShipVerticesBuffer0.Clear();				
+	m_ShipVerticesBuffer0.Clear();
 	m_ShipTriangleIndicesBuffer0.Clear();
 	m_ShipLineIndicesBuffer0.Clear();
-	m_ShipColorBuffer0.Clear();					//kolory
+	m_ShipColorBuffer0.Clear();
 	
 	//ATON
 	m_AtonVerticesBuffer0.Clear();
@@ -1127,10 +1188,15 @@ void CMapPlugin::ClearBuffers()
 	m_AtonTriangleIndicesBuffer0.Clear();
 	m_AtonColorBuffer0.Clear();
 		
+	//BS
+	m_BSVerticesBuffer0.Clear();
+	m_BSLineIndicesBuffer0.Clear();
+	m_BSTriangleIndicesBuffer0.Clear();
+	m_BSColorBuffer0.Clear();
+		
 	//nazwy
 	m_ShipNamesBuffer0.Clear();
 		
-	
 	//COG
 	m_COGVerticesBuffer0.Clear();
 
@@ -1142,6 +1208,7 @@ void CMapPlugin::ClearBuffers()
 	m_IdToShipId.Clear();
 	m_IdToAtonId.Clear();
 	m_IdToSmallShipId.Clear();
+	m_IdToBSId.Clear();
 	
 }
 
@@ -1170,11 +1237,18 @@ void CMapPlugin::CopyBuffers()
 	CopyInt(&m_ShipLineIndicesBuffer0,&m_ShipLineIndicesBuffer1);
 	CopyNvRGBAf(&m_ShipColorBuffer0, &m_ShipColorBuffer1);
 
-	//aton
+	//ATON
 	CopyNvPoint2d(&m_AtonVerticesBuffer0,&m_AtonVerticesBuffer1);
 	CopyInt(&m_AtonTriangleIndicesBuffer0,&m_AtonTriangleIndicesBuffer1);
 	CopyInt(&m_AtonLineIndicesBuffer0,&m_AtonLineIndicesBuffer1);
+	CopyNvRGBAf(&m_AtonColorBuffer0, &m_AtonColorBuffer1);
 			
+	//BS
+	CopyNvPoint2d(&m_BSVerticesBuffer0,&m_BSVerticesBuffer1);
+	CopyInt(&m_BSTriangleIndicesBuffer0,&m_BSTriangleIndicesBuffer1);
+	CopyInt(&m_BSLineIndicesBuffer0,&m_BSLineIndicesBuffer1);
+	CopyNvRGBAf(&m_BSColorBuffer0, &m_BSColorBuffer1);
+
 	//COG
 	CopyNvPoint2d(&m_COGVerticesBuffer0,&m_COGVerticesBuffer1);
 
@@ -1212,6 +1286,7 @@ void CMapPlugin::SetBuffers()
 			
 									
 			PrepareAtonBuffer(ptr);
+			PrepareBSBuffer(ptr);
 
 			PrepareCOGVerticesBuffer(ptr);				// linia cog
 			PrepareHDGVerticesBuffer(ptr);
@@ -1273,6 +1348,27 @@ void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
 	m_PointsBuffer0.Append(pt);
 	
 }
+
+void CMapPlugin::PrepareBSBuffer(SAisData *ptr)
+{
+	if(!ptr->valid_pos)
+		return;
+
+	if(ptr->valid[AIS_MSG_4])
+	{
+		PrepareBSVerticesBuffer(ptr);
+		PrepareBSTriangleIndicesBuffer(ptr);
+		PrepareBSLineIndicesBuffer(ptr);
+		PrepareBSColorBuffer(ptr);
+
+		SIdToId id;
+		id.id0 = m_CurrentId;
+		id.id1 = m_BSVerticesBuffer0.Length() - BS_VERTICES_LENGTH;
+		m_IdToBSId.Append(id);
+	}
+
+}
+
 
 void CMapPlugin::PrepareAtonBuffer(SAisData *ptr)
 {
@@ -1352,9 +1448,89 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 	
 	
 	}
+}
+
+//base station
+void CMapPlugin::PrepareBSVerticesBuffer(SAisData *ptr)
+{
+	
+	double to_x, to_y;
+	nvPoint2d pt;
+	pt.x = ptr->lon;
+	pt.y = -ptr->lat;
+	nvPoint2d p1, p2, p3, p4;
+		
+	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+		
+	double width = BS_WIDTH/m_SmoothScaleFactor;
+	double height = BS_HEIGHT/m_SmoothScaleFactor;
+			
+	p1.x = -1.0 * width;	p1.y =  1.0 * height;
+	p2.x =  1.0 * width;	p2.y =  1.0 * height;
+	p3.x =  1.0 * width;	p3.y = -1.0 * height;
+	p4.x = -1.0 * width;	p4.y = -1.0 * height;
+		
+	p1.x += pt.x; p1.y += pt.y;
+	p2.x += pt.x; p2.y += pt.y;
+	p3.x += pt.x; p3.y += pt.y;
+	p4.x += pt.x; p4.y += pt.y;
+			
+	m_BSVerticesBuffer0.Append(p1);
+	m_BSVerticesBuffer0.Append(p2);
+	m_BSVerticesBuffer0.Append(p3);
+	m_BSVerticesBuffer0.Append(p4);
+	
+}
+
+void CMapPlugin::PrepareBSTriangleIndicesBuffer(SAisData *ptr)
+{
+	int id = m_BSVerticesBuffer0.Length();
+
+	//m_BSTriangleIndicesBuffer0.Append(id - 8);	//0
+	//m_BSTriangleIndicesBuffer0.Append(id - 7);	//1
+	//m_BSTriangleIndicesBuffer0.Append(id - 6);	//2
+	//m_BSTriangleIndicesBuffer0.Append(id - 8);	//0
+	//m_BSTriangleIndicesBuffer0.Append(id - 6);	//2
+	//m_BSTriangleIndicesBuffer0.Append(id - 5);	//3
+	
+	m_BSTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_BSTriangleIndicesBuffer0.Append(id - 3);	//1
+	m_BSTriangleIndicesBuffer0.Append(id - 2);	//2
+	m_BSTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_BSTriangleIndicesBuffer0.Append(id - 2);	//2
+	m_BSTriangleIndicesBuffer0.Append(id - 1);	//3
 
 }
- 
+
+void CMapPlugin::PrepareBSLineIndicesBuffer(SAisData *ptr)
+{
+	int id = m_BSVerticesBuffer0.Length();
+
+	m_BSLineIndicesBuffer0.Append(id - 4);	//0
+	m_BSLineIndicesBuffer0.Append(id - 3);	//1
+	m_BSLineIndicesBuffer0.Append(id - 3);	//1
+	m_BSLineIndicesBuffer0.Append(id - 2);	//2
+	m_BSLineIndicesBuffer0.Append(id - 2);	//2
+	m_BSLineIndicesBuffer0.Append(id - 1);	//3
+	m_BSLineIndicesBuffer0.Append(id - 1);	//3
+	m_BSLineIndicesBuffer0.Append(id - 4);	//0
+
+}
+
+
+void CMapPlugin::PrepareBSColorBuffer(SAisData *ptr)
+{
+	nvRGBAf green;	green.R = 0.0f;	green.G = 1.0f;	green.B = 0.0f; green.A = 0.5f;	
+	
+	m_BSColorBuffer0.Append(green);
+	m_BSColorBuffer0.Append(green);
+	m_BSColorBuffer0.Append(green);
+	m_BSColorBuffer0.Append(green);
+	
+}
+
  
 void CMapPlugin::PrepareAtonVerticesBuffer(SAisData *ptr)
 {
@@ -1376,7 +1552,6 @@ void CMapPlugin::PrepareAtonVerticesBuffer(SAisData *ptr)
 	p2.x =  1.0 * width;	p2.y =  1.0 * height;
 	p3.x =  1.0 * width;	p3.y = -1.0 * height;
 	p4.x = -1.0 * width;	p4.y = -1.0 * height;
-
 	p5.x = -0.7 * width;	p5.y =  0.7 * height;
 	p6.x =  0.7 * width;	p6.y =  0.7 * height;
 	p7.x =  0.7 * width;	p7.y = -0.7 * height;
@@ -2060,6 +2235,17 @@ void CMapPlugin::RenderShipNames()
     free( vy );
 }
 
+bool CMapPlugin::IsBSBuffer()
+{
+	if(m_CurrentBSVerticesBufferPtr == NULL)
+		return false;
+
+	if(m_CurrentBSVerticesBufferPtr->Length() == 0)
+		return false;
+	
+	return true;
+}
+
 bool CMapPlugin::IsAtonBuffer()
 {
 	if(m_CurrentAtonVerticesBufferPtr == NULL)
@@ -2104,6 +2290,29 @@ bool CMapPlugin::IsSmallShipBuffer()
 	return true;
 }
 
+bool CMapPlugin::CreateBSVBO()
+{
+	if(!m_Ready)
+		return false;
+	
+	//trójkaty
+	glBindBuffer(GL_ARRAY_BUFFER, m_BSArrayBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentBSVerticesBufferPtr->Length(), m_CurrentBSVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+			
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BSTriangleIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentBSTriangleIndicesBufferPtr->Length(), m_CurrentBSTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BSLineIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentBSLineIndicesBufferPtr->Length(), m_CurrentBSLineIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBAf) * m_CurrentBSColorBufferPtr->Length(), m_CurrentBSColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
+	
+	m_BSTriangleLength = m_CurrentBSTriangleIndicesBufferPtr->Length();
+	m_BSLineLength = m_CurrentBSLineIndicesBufferPtr->Length();
+
+	return true;
+}
 
 bool CMapPlugin::CreateAtonsVBO()
 {
@@ -2213,7 +2422,6 @@ bool CMapPlugin::CreateShipsVBO()
 	glBindBuffer(GL_ARRAY_BUFFER, m_ShipsColorBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBAf) * m_CurrentShipColorBufferPtr->Length(), m_CurrentShipColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
 
-	m_ShipColorLength = m_CurrentShipColorBufferPtr->Length();
 	m_ShipTriangleLength = m_CurrentShipTriangleIndicesBufferPtr->Length();
 	m_ShipLineLength = m_CurrentShipLineIndicesBufferPtr->Length();
 
@@ -2226,6 +2434,31 @@ bool CMapPlugin::CreateShipsVBO()
 	else
 		return false;
 				
+}
+
+void CMapPlugin::RenderBS()
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_BSArrayBuffer);
+	glVertexPointer(2, GL_DOUBLE,  0, 0);
+		
+	glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
+	glColorPointer(4, GL_FLOAT,  0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BSTriangleIndicesBuffer);
+	glDrawElements(GL_TRIANGLES, m_BSTriangleLength, GL_UNSIGNED_INT,0);
+
+	glDisableClientState(GL_COLOR_ARRAY);
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BSLineIndicesBuffer);
+	glDrawElements(GL_LINES, m_BSLineLength, GL_UNSIGNED_INT,0);
+		
+	glDisableClientState(GL_VERTEX_ARRAY);
+	
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
 
 void CMapPlugin::RenderAtons()
@@ -2493,6 +2726,16 @@ void CMapPlugin::RenderGPS()
 
 }
 
+void CMapPlugin::_RenderBS()
+{
+	if(!IsBSBuffer())
+		return;
+	
+	CreateBSVBO();
+	RenderBS();
+	
+}
+
 void CMapPlugin::_RenderAtons()
 {
 	if(!IsAtonBuffer())
@@ -2550,6 +2793,7 @@ void CMapPlugin::Render()
 	_RenderSmallShips();
 	_RenderTriangles();
 	_RenderAtons();
+	_RenderBS();
 	RenderCOG();
 	RenderHDG();
 	RenderGPS();
@@ -2588,8 +2832,10 @@ void CMapPlugin::Generate()
 		glGenBuffers(1, &m_AtonLineIndicesBuffer);
 		glGenBuffers(1, &m_AtonColorBuffer);
 
-
-
+		glGenBuffers(1, &m_BSArrayBuffer);
+		glGenBuffers(1, &m_BSTriangleIndicesBuffer);
+		glGenBuffers(1, &m_BSLineIndicesBuffer);
+		glGenBuffers(1, &m_BSColorBuffer);
 	
 	}
 	

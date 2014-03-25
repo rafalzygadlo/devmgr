@@ -6,6 +6,7 @@
 #include "NaviMapIOApi.h"
 #include "tools.h"
 #include "ais.h"
+#include "GeometryTools.h"
 
 
 BEGIN_EVENT_TABLE(CMyFrame,wxDialog)
@@ -45,7 +46,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 		GetSizer()->SetSizeHints(this);
 		
 	Center();
-	//this->SetTransparent(200);
+	this->SetTransparent(200);
 	AfterInit = true;
 }
 
@@ -101,7 +102,27 @@ void CMyFrame::ShowWindow(bool show)
 		wxPoint pt;
 		pt.x = (int)((-vm[0] + to_x) * scale) + ParentX;
 		pt.y = (int)((-vm[1] + -to_y) * scale) + ParentY;
-			
+		
+		
+		wxPoint p2,p4;
+		wxSize size = this->GetSize();
+				
+		p2.x = pt.x + size.GetWidth(); p2.y = pt.y;
+				
+		if(!IsOnScreen(p2.x,p2.y))
+		{
+			pt.x = pt.x - size.GetWidth();
+			pt.y = pt.y;
+		}
+						
+		p4.x = pt.x; p4.y = pt.y + size.GetHeight();
+
+		if(!IsOnScreen(p4.x,p4.y))
+		{
+			pt.x = pt.x;
+			pt.y = pt.y - size.GetHeight();
+		}
+		
 		this->SetPosition(pt);
 	
 		ClearHtml();
@@ -124,3 +145,14 @@ void CMyFrame::ShowWindow(bool show)
 		Html->SetFocus();
 }
 
+bool CMyFrame::IsOnScreen(int x, int y)
+{
+	int sWidth;
+	int sHeight;
+	wxDisplaySize(&sWidth,&sHeight);
+	
+	if(IsPointInsideBox(x, y, 0 , 0, sWidth, sHeight))
+		return true;
+
+	return false;
+}

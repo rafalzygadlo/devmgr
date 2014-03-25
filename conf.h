@@ -209,8 +209,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define MAX_DATA_POSITIONS	10
 
-#define WORK_WIZARD 0
+#define WORK_WIZARD			0
 #define WORK_RENDER_BUFFER	1
+#define WORK_SEARCH			2
 
 #define CONNECTION_TYPE_SOCKET	0
 #define CONNECTION_TYPE_SERIAL	1
@@ -235,6 +236,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
 #define DEFAULT_FONT_FACTOR 350.0
 
+
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
 
@@ -248,6 +250,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SMALL_SHIP_WIDTH		10.0
 #define SMALL_SHIP_HEIGHT		35.0
 
+#define BS_WIDTH				10.0
+#define BS_HEIGHT				10.0
+
+
 #define ROTATE //czy obracać obiekty
 #define MIN_SHIP_SPEED				0.5 // 0.5 kn
 #define TRIANGLE_VERTICES_LENGTH	3
@@ -257,12 +263,17 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define ATON_INDICES_LENGTH			6
 #define SMALL_SHIP_VERTICES_LENGTH	7
 #define SMALL_SHIP_INDICES_LENGTH	15
+#define BS_VERTICES_LENGTH			4
+#define BS_INDICES_LENGTH			6
 
 #define AIS_TIMEOUT				1*60*1000 // timeout 1 minut w milisekundach
 #define AIS_FILE				"ais.data"
 
 #define TRIANGLE_WIDTH_FACTOR	1.6
 #define TRIANGLE_HEIGHT_FACTOR	1.6
+
+
+#define KEY_CONTROL_TYPE "control_type"
 
 typedef struct SData
 {

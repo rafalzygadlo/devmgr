@@ -43,6 +43,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	SData *m_Data;
 	wxMutex mutex;
 	wxMenu *m_Menu;
+	wxString Name;
 
 	int GetControlType();
 	wxString GetCaption();

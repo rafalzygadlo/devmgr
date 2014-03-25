@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 CNaviArray <ais_t*> vAisData;
+CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
 
@@ -327,6 +328,30 @@ void ais_load_file()
 			
 	fclose( f );
 
+}
+
+void ais_set_search_buffer(char *str)
+{
+	vAisSearch.Clear();
+	
+	for(size_t i = 0; i < vAisData.Length(); i++)
+	{
+		ais_t *ais = ais_get_item(i);
+		if( strstr(ais->type5.shipname, str) != NULL) 
+			vAisSearch.Append(ais);
+	}
+
+}
+
+size_t ais_get_search_item_count()
+{
+	return vAisSearch.Length();
+}
+
+ais_t *ais_get_search_item(size_t idx)
+{
+	ais_t *ais = vAisSearch.Get(idx);
+	return ais;
 }
 
 void ais_sort()

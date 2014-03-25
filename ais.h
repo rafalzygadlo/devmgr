@@ -1067,6 +1067,10 @@ CNaviArray <SAisData*> *ais_get_buffer();
 void ais_save_file();
 void ais_load_file();
 
+void ais_set_search_buffer(char *str);
+size_t ais_get_search_item_count();
+ais_t *ais_get_search_item(size_t idx);
+
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
 float get_cog(unsigned int v);

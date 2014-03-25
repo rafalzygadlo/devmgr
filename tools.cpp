@@ -53,7 +53,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Internet Connection"),
 		_("Serial Connection"),
 		_("Host"),
-		_("Ais Targets"),
+		_("Ais Objects"),
 		_("MMSI"),
 		_("Vessel Name"),
 
