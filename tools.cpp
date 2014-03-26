@@ -55,7 +55,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Host"),
 		_("Ais Objects"),
 		_("MMSI"),
-		_("Vessel Name"),
+		_("Name"),
 
 		_("Position Report"),								//1
 		_("Position Report"),								//2
@@ -157,6 +157,8 @@ const wchar_t *nvLanguage[2][183] =
 		_("Wave height"),
 		_("Wave period"),
 		_("Wave direction"),
+		_("Options"),
+		_("Show names"),
 
 
 	},

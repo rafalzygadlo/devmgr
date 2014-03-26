@@ -72,6 +72,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSmallShipVerticesBufferPtr = NULL;
 	m_CurrentSmallShipColorBufferPtr = NULL;
 	m_CurrentBSVerticesBufferPtr = NULL;
+	m_CurrentShipNamesBufferPtr = NULL;
 
 
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
@@ -1195,6 +1196,11 @@ void CMapPlugin::ClearBuffers()
 	m_BSColorBuffer0.Clear();
 		
 	//nazwy
+	for(size_t i = 0; i < m_ShipNamesBuffer0.Length(); i++)
+	{	
+		free(m_ShipNamesBuffer0.Get(i));
+	}	
+
 	m_ShipNamesBuffer0.Clear();
 		
 	//COG
@@ -1290,6 +1296,7 @@ void CMapPlugin::SetBuffers()
 
 			PrepareCOGVerticesBuffer(ptr);				// linia cog
 			PrepareHDGVerticesBuffer(ptr);
+			PrepareShipNamesBuffer(ptr);
 		}
 	}
 
@@ -1299,7 +1306,9 @@ void CMapPlugin::SetBuffers()
 void CMapPlugin::PrepareBuffer()
 {
 	m_Ready = false;
-	GetMutex()->Lock();
+	if(GetMutex()->TryLock() == wxMUTEX_BUSY)
+		return;
+	
 	SetPtr0();
 	ClearBuffers();
 	SetBuffers();	
@@ -2085,29 +2094,27 @@ void CMapPlugin::PrepareShipColorBuffer(SAisData *ptr)
 
 }
 
-/*
+
 void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr) 
 {
-	wchar_t str[128];
+	wchar_t str[64];
 	wchar_t wc[64];
 	
-	if(ptr->valid_dim && ptr->valid_pos)
+	if(ptr->valid_name)
 	{
-		mbstowcs(wc, ptr->shipname, 128);
-		swprintf(str,L"%d %ls",ptr->mmsi,wc);
-		m_ShipNamesBuffer0.Append(str);
-	
-	}else{
-	
-		if(ptr->valid[AIS_MSG_21])
-			swprintf(str,L"ATON %d",ptr->mmsi);
-		else
-			swprintf(str,L"%d",ptr->mmsi);
+		SAisNames *a = (SAisNames*)malloc(sizeof(SAisNames));
 		
-		m_ShipNamesBuffer0.Append(str);
+		mbstowcs(wc, ptr->name, 64);
+		swprintf(str,L"%ls",wc);
+		
+		a->lat = ptr->lat;
+		a->lon = ptr->lon;
+		memcpy(a->name,str,64);
+				
+		m_ShipNamesBuffer0.Append(a);
 	}
 }
-*/
+
 void CMapPlugin::PrepareCOGVerticesBuffer(SAisData *ptr)
 {
 	if(!ptr->valid_cog || !ptr->valid_sog)
@@ -2196,6 +2203,8 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 
 void CMapPlugin::RenderShipNames()
 {
+	if(m_CurrentShipNamesBufferPtr == NULL)
+		return;
 
 	size_t size = m_CurrentShipNamesBufferPtr->Length();
 	m_Font->Clear();
@@ -2209,15 +2218,18 @@ void CMapPlugin::RenderShipNames()
     float *vx = (float*)malloc( CaptionsSize * sizeof( float ) );
     float *vy = (float*)malloc( CaptionsSize * sizeof( float ) );
     wchar_t **CaptionsStr = (wchar_t**)malloc(  CaptionsSize * sizeof( wchar_t** ) );
-	
+	double to_x,to_y;
     for(size_t i = 0 ; i < m_CurrentShipNamesBufferPtr->Length(); i++ ) 
 	{
-		Positions[i][0] = m_CurrentPointsBufferPtr->Get(i).x;
-        Positions[i][1] = m_CurrentPointsBufferPtr->Get(i).y + (10.0/m_SmoothScaleFactor);
+		
+		SAisNames *a = m_CurrentShipNamesBufferPtr->Get(i);
+		m_Broker->Unproject(a->lon,-a->lat,&to_x,&to_y);
+		Positions[i][0] = to_x;
+        Positions[i][1] = to_y + (10.0/m_SmoothScaleFactor);
 		Scale[i] = 6.0 / m_SmoothScaleFactor / DEFAULT_FONT_FACTOR;
         vx[i] = 0.5f;
         vy[i] = 0.5f;
-		CaptionsStr[i] = m_CurrentShipNamesBufferPtr->Get(i);   // bez kopiowania ³añcucha!!! 
+		CaptionsStr[i] = a->name;   // bez kopiowania ³añcucha!!! 
 		Angle[i] = m_Broker->GetAngle();
     }
 
@@ -2598,19 +2610,13 @@ void  CMapPlugin::RenderSelection()
 		m_Font->Print(to_x,to_y,0.12/m_MapScale,0.0,mmsi,0.5,3.2);
 	}	
 	
-	if(m_SelectedPtr->valid_dim)
+	if(m_SelectedPtr->valid_name)
 	{
-		mbstowcs(wc, m_SelectedPtr->shipname, 128);
+		mbstowcs(wc, m_SelectedPtr->name, 128);
 		swprintf(str,L"%ls",wc);
 		m_Font->Print(to_x,to_y,0.12/m_MapScale,0.0,str,0.5,4.4);
 	}
-	
-	if(m_SelectedPtr->valid_aton)
-	{
-		mbstowcs(wc, m_SelectedPtr->aton_name, 128);
-		swprintf(str,L"%ls",wc);
-		m_Font->Print(to_x,to_y,0.12/m_MapScale,0.0,str,0.5,4.4);
-	}
+		
 
 	m_Font->ClearBuffers();
 	m_Font->CreateBuffers();
@@ -2693,7 +2699,7 @@ void CMapPlugin::RenderHDG()
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
-		RenderGeometry(GL_POINTS,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG punkty
+		//RenderGeometry(GL_POINTS,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG punkty
 	}
 	
 	glPointSize(1);
@@ -2706,7 +2712,7 @@ void CMapPlugin::RenderCOG()
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
-		RenderGeometry(GL_POINTS,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG punkty
+		//RenderGeometry(GL_POINTS,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG punkty
 	}
 	
 	glPointSize(1);
@@ -2798,6 +2804,7 @@ void CMapPlugin::Render()
 	RenderHDG();
 	RenderGPS();
 	RenderSelection();
+	RenderShipNames();
 	
 	glLineWidth(1);		
 	glDisable(GL_BLEND);

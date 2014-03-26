@@ -26,9 +26,8 @@ class CListCtrl: public wxListCtrl
 	//wxMenu *Menu;
 	wxListItemAttr selected, installed, queued, selected_and_installed, selected_and_queued, error;
 	CDisplayPlugin *Plugin;	
+	bool m_FromSearch;
 	void PrintMsg(ais_t *ais, int type);
-
-	
 	wxString CatalogPath;
 	void MenuInstalled();
 	void MenuVisible();
@@ -60,7 +59,8 @@ public:
 	const char *GetSelectedColumn();
 	bool GetSortOrder();
 	void SetList();
-		
+	void SetSearch(bool val);
+
 	DECLARE_EVENT_TABLE();
 
 	enum

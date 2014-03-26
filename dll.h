@@ -146,10 +146,10 @@ class CMapPlugin :public CNaviMapIOApi
 	//CNaviArray <nvPoint2float> *m_CurrentTriangleTexCoordsBufferPtr;
 	
 	// bufor nazw obiektów mmsi, shipname
-	CNaviArray <wchar_t[128]> m_ShipNamesBuffer0;
-	CNaviArray <wchar_t[128]> m_ShipNamesBuffer1;
+	CNaviArray <SAisNames*> m_ShipNamesBuffer0;
+	CNaviArray <SAisNames*> m_ShipNamesBuffer1;
 	// pointer na aktualny bufor
-	CNaviArray <wchar_t[128]> *m_CurrentShipNamesBufferPtr;
+	CNaviArray <SAisNames*> *m_CurrentShipNamesBufferPtr;
 	
 	void Prepare();
 	void CreateApiMenu(void);
@@ -172,9 +172,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
-		
-
-
+	void PrepareShipNamesBuffer(SAisData *ptr);
+	
 	// bufor trójkatów
 	void PrepareTriangleVerticesBuffer(SAisData *ptr);			//vertexy
 	void PrepareTriangleTriangleIndicesBuffer(SAisData *ptr);   //indexy

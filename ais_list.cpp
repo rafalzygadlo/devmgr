@@ -11,7 +11,8 @@
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_TIMER(ID_TIMER,OnTimer)
 	EVT_SEARCHCTRL_SEARCH_BTN(ID_SEARCH,OnSearchButton)
-	EVT_TEXT(ID_SEARCH,OnSearchText)
+//	EVT_TEXT(ID_SEARCH,OnSearchText)
+	EVT_TEXT_ENTER(ID_SEARCH,OnSearchEnter)
 END_EVENT_TABLE()
 
 
@@ -26,6 +27,7 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 	m_Timer = new wxTimer(this,ID_TIMER);
 	m_Timer->Start(2000);
 	SetList();
+	m_Working = false;
 }
 
 CAisList::~CAisList()
@@ -55,12 +57,20 @@ void CAisList::ClearList()
 
 void CAisList::SetList()
 {
-	int count = ais_get_search_item_count();
+	int count = 0;
+	count = ais_get_search_item_count();
 
 	if(count > 0)
+	{
 		m_List->SetItemCount(count);
-	else
+		m_List->SetSearch(true);
+	
+	}else{
+	
 		m_List->SetItemCount(ais_get_item_count());
+		m_List->SetSearch(false);
+	
+	}
 }
 
 void CAisList::SetHtml(wxString html)
@@ -81,13 +91,17 @@ void CAisList::ShowHtmlPanel()
 
 void CAisList::OnSearchButton(wxCommandEvent &event)
 {
-	CThread *Thread = new CThread(this);
-	Thread->SetWorkId(WORK_SEARCH);
-	Thread->Start();
+	//CThread *Thread = new CThread(this);
+	//Thread->SetWorkId(WORK_SEARCH);
+	//Thread->Start();
 }
 
-void CAisList::OnSearchText(wxCommandEvent &event)
+void CAisList::OnSearchEnter(wxCommandEvent &event)
 {
+	if(m_Working)
+		return;
+
+	m_Working = true;
 	CThread *Thread = new CThread(this);
 	Thread->SetWorkId(WORK_SEARCH);
 	Thread->Start();
@@ -96,9 +110,10 @@ void CAisList::OnSearchText(wxCommandEvent &event)
 
 void CAisList::ThreadBegin()
 {
-	GetMutex()->Lock();
-	ais_set_search_buffer(m_SearchText->GetValue().char_str());
-	GetMutex()->Unlock();
+	if(m_SearchText->GetValue().Length() > 0)
+		ais_set_search_buffer(m_SearchText->GetValue().char_str());
+	else
+		ais_clear_search_buffer();
 }
 
 void CAisList::ThreadEnd()
@@ -106,6 +121,8 @@ void CAisList::ThreadEnd()
 	int c = ais_get_search_item_count();
 	m_List->SetItemCount(c);
 	m_List->Refresh();
+	m_List->SetSearch(true);
+	m_Working = false;
 }
 
 void CAisList::GetPanel()
@@ -136,6 +153,23 @@ void CAisList::GetPanel()
 	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
+
+
+	wxPanel *Page2 = new wxPanel(Notebook);
+	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
+	Page2->SetSizer(m_Page2Sizer);
+	Notebook->AddPage(Page2,GetMsg(MSG_AIS_OPTIONS));
+
+	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
+	wxScrolledWindow *Scroll = new wxScrolledWindow(Page2, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Page2Sizer->Add(Scroll,1,wxALL|wxEXPAND,0);
+	Scroll->SetFocusIgnoringChildren();
+	Scroll->SetSizer(ScrollSizer);
+	
+	m_ShipNames = new wxCheckBox(Scroll,ID_NAMES,GetMsg(MSG_SHOW_NAMES));
+	//TChartsContour->SetValue(m_ShowChartsContour);
+	ScrollSizer->Add(m_ShipNames,0,wxALL,5);
+
 
 	this->SetSizer(m_Sizer);
 

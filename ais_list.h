@@ -22,12 +22,15 @@ class CAisList : public wxPanel
 	wxTimer *m_Timer;
 	wxBoxSizer *m_Page1Sizer;
 	wxSearchCtrl *m_SearchText;
+	wxCheckBox *m_ShipNames;
+	bool m_Working;
 	void GetPanel();
 	void SetList();
 	void ClearList();
 	void OnTimer(wxTimerEvent &event);
 	void OnSearchButton(wxCommandEvent &event);
-	void OnSearchText(wxCommandEvent &event);
+	//void OnSearchText(wxCommandEvent &event);
+	void OnSearchEnter(wxCommandEvent &event);
 
 public:
 	
@@ -44,6 +47,7 @@ public:
 	{
 		ID_TIMER = 3872,
 		ID_SEARCH,
+		ID_NAMES,
 	};
 
 	DECLARE_EVENT_TABLE();

@@ -43,6 +43,7 @@ CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
 	last_selected_item = -1;
 	
 	SetItemCount(0);
+	m_FromSearch = false;
 	//ImageListSmall = new wxImageList(20, 20, true);
 		
 	
@@ -63,6 +64,10 @@ CListCtrl::~CListCtrl()
 	//delete ImageListSmall;
 }
 
+void CListCtrl::SetSearch(bool val)
+{
+	m_FromSearch = val;
+}
 
 void CListCtrl::OnSetItem(wxCommandEvent &event)
 {
@@ -220,13 +225,19 @@ long CListCtrl::GetLastSelectedItem()
 
 wxString CListCtrl::OnGetItemText(long item, long column) const
 {
-
+		
+	if(GetMutex() == NULL)
+		return _("N/A"); 
+	
+	GetMutex()->Lock();
+	//	return _("N/A"); 
+	
 	wxString str;
 	wxString name;
-	GetMutex()->Lock();
+
 	ais_t *ais = NULL;
 	
-	if(ais_get_search_item_count() > 0)
+	if(m_FromSearch)
 		ais = ais_get_search_item(item);
 	else
 		ais = ais_get_item(item);
@@ -251,9 +262,15 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 		name = name19;
 	}
 	
+	if(ais->valid[AIS_MSG_21])
+	{
+		wxString name21(ais->type21.name,wxConvUTF8);
+		name = name21;
+	}
+	
 	if(ais->valid[AIS_MSG_24])
 	{
-		wxString name24(ais->type5.shipname,wxConvUTF8);
+		wxString name24(ais->type24.shipname,wxConvUTF8);
 		name = name24;
 	}
 	

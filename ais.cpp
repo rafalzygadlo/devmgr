@@ -329,6 +329,18 @@ void ais_load_file()
 	fclose( f );
 
 }
+void toupper(char *str)
+{
+	size_t len = strlen(str);
+	for(size_t i = 0; i < len;i++)
+	{
+		str[i] = toupper(str[i]);
+	}
+}
+void ais_clear_search_buffer()
+{
+	vAisSearch.Clear();
+}
 
 void ais_set_search_buffer(char *str)
 {
@@ -338,8 +350,20 @@ void ais_set_search_buffer(char *str)
 	{
 		ais_t *ais = ais_get_item(i);
 		char mmsi[12];
-		if( strstr(ais->type5.shipname, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) 
-			vAisSearch.Append(ais);
+		
+		SAisData data;
+		if(ais_set_name(ais,&data))
+		{
+			toupper(str);
+			toupper(data.name);
+
+			if( strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL ) 
+				vAisSearch.Append(ais);
+		}else{
+			
+			if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL ) 
+				vAisSearch.Append(ais);
+		}
 	}
 
 }
@@ -537,7 +561,7 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid_cog = false;
 		AisData->valid_hdg = false;
 		AisData->valid_sog = false;
-		AisData->valid_aton = false;
+		AisData->valid_name = false;
 		
 		add = true;
 	}
@@ -552,8 +576,8 @@ void ais_prepare_buffer(ais_t *ais)
 		AisData->valid_pos = true;
 	}	
 	
-	if(ais_set_aton_name(ais,AisData))
-		AisData->valid_aton = true;
+	if(ais_set_name(ais,AisData))
+		AisData->valid_name = true;
 
 	if(ais_set_dim(ais,AisData))
 		AisData->valid_dim = true;
@@ -609,14 +633,45 @@ bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 	*/
 	return false;
 }
-bool ais_set_aton_name(ais_t *ais, SAisData *ptr)
+//bool ais_set_aton_name(ais_t *ais, SAisData *ptr)
+//{
+	//if(ais->valid[AIS_MSG_21])
+	//{
+		//memcpy(ptr->aton_name,ais->type21.name,AIS_ATON_NAME);
+	//}
+	
+	//return true;
+//}
+
+bool ais_set_name(ais_t *ais, SAisData *ptr)
 {
+	if(ais->valid[AIS_MSG_5])
+	{
+		memcpy(ptr->name,ais->type5.shipname,AIS_SHIPNAME_MAXLEN + 1);
+		return true;
+	}
+
+	if(ais->valid[AIS_MSG_19])
+	{
+		memcpy(ptr->name,ais->type19.shipname,AIS_SHIPNAME_MAXLEN + 1);
+		return true;
+	}
+
+	
 	if(ais->valid[AIS_MSG_21])
 	{
-		memcpy(ptr->aton_name,ais->type21.name,AIS_ATON_NAME);
+		memcpy(ptr->name,ais->type21.name,AIS_ATON_NAME_MAXLEN + 1);
+		return true;
 	}
 	
-	return true;
+
+	if(ais->valid[AIS_MSG_24])
+	{
+		memcpy(ptr->name,ais->type24.shipname,AIS_SHIPNAME_MAXLEN + 1);
+		return true;
+	}
+
+	return false;
 }
 
 bool ais_set_dim(ais_t *ais, SAisData *ptr)
@@ -627,8 +682,6 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type5.to_stern;
 		ptr->to_port		= ais->type5.to_port;	
 		ptr->to_starboard	= ais->type5.to_starboard;
-		memcpy(ptr->shipname,ais->type5.shipname,AIS_SHIPNAME_MAXLEN + 1);
-	
 		return true;
 	}
 
@@ -638,8 +691,6 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type19.to_stern;
 		ptr->to_port		= ais->type19.to_port;	
 		ptr->to_starboard	= ais->type19.to_starboard;
-		memcpy(ptr->shipname,ais->type19.shipname,AIS_SHIPNAME_MAXLEN + 1);
-	
 		return true;
 	}
 
@@ -661,8 +712,6 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type24.dim.to_stern;
 		ptr->to_port		= ais->type24.dim.to_port;	
 		ptr->to_starboard	= ais->type24.dim.to_starboard;
-		memcpy(ptr->shipname,ais->type24. shipname,AIS_SHIPNAME_MAXLEN + 1);
-	
 		return true;
 	}
 

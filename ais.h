@@ -152,7 +152,6 @@ struct ais_t
 	    unsigned int ais_version;	/* AIS version level */
 	    unsigned int imo;		/* IMO identification */
 	    char callsign[7+1];		/* callsign */
-#define AIS_SHIPNAME_MAXLEN	20
 	    char shipname[AIS_SHIPNAME_MAXLEN+1];	/* vessel name */
 	    unsigned int shiptype;	/* ship type code */
 	    unsigned int to_bow;	/* dimension to bow */
@@ -900,9 +899,8 @@ struct ais_t
 	} type20;
 	/* Type 21 - Aids to Navigation Report */
 	struct {
-#define AIS_ATON_NAME 35+1
 	    unsigned int aid_type;	/* aid type */
-	    char name[AIS_ATON_NAME];		/* name of aid to navigation */
+	    char name[AIS_ATON_NAME_MAXLEN + 1];		/* name of aid to navigation */
 	    bool accuracy;		/* position accuracy */
 	    int lon;			/* longitude */
 	    int lat;			/* latitude */
@@ -1057,7 +1055,7 @@ size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
 void ais_prepare_buffer(ais_t *ais);
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
-bool ais_set_aton_name(ais_t *ais, SAisData *ptr);
+bool ais_set_name(ais_t *ais, SAisData *ptr);
 bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat);
 bool ais_set_dim(ais_t *ais, SAisData *dim);
 bool ais_set_cog(ais_t *ais, SAisData *ptr);
@@ -1070,6 +1068,7 @@ void ais_load_file();
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
+void ais_clear_search_buffer();
 
 float get_speed(unsigned int v);
 float get_lon_lat(int val);
