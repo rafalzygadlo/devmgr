@@ -10,6 +10,9 @@ bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 SFrequency FrequencyTable;
 int MaxFrequency  = 0;
+//float m_FontSize;
+//bool m_ShowNames;
+
 
 const wchar_t *nvLanguage[2][183] = 
 { 
@@ -159,7 +162,13 @@ const wchar_t *nvLanguage[2][183] =
 		_("Wave direction"),
 		_("Options"),
 		_("Show names"),
-
+		_("Font size"),
+		_("Show COG"),
+		_("Show HDT"),
+		_("Ship color 0"),
+		_("Ship color 1"),
+		_("Ship color 2"),
+		_("Aton color"),
 
 	},
 	
@@ -620,18 +629,12 @@ double ToStarboard(SAisData *ptr)
 
 double GetShipHeight(SAisData *ptr)
 {
-	//if(ptr->valid_dim)
 	return ToBow(ptr) + ToStern(ptr);
-	//else
-		//return 0.0;
 }
 
 double GetShipWidth(SAisData *ptr)
 {
-	//if(ptr->valid_dim)
-		return ToPort(ptr) + ToStarboard(ptr);
-	//else
-		//return 0.0;
+	return ToPort(ptr) + ToStarboard(ptr);
 }
 
 double GetTriangleHeight(double smooth_scale)
@@ -648,3 +651,22 @@ wxString GetAisFile()
 {
 	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),wxT(AIS_FILE));
 }
+
+wxString RGBAToStr(nvRGBA *RGB) 
+{
+	return wxString::Format(_("%03d%03d%03d%03d"), RGB->R, RGB->G, RGB->B,RGB->A);
+}
+
+nvRGBA StrToRGBA(wxString str) {
+
+	nvRGBA RGB;
+	
+	wxString str1; 
+	
+	str1 = str.substr(0,3);	RGB.R = atoi(str1.char_str());
+	str1 = str.substr(3,3);	RGB.G = atoi(str1.char_str());
+	str1 = str.substr(6,3);	RGB.B = atoi(str1.char_str());
+	str1 = str.substr(9,3);	RGB.A = atoi(str1.char_str());
+
+	return RGB;
+};

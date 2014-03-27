@@ -44,6 +44,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxMutex mutex;
 	wxMenu *m_Menu;
 	wxString Name;
+	bool m_ShowNames;
 
 	int GetControlType();
 	wxString GetCaption();
@@ -78,7 +79,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void DataSignal(CDisplaySignal *sig);
 	void DrawData(wxGCDC &dc, wxString caption, wxString text);
 	int GetControlId();
-
+	void SynchroOptions();
 
 	void OnData();
 	void OnNMEALine();

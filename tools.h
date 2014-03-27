@@ -6,7 +6,6 @@
 #include "reader.h"
 #include "GeometryConfig.h"
 
-
 wxString GetProductInfo();
 wxString GetProductName();
 wxMutex *GetMutex();
@@ -50,5 +49,7 @@ double ToStarboard(SAisData *ptr);
 double GetTriangleWidth(double smooth_scale);
 double GetTriangleHeight(double smooth_scale);
 wxString GetAisFile();
+wxString RGBAToStr(nvRGBA *RGB);
+nvRGBA StrToRGBA(wxString str);
 
 #endif

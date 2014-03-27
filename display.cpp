@@ -10,6 +10,7 @@
 #include "info.h"
 #include "wizard.h"
 #include "devices.h"
+#include "options.h"
 
 //DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
 //DEFINE_EVENT_TYPE(EVT_SET_ICON)
@@ -222,8 +223,9 @@ void CDisplayPlugin::GetSignal(CDisplaySignal *sig)
 		
 	switch(m_SignalType)
 	{
-		case CLEAR_DISPLAY:		ClearDisplay(); break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
-		//case INIT_SIGNAL:		InitDisplay();	break;		// inicjuje listê urzadzeñ
+		case CLEAR_DISPLAY:				ClearDisplay();		break;		// czysci listê urz¹dzeñ (np przy wy³¹czeniu plugina)
+		case SIGNAL_SYNCHRO_OPTIONS:	SynchroOptions();	break;
+
 	}
 
 }
@@ -312,6 +314,14 @@ void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 int CDisplayPlugin::GetControlId()
 {
 	return m_ControlType - 2 - ID_MENU_BEGIN;
+}
+
+void CDisplayPlugin::SynchroOptions()
+{
+	
+	m_AisList->_SetShowNames(GetShowNames());
+	//m_AisList->_SetFontSize(GetFontSize()*10);
+		
 }
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 

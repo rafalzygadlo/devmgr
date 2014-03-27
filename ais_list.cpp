@@ -7,12 +7,18 @@
 #include "listctrl.h"
 #include "ais.h"
 #include "thread.h"
+#include "options.h"
 
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_TIMER(ID_TIMER,OnTimer)
 	EVT_SEARCHCTRL_SEARCH_BTN(ID_SEARCH,OnSearchButton)
 //	EVT_TEXT(ID_SEARCH,OnSearchText)
 	EVT_TEXT_ENTER(ID_SEARCH,OnSearchEnter)
+	EVT_CHECKBOX(ID_SHOW_NAMES,OnShowNames)
+	EVT_CHECKBOX(ID_SHOW_COG,OnShowCOG)
+	EVT_CHECKBOX(ID_SHOW_HDT,OnShowHDT)
+	EVT_SLIDER(ID_FONT_SIZE,OnFontSize)
+	EVT_COLOURPICKER_CHANGED(wxID_ANY,OnColorPicker)
 END_EVENT_TABLE()
 
 
@@ -125,6 +131,68 @@ void CAisList::ThreadEnd()
 	m_Working = false;
 }
 
+void CAisList::OnShowNames(wxCommandEvent &event)
+{
+	SetShowNames(event.GetSelection());
+	
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::_SetShowNames(bool val)
+{
+	m_ShipNames->SetValue(val);
+}
+
+void CAisList::OnFontSize(wxCommandEvent &event)
+{
+	SetFontSize(event.GetInt());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::_SetFontSize(int val)
+{
+	m_FontSize->SetValue(val);
+}
+
+void CAisList::OnShowCOG(wxCommandEvent &event)
+{
+	SetShowCOG(event.GetSelection());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::OnShowHDT(wxCommandEvent &event)
+{
+	SetShowHDT(event.GetSelection());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::OnColorPicker(wxColourPickerEvent &event)
+{
+	nvRGBA color;
+	wxColor cl = event.GetColour();
+		
+	color.R = cl.Red();
+	color.G = cl.Green();
+	color.B = cl.Blue();
+
+	switch(event.GetId())
+	{
+		case ID_SHIP_COLOR_0:	color.A = GetColor(SHIP_COLOR_0).A;	SetColor(SHIP_COLOR_0,color);	break;
+		case ID_SHIP_COLOR_1:	color.A = GetColor(SHIP_COLOR_1).A;	SetColor(SHIP_COLOR_1,color);	break;
+		case ID_ATON_COLOR:	    color.A = GetColor(ATON_COLOR).A;	SetColor(ATON_COLOR,color);		break;
+	}
+
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+		
+}
+
+
+
 void CAisList::GetPanel()
 {
 
@@ -153,8 +221,7 @@ void CAisList::GetPanel()
 	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
-
-
+	
 	wxPanel *Page2 = new wxPanel(Notebook);
 	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
 	Page2->SetSizer(m_Page2Sizer);
@@ -166,9 +233,68 @@ void CAisList::GetPanel()
 	Scroll->SetFocusIgnoringChildren();
 	Scroll->SetSizer(ScrollSizer);
 	
-	m_ShipNames = new wxCheckBox(Scroll,ID_NAMES,GetMsg(MSG_SHOW_NAMES));
-	//TChartsContour->SetValue(m_ShowChartsContour);
+	m_ShipNames = new wxCheckBox(Scroll,ID_SHOW_NAMES,GetMsg(MSG_SHOW_NAMES));
+	m_ShipNames->SetValue(GetShowNames());
 	ScrollSizer->Add(m_ShipNames,0,wxALL,5);
+
+	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,0);
+
+	wxStaticText *TextFontSize = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextFontSize,1,wxALL,2);
+	
+	m_FontSize = new wxSlider(Scroll,ID_FONT_SIZE,0,0,0,wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(m_FontSize,0,wxALL,2);
+	m_FontSize->SetMin(50);
+	m_FontSize->SetMax(200);
+	m_FontSize->SetValue(GetFontSize() * 10);
+
+
+	wxStaticText *TextShipColor0 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextShipColor0,0,wxALL,2);
+	
+	m_ShipColor0 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0);
+	wxColor color;
+	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
+	m_ShipColor0->SetColour(color);
+	FlexSizer->Add(m_ShipColor0,0,wxALL,2);
+
+	wxStaticText *TextShipColor1 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextShipColor1,1,wxALL,2);
+
+	m_ShipColor1 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1);
+	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
+	m_ShipColor1->SetColour(color);
+	FlexSizer->Add(m_ShipColor1,0,wxALL,2);
+		
+	wxStaticText *TextShipColor2 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextShipColor2,1,wxALL,2);
+
+	m_ShipColor2 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2);
+	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
+	m_ShipColor2->SetColour(color);
+	FlexSizer->Add(m_ShipColor2,0,wxALL,2);
+
+
+	wxStaticText *TextAtonColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ATON_COLOR),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextAtonColor,1,wxALL,2);
+
+	m_AtonColor = new wxColourPickerCtrl(Scroll,ID_ATON_COLOR);
+	color.Set(GetColor(ATON_COLOR).R,GetColor(ATON_COLOR).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
+	m_AtonColor->SetColour(color);
+	FlexSizer->Add(m_AtonColor,0,wxALL,2);
+		
+	
+	m_COGLine = new wxCheckBox(Scroll,ID_SHOW_COG,GetMsg(MSG_SHOW_COG));
+	m_COGLine->SetValue(GetShowCOG());
+	ScrollSizer->Add(m_COGLine,0,wxALL,5);
+	
+	m_HDTLine = new wxCheckBox(Scroll,ID_SHOW_HDT,GetMsg(MSG_SHOW_HDT));
+	m_HDTLine->SetValue(GetShowHDT());
+	ScrollSizer->Add(m_HDTLine,0,wxALL,5);
+	
+	
+	Scroll->SetScrollbars(20, 20, 20, 20);
 
 
 	this->SetSizer(m_Sizer);

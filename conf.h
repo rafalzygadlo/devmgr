@@ -31,6 +31,15 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_CONNECTION_TYPE "connection_type"
 #define KEY_SERIAL_PORT "serial_port"
 #define KEY_HOST "host"
+#define KEY_SHOW_NAMES "show_names"
+#define KEY_FONT_SIZE	"font_size"
+#define KEY_CONTROL_TYPE "control_type"
+#define KEY_SHOW_COG "show_cog"
+#define KEY_SHOW_HDT "show_hdt"
+#define KEY_SHIP_COLOR_0 "ship_color0"
+#define KEY_SHIP_COLOR_1 "ship_color1"
+#define KEY_SHIP_COLOR_2 "ship_color2"
+#define KEY_ATON_COLOR "aton_color"
 
 #define DIR_WORKDIR "workdir"
 
@@ -56,6 +65,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define STOP_DEVICE					13	// sygnal zatrzymania urzadzenia
 #define DATA_SIGNAL					14	// sygnał danych
 #define CLEAR_AIS_LIST				15	// set item count na 0
+#define	SIGNAL_SYNCHRO_OPTIONS		16
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
@@ -208,6 +218,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_WAVE_DIR					139
 #define MSG_AIS_OPTIONS					140
 #define MSG_SHOW_NAMES					141
+#define MSG_FONT_SIZE					142
+#define MSG_SHOW_COG					143
+#define MSG_SHOW_HDT					144
+#define MSG_SHIP_COLOR_0				145
+#define MSG_SHIP_COLOR_1				146
+#define MSG_SHIP_COLOR_2				147
+#define MSG_ATON_COLOR					148
 
 #define MAX_DATA_POSITIONS	10
 
@@ -222,41 +239,36 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DEFAULT_SOCKET_PORT	"3557"
 
 // w bibliotece protocols definicja w tablicach parsera
-#define AIS_MESSAGE					25
+#define AIS_MESSAGE				25
 #define AIS_CHECKSUM			6
-#define AIS_MESSAGE_ID			3			
+#define AIS_MESSAGE_ID			3
 #define AIS_FRAGMENT_NUMBER		2
 #define AIS_FRAGMENT_COUNTER	1
 #define AIS_DATA				5
 #define AIS_SHIPNAME_MAXLEN		20
 #define AIS_NAME_MAXLEN			64
 #define AIS_ATON_NAME_MAXLEN	35
-#define AIS_PARTS 7 // czesci wiadomosci
-#define MARKER_LENGTH 5
-#define MAX_VALUE_LENGTH 82 //NMEA 0183’s 82 dla AIS
-#define TICKER_SLEEP	100
-#define DEFAULT_FREQUENCY 1000					//milisekundy 
-#define DEFAULT_MAX_FREQUENCY 100				//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
-#define AIS_BUFFER_INTERVAL	1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
-#define DEFAULT_FONT_FACTOR 50.0
-
+#define AIS_PARTS				7 // czesci wiadomosci
+#define MARKER_LENGTH			5
+#define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
+#define TICKER_SLEEP			100
+#define DEFAULT_FREQUENCY		1000				//milisekundy
+#define DEFAULT_MAX_FREQUENCY	100					//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
+#define AIS_BUFFER_INTERVAL		1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
+#define DEFAULT_FACTOR			3000.0
+#define DEFAULT_FONT_FACTOR		50.0
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
-
 #define ATON_WIDTH				10.0
 #define ATON_HEIGHT				10.0
 #define ATON_ANGLE				45.0
-
 #define SHIP_QUAD_WIDTH			20.0
 #define SHIP_QUAD_HEIGHT		20.0
-
 #define SMALL_SHIP_WIDTH		10.0
 #define SMALL_SHIP_HEIGHT		35.0
-
 #define BS_WIDTH				10.0
 #define BS_HEIGHT				10.0
-
 
 #define ROTATE //czy obracać obiekty
 #define MIN_SHIP_SPEED				0.5 // 0.5 kn
@@ -276,8 +288,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TRIANGLE_WIDTH_FACTOR	1.6
 #define TRIANGLE_HEIGHT_FACTOR	1.6
 
+#define DEFAULT_FONT_SIZE	6.1
 
-#define KEY_CONTROL_TYPE "control_type"
+#define SHIP_COLOR_0 0
+#define SHIP_COLOR_1 1
+#define SHIP_COLOR_2 2
+#define ATON_COLOR	 3
+
 
 typedef struct SData
 {
