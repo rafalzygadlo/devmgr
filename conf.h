@@ -257,6 +257,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_BUFFER_INTERVAL		1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			3000.0
 #define DEFAULT_FONT_FACTOR		50.0
+#define DISPLAY_REFRESH			1000/TICKER_SLEEP	//odswiez display
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
@@ -294,6 +295,11 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_COLOR_1 1
 #define SHIP_COLOR_2 2
 #define ATON_COLOR	 3
+
+#define TICK_0	0
+#define TICK_1	1
+
+#define CONTROL_OFFSET	2
 
 
 typedef struct SData

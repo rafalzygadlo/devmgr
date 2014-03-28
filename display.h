@@ -32,19 +32,22 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	
 	CDevicesList *m_DevicesList;
 	CAisList *m_AisList;
-	
+	int m_ControlType;
+		
 	bool m_FirstTime;
 	wxBoxSizer *m_Sizer;
 	wxPanel *m_SignalsPanel;
-	int m_ControlType;
+	//int m_ControlType;
 	wxString m_Caption;
-	wxArrayString ArrayOfTypes;
+	//wxArrayString ArrayOfTypes;
 	wxBoxSizer *m_MainSizer;
 	SData *m_Data;
 	wxMutex mutex;
 	wxMenu *m_Menu;
 	wxString Name;
 	bool m_ShowNames;
+	int m_RefreshTick, m_RefreshInterval;
+	CTicker *m_Ticker;
 
 	int GetControlType();
 	wxString GetCaption();
@@ -107,12 +110,17 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void OnStatus(wxCommandEvent &event);
 	void OnSetIcon(wxCommandEvent &event);
 	void OnSetText(wxCommandEvent &event);
+	
 
 public:
 	
 	CDisplayPlugin(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxT("DisplayApiPanel") );
 	~CDisplayPlugin();
 	
+	void OnTickerStart();
+	void OnTickerStop();
+	void OnTickerTick();
+
 	virtual bool IsValidSignal(CDisplaySignal *SignalID);
 	virtual void OnWork(CDisplaySignal *Signal);
 	virtual void BeforeWork(CDisplaySignal *Signal);

@@ -47,7 +47,7 @@ class CDevicesList : public wxPanel
 	wxHyperlinkCtrl *m_Monitor;
 	int m_ControlType;
 	wxString m_Caption;
-	wxArrayString ArrayOfTypes;
+	//wxArrayString ArrayOfTypes;
 	CReader *m_Reader;
 		
 	int GetControlType();

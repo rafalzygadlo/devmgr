@@ -9,6 +9,7 @@ class CTicker
 	void *Parent;
 	bool Exit;
 	int Tick;
+	int Id;
 	
 #if defined (_WIN32) || defined(_WIN64)
 	DWORD ThreadID;
@@ -26,7 +27,7 @@ class CTicker
 
 
 public:
-	CTicker(void *parent);
+	CTicker(void *parent, int id);
 	~CTicker();
 	void Start();
 	void Stop();

@@ -1,3 +1,4 @@
+#include "signals.h"
 #include "parser.h"
 #include "protocol.h"
 #include "tools.h"
@@ -125,9 +126,9 @@ void CParser::Parse( char *line)
 			if( ValidData )
 			{
 				//fprintf(stdout,"[%s][%s] data:[%s]\n",sids.GetById(s->id_sids)->name, s->name,m_Data.value);
-				// ustawia funkcje definiowane w protocole
-//				SetValuesArray(m_Data);
-				//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevData",&m_Data);
+				//ustawia funkcje definiowane w protocole
+				//SetValuesArray(m_Data);
+				SignalAppend(&m_Data);
 				SetValidData();
 			}
 			
@@ -149,7 +150,7 @@ bool CParser::Ais(char *line)
 	
 	if(str_size != AIS_PARTS)
 	{
-		fprintf(stdout,"%d %s\n",str_size,line);
+		//fprintf(stdout,"%d %s\n",str_size,line);
 		FreeStrList( StrList, str_size );
 		return false;
 	}

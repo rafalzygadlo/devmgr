@@ -13,7 +13,7 @@
 #include "GeometryTools.h"
 #include "images/ship.img"
 #include "options.h"
-
+#include "signals.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -49,7 +49,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
-	m_Ticker = new CTicker(this);
+	m_Ticker = new CTicker(this,TICK_0);
 	m_Ticker->Start();
 	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_MaxFrequency = DEFAULT_FREQUENCY; // w milisekundach 10 sekund domyslnie
@@ -448,7 +448,7 @@ bool CMapPlugin::InterpolatePosition()
 	if(m_PositionExists)
 	{
 		double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
-		fprintf(stdout,"\nLON LAT %4.10f %4.10f %4.4f\n",m_ShipState[0],m_ShipState[1],distance);
+		//fprintf(stdout,"\nLON LAT %4.10f %4.10f %4.4f\n",m_ShipState[0],m_ShipState[1],distance);
 		m_OldPositionTick = 0;
 		return false;
 	}
@@ -473,7 +473,7 @@ bool CMapPlugin::InterpolatePosition()
 	
 	m_OldPositionTick = m_GlobalTick;
 	//time = m_MaxFrequency;
-	fprintf(stdout,"Interpolowanie pozycji:[%d][%d] %d\n",m_ShipTicks[0],m_ShipTicks[1],time);
+	//fprintf(stdout,"Interpolowanie pozycji:[%d][%d] %d\n",m_ShipTicks[0],m_ShipTicks[1],time);
 	NewPosition(time);
 	
 	//m_OldGlobalPositionTick = m_GlobalTick;
@@ -486,7 +486,7 @@ bool CMapPlugin::InterpolateHDT()
 {
 	if(m_HDT_Exists)
 	{
-		fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
+		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
 		m_OldHDTTick = 0;
 		return false;
 	}
@@ -543,7 +543,7 @@ bool CMapPlugin::NewPosition(int time)
 	m_ShipStaticState[0] = nlon; 
 	m_ShipStaticState[1] = nlat;
 	
-	fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
+	//fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
 	
 	return true;
 }
@@ -811,6 +811,7 @@ void CMapPlugin::Kill(void)
 	ais_save_file();
 	ais_free_list();
 	ais_free_buffer();
+	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 
@@ -1649,7 +1650,6 @@ void CMapPlugin::PrepareAtonLineIndicesBuffer(SAisData *ptr)
 	m_AtonLineIndicesBuffer0.Append(id - 8);	//0
 
 }
-
 
 
 void CMapPlugin::PrepareAtonColorBuffer(SAisData *ptr)

@@ -11,10 +11,7 @@
 #include "wizard.h"
 #include "devices.h"
 #include "options.h"
-
-//DEFINE_EVENT_TYPE(EVT_SET_LOGGER)
-//DEFINE_EVENT_TYPE(EVT_SET_ICON)
-//DEFINE_EVENT_TYPE(EVT_SET_TEXT)
+#include "signals.h"
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU_RANGE(ID_MENU_BEGIN,ID_MENU_END,CDisplayPlugin::OnMenuRange)
@@ -31,38 +28,48 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
-	SetDoubleBuffered(true);
+	//SetDoubleBuffered(true);
 		
 	this->Disable();
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
 	m_DevicesList = NULL;
 	m_AisList = NULL;
-	m_Data = NULL;
 	m_GUI = false;
 
 	m_Menu = new wxMenu();
 	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
 	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets"));
-	m_Menu->AppendRadioItem(2 + ID_MENU_BEGIN ,_("Ais Message Info"));
-	
+		
+	m_Ticker = new CTicker(this,TICK_1);
+	m_Ticker->Start();
+
+	m_RefreshTick = 0;
+	m_RefreshInterval = DISPLAY_REFRESH;
 	CProtocol Protocol;
 	int counter = 0;
 
-	SDevices *device = Protocol.GetDevice(0);
+	CDevices devices;
 	
-	SDefinition *Definition;
-	Protocol.GetDefinitionById(device->id,counter,*&Definition);
-
-	for(size_t i = 0; i < counter; i++)
+	size_t dcount = devices.GetLen();
+	
+	for(size_t i = 0; i < dcount; i++)
 	{
-		int len;
-		SSignals *signal_s = Protocol.GetSignalsById(Definition[i].id_signal);
-		wxString name(signal_s->name,wxConvUTF8);
-		m_Menu->AppendRadioItem(2 + signal_s->id + ID_MENU_BEGIN, name);
-	}
+		SDevices *device = devices.Get(i);
 	
-	delete Definition;
+		SDefinition *Definition;
+		Protocol.GetDefinitionById(device->id,counter,*&Definition);
+
+		for(size_t j = 0; j < counter; j++)
+		{
+			int len;
+			SSignals *signal_s = Protocol.GetSignalsById(Definition[j].id_signal);
+			wxString name(signal_s->name,wxConvUTF8);
+			m_Menu->AppendCheckItem(CONTROL_OFFSET + signal_s->id + ID_MENU_BEGIN, name);
+		}
+				
+		delete Definition;
+	}
 
 	Name = parent->GetLabel();
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
@@ -75,6 +82,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 CDisplayPlugin::~CDisplayPlugin()
 {
+	m_Ticker->Stop();
+	delete m_Ticker;
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),m_ControlType);
 	delete m_FileConfig;
@@ -147,8 +156,17 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 	}
 	
 	m_ControlType = event.GetId(); // ustawiamy po zbudowaniu gui
-	//m_Caption = ArrayOfTypes[GetControlType()];
-
+	
+	CProtocol Protocol;
+	SSignals *signals = Protocol.GetSignalsById(GetControlId());
+	if(signals)
+	{
+		wxString name(signals->name,wxConvUTF8);
+		m_Caption = name;
+		SetCaption(m_Caption);
+		Refresh();
+	}
+	
 }
 
 void CDisplayPlugin::OnMenu(wxContextMenuEvent &event)
@@ -194,12 +212,11 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 		
 		GetGUIControl(SignalID);
 		
-		if(!m_GUI) // kontrolka typu gui sygnal refresh nie wysylany
-		{
-			if(m_SignalType ==  DATA_SIGNAL)		// sygna³ danych w strukturze
-				return true;	// dla sygnalow danych uruchom watki dla rysowania kontrolek
-		}
-		
+		//if(!m_GUI) // kontrolka typu gui sygnal refresh nie wysylany
+		//{
+			//if(m_SignalType ==  DATA_SIGNAL)		// sygna³ danych w strukturze
+				//return true;	// dla sygnalow danych uruchom watki dla rysowania kontrolek
+		//}
 	}
 	
 	return false;
@@ -249,6 +266,7 @@ void CDisplayPlugin::ClearDisplay()
 	m_FirstTime = true;
 	this->Disable();
 	m_MapPlugin = NULL;
+	
 	if(m_DevicesList != NULL)
 	{
 		delete m_DevicesList;
@@ -307,44 +325,80 @@ void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 		} while ( FontSize.GetWidth() > GetWidth() );
 	}
 
-	dc.DrawText( text, (int)GetWidth()/2 - FontSize.GetWidth()/2, (int)GetHeight() * 0.625 - FontSize.GetHeight() / 2 );
+ 	dc.DrawText( text, (int)GetWidth()/2 - FontSize.GetWidth()/2, (int)GetHeight() * 0.625 - FontSize.GetHeight() / 2 );
+	dc.EndDrawing();
 	
 	
 }
 int CDisplayPlugin::GetControlId()
 {
-	return m_ControlType - 2 - ID_MENU_BEGIN;
+	return m_ControlType - CONTROL_OFFSET - ID_MENU_BEGIN;
 }
 
 void CDisplayPlugin::SynchroOptions()
 {
-	
-	m_AisList->_SetShowNames(GetShowNames());
-	//m_AisList->_SetFontSize(GetFontSize()*10);
+	if(m_AisList)
+	{
+		m_AisList->_SetShowNames(GetShowNames());
+		//m_AisList->_SetFontSize(GetFontSize()*10);
+	}
 		
 }
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {
-	//if(m_Data)
-	//{
-		//if(m_Data->id == GetControlId())
-		//{	
-			//wxString a(m_Data->marker,wxConvUTF8);
-			//wxString b(m_Data->value,wxConvUTF8);
-			//DrawData(dc,a,b);
-		//}
-		//fprintf(stdout,"%s %s\n",m_Data->marker,m_Data->value);
-	//}
+	bool exists = false;
+	size_t count = GetDeviceSignalCount();
+	for(size_t i = 0; i < count; i++)
+	{
+		SData * ptr = GetDeviceSignal(i);
+		if(ptr->id == GetControlId())
+		{	
+			wxString b(ptr->value,wxConvUTF8);
+			DrawData(dc,m_Caption,b);
+			exists = true;		
+		}
+	}	
+
+	if(!exists)
+		DrawData(dc,m_Caption,_("N/A"));
 
 }
 
 void CDisplayPlugin::OnWork(CDisplaySignal *Signal) 
 {
-	m_Data = (SData*)Signal->GetData();	
-	Refresh();
-	wxMilliSleep(150);
+	
+}
 
+void CDisplayPlugin::OnTickerStart()
+{
+}
+
+void CDisplayPlugin::OnTickerStop()
+{
+}
+
+void CDisplayPlugin::OnTickerTick()
+{
+	
+	bool refresh = false;
+	m_RefreshTick++;
+	if( m_RefreshTick >= m_RefreshInterval)	
+	{	
+		m_RefreshTick = 0;
+	
+		size_t count = GetDeviceSignalCount();
+		for(size_t i = 0; i < count; i++)
+		{
+			SData * ptr = GetDeviceSignal(i);
+			if(ptr->id == GetControlId())
+				refresh = true;
+		}
+		
+		if(refresh)
+			Refresh();
+	}
+	
 }
 
 void CDisplayPlugin::AfterWork(CDisplaySignal *Signal)

@@ -1,12 +1,14 @@
 #include "conf.h"
 #include "ticker.h"
+#include "display.h"
 #include "dll.h"
 
-CTicker::CTicker(void *parent)
+CTicker::CTicker(void *parent, int id)
 {
 	Exit = false;
 	Parent = parent;
 	Tick = TICKER_SLEEP;
+	Id = id;
 }
 
 CTicker::~CTicker()
@@ -89,15 +91,28 @@ void CTicker::Stop()
 
 void CTicker::OnTickerStart()
 {
-	((CMapPlugin*)Parent)->OnTickerStart();
+	switch(Id)
+	{
+		case TICK_0:	((CMapPlugin*)Parent)->OnTickerStart(); break;
+		case TICK_1: ((CDisplayPlugin*)Parent)->OnTickerStart(); break;
+	}
 }
 
 void CTicker::OnTickerStop()
 {
-	((CMapPlugin*)Parent)->OnTickerStop();
+	switch(Id)
+	{
+		case TICK_0:	((CMapPlugin*)Parent)->OnTickerStop();		break;
+		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerStop();	break;
+	}
 }
 
 void CTicker::OnTickerTick()
 {  
-	((CMapPlugin*)Parent)->OnTickerTick();
+	switch(Id)
+	{
+		case TICK_0:	((CMapPlugin*)Parent)->OnTickerTick();		break;
+		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
+	}
+
 }
