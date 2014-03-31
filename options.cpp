@@ -8,6 +8,7 @@ double m_FontSize = DEFAULT_FONT_SIZE;
 bool m_ShowNames = false;
 bool m_ShowHDT = true;
 bool m_ShowCOG = true;
+int m_Filter = DEFAULT_FILTER;
 
 nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton;
 
@@ -118,8 +119,15 @@ int GetAlpha(int type)
 	return alpha;
 }
 
+int GetFilter()
+{
+	return m_Filter;
+}
 
-
+void SetFilter(int val)
+{
+	m_Filter = val;
+}
 
 void ReadOptionsConfig()
 {
@@ -129,7 +137,7 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_FONT_SIZE),&m_FontSize, DEFAULT_FONT_SIZE);
 	FileConfig->Read(_(KEY_SHOW_COG),&m_ShowCOG, true);
 	FileConfig->Read(_(KEY_SHOW_HDT),&m_ShowHDT, true);
-
+	FileConfig->Read(_(KEY_FILTER),&m_Filter, DEFAULT_FILTER);
 	
 	wxString _color;
 	
@@ -159,6 +167,7 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_FONT_SIZE),m_FontSize);
 	FileConfig->Write(_(KEY_SHOW_COG),m_ShowCOG);
 	FileConfig->Write(_(KEY_SHOW_HDT),m_ShowHDT);
+	FileConfig->Write(_(KEY_FILTER),m_Filter);
 
 	FileConfig->Write(_(KEY_SHIP_COLOR_0),RGBAToStr(&GetColor(SHIP_COLOR_0)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_1),RGBAToStr(&GetColor(SHIP_COLOR_1)));

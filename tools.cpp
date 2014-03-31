@@ -169,6 +169,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Ship color 1"),
 		_("Ship color 2"),
 		_("Aton color"),
+		_(".."),
 
 	},
 	

@@ -31,6 +31,7 @@ class CAisList : public wxPanel
 	void GetPanel();
 	void SetList();
 	void ClearList();
+	void StartThread();
 	void OnTimer(wxTimerEvent &event);
 	void OnSearchButton(wxCommandEvent &event);
 	//void OnSearchText(wxCommandEvent &event);
@@ -40,6 +41,7 @@ class CAisList : public wxPanel
 	void OnShowHDT(wxCommandEvent &event);
 	void OnShowCOG(wxCommandEvent &event);
 	void OnColorPicker(wxColourPickerEvent &event);
+	void OnFilter(wxCommandEvent &event);
 
 public:
 	
@@ -66,6 +68,7 @@ public:
 		ID_SHIP_COLOR_1,
 		ID_SHIP_COLOR_2,
 		ID_ATON_COLOR,
+		ID_FILTER,
 	};
 
 	DECLARE_EVENT_TABLE();

@@ -40,6 +40,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_SHIP_COLOR_1 "ship_color1"
 #define KEY_SHIP_COLOR_2 "ship_color2"
 #define KEY_ATON_COLOR "aton_color"
+#define KEY_FILTER	"filter"
 
 #define DIR_WORKDIR "workdir"
 
@@ -225,6 +226,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_SHIP_COLOR_1				146
 #define MSG_SHIP_COLOR_2				147
 #define MSG_ATON_COLOR					148
+#define MSG_FILTER						149
 
 #define MAX_DATA_POSITIONS	10
 
@@ -300,7 +302,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TICK_1	1
 
 #define CONTROL_OFFSET	2
-
+#define IS_BIT_SET(k, n)  ((k) & (1 << (n)))
+#define DEFAULT_FILTER	134217727
 
 typedef struct SData
 {

@@ -8,6 +8,7 @@
 #include "ais.h"
 #include "thread.h"
 #include "options.h"
+#include "filter.h"
 
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_TIMER(ID_TIMER,OnTimer)
@@ -19,6 +20,7 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_CHECKBOX(ID_SHOW_HDT,OnShowHDT)
 	EVT_SLIDER(ID_FONT_SIZE,OnFontSize)
 	EVT_COLOURPICKER_CHANGED(wxID_ANY,OnColorPicker)
+	EVT_BUTTON(ID_FILTER,OnFilter)
 END_EVENT_TABLE()
 
 
@@ -44,7 +46,8 @@ CAisList::~CAisList()
 
 void CAisList::OnTimer(wxTimerEvent &event)
 {
-	SetList();
+	StartThread();
+	//SetList();
 	//fprintf(stdout,"%d\n",c);
 }
 
@@ -102,7 +105,7 @@ void CAisList::OnSearchButton(wxCommandEvent &event)
 	//Thread->Start();
 }
 
-void CAisList::OnSearchEnter(wxCommandEvent &event)
+void CAisList::StartThread()
 {
 	if(m_Working)
 		return;
@@ -111,7 +114,11 @@ void CAisList::OnSearchEnter(wxCommandEvent &event)
 	CThread *Thread = new CThread(this);
 	Thread->SetWorkId(WORK_SEARCH);
 	Thread->Start();
+}
 
+void CAisList::OnSearchEnter(wxCommandEvent &event)
+{
+	StartThread();
 }
 
 void CAisList::ThreadBegin()
@@ -119,14 +126,14 @@ void CAisList::ThreadBegin()
 	if(m_SearchText->GetValue().Length() > 0)
 		ais_set_search_buffer(m_SearchText->GetValue().char_str());
 	else
-		ais_clear_search_buffer();
+		ais_set_search_buffer(NULL);
 }
 
 void CAisList::ThreadEnd()
 {
 	int c = ais_get_search_item_count();
 	m_List->SetItemCount(c);
-	m_List->Refresh();
+	//m_List->Refresh();
 	m_List->SetSearch(true);
 	m_Working = false;
 }
@@ -134,7 +141,7 @@ void CAisList::ThreadEnd()
 void CAisList::OnShowNames(wxCommandEvent &event)
 {
 	SetShowNames(event.GetSelection());
-	
+
 	if(m_Broker != NULL)
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
 }
@@ -191,7 +198,13 @@ void CAisList::OnColorPicker(wxColourPickerEvent &event)
 		
 }
 
-
+void CAisList::OnFilter(wxCommandEvent &event)
+{
+	CFilter *Filter = new CFilter();
+	Filter->ShowModal();
+	delete Filter;
+	StartThread();	
+}
 
 void CAisList::GetPanel()
 {
@@ -205,9 +218,19 @@ void CAisList::GetPanel()
 	Page1->SetSizer(m_Page1Sizer);
 	Notebook->AddPage(Page1,GetMsg(MSG_AIS_TARGETS));
 
+	wxBoxSizer *hSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_Page1Sizer->Add(hSizer,0,wxALL|wxEXPAND,0);
+
 	m_SearchText = new wxSearchCtrl(Page1,ID_SEARCH,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
-	m_Page1Sizer->Add(m_SearchText,0,wxALL|wxEXPAND,0);
+	hSizer->Add(m_SearchText,1,wxALL|wxEXPAND,0);
+
+	wxButton *BFilter = new wxButton(Page1,ID_FILTER,GetMsg(MSG_FILTER),wxDefaultPosition,wxSize(20,-1));
+	hSizer->Add(BFilter,0,wxALL,0);
+
 	//m_SearchText->SetValue(m_SearchText);
+
+
+
 
 	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;

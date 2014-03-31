@@ -11,7 +11,6 @@
 #include "conf.h"
 
 #define AIS_MESSAGES_LENGTH	27
-
 #define BITS_PER_BYTE	8
 #define UBITS(s, l)	ubits((unsigned char *)bits, s, l, false)
 #define SBITS(s, l)	sbits((signed char *)bits, s, l, false)
@@ -1064,6 +1063,7 @@ bool ais_set_sog(ais_t *ais, SAisData *ptr);
 CNaviArray <SAisData*> *ais_get_buffer();
 void ais_save_file();
 void ais_load_file();
+void ais_set_option(int val);
 
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();

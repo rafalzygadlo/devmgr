@@ -1,11 +1,13 @@
 #include "ais.h"
 #include "tools.h"
 #include <stdio.h>
+#include "options.h"
 
 CNaviArray <ais_t*> vAisData;
 CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
+int option = 0;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -266,6 +268,11 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 };
 
+void ais_set_option(int val)
+{
+	option |= val;
+}
+
 void ais_save_file()
 {
 	FILE *f;
@@ -342,30 +349,61 @@ void ais_clear_search_buffer()
 	vAisSearch.Clear();
 }
 
+bool ais_get_filter(ais_t *ais)
+{
+	
+	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
+	{
+		if(ais->valid[i + 1] &&	IS_BIT_SET(GetFilter(),i))
+			return true;
+	}
+
+	return false;
+
+}
+
 void ais_set_search_buffer(char *str)
 {
 	vAisSearch.Clear();
 	
-	for(size_t i = 0; i < vAisData.Length(); i++)
+	if(str != NULL)
 	{
-		ais_t *ais = ais_get_item(i);
-		char mmsi[12];
-		
-		SAisData data;
-		if(ais_set_name(ais,&data))
+
+		for(size_t i = 0; i < vAisData.Length(); i++)
 		{
-			toupper(str);
-			toupper(data.name);
+			ais_t *ais = ais_get_item(i);
+			char mmsi[12];
+		
+			SAisData data;
+			if(ais_set_name(ais,&data))
+			{
+				toupper(str);
+				toupper(data.name);
 
-			if( strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL ) 
-				vAisSearch.Append(ais);
-		}else{
+				if( (strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL)) 
+					vAisSearch.Append(ais);
+			}else{
 			
-			if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL ) 
-				vAisSearch.Append(ais);
+				if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) 
+					vAisSearch.Append(ais);
+			}
+		
 		}
+	
+	}else{
+	
+		
+		for(size_t i = 0; i < vAisData.Length(); i++)
+		{
+			ais_t *ais = ais_get_item(i);
+			if(ais_get_filter(ais))
+				vAisSearch.Append(ais);
+	
+		}
+		
 	}
-
+		
+	
 }
 
 size_t ais_get_search_item_count()

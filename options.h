@@ -15,5 +15,6 @@ nvRGBA GetColor(int type);
 void SetColor(int type, nvRGBA color);
 void SetAlpha(int type, int value);
 int GetAlpha(int type);
-
+void SetFilter(int val);
+int GetFilter();
 #endif
