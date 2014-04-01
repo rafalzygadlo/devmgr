@@ -28,7 +28,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
-	//SetDoubleBuffered(true);
+	SetDoubleBuffered(true);
 		
 	this->Disable();
 	m_FirstTime = true;
@@ -198,25 +198,12 @@ bool CDisplayPlugin::IsValidSignal(CDisplaySignal *SignalID) {
 		{
 			m_Broker = m_MapPlugin->GetBroker();
 			InitDisplay();
-		//}else{
-		
-			//if(m_Broker)
-				//m_MapPlugin = (CMapPlugin*)m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_GetParentPtr",NULL);
-				//if(m_MapPlugin != NULL)
-					//InitDisplay();
 		}
 		// kolejnoœæ initDispaly najpierw dla sygnalu czyszcz¹cego m_firstTime przestawiany na fa³sz i InitDisplay siê inicjuje
 		
-		
 		GetSignal(SignalID);
-		
 		GetGUIControl(SignalID);
 		
-		//if(!m_GUI) // kontrolka typu gui sygnal refresh nie wysylany
-		//{
-			//if(m_SignalType ==  DATA_SIGNAL)		// sygna³ danych w strukturze
-				//return true;	// dla sygnalow danych uruchom watki dla rysowania kontrolek
-		//}
 	}
 	
 	return false;

@@ -13,9 +13,10 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	EVT_LIST_ITEM_ACTIVATED(ID_LIST,CListCtrl::OnActivate)
 	EVT_CONTEXT_MENU(CListCtrl::OnContextMenu)
 	EVT_LIST_ITEM_SELECTED(ID_LIST,CListCtrl::OnSelected)
-	//EVT_PAINT(CListCtrl::OnPaint)
+	EVT_PAINT(CListCtrl::OnPaint)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
+	EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
 END_EVENT_TABLE()
  
 CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
@@ -82,6 +83,15 @@ void CListCtrl::OnContextMenu(wxContextMenuEvent &event)
 {
 	
 }
+void CListCtrl::OnEraseBackground(wxEraseEvent &event)
+{
+
+}
+
+void CListCtrl::OnPaint(wxPaintEvent &event)
+{
+	event.Skip();
+}
 
 void CListCtrl::Menu()
 {
@@ -116,22 +126,23 @@ void CListCtrl::OnSelected(wxListEvent &event)
 	
 	ais_t *ais = NULL;
 
-	if(ais_get_search_item_count() > 0)
-		ais = ais_get_search_item(n_item);
-	else
-		ais = ais_get_item(n_item);
+	GetMutex()->Lock();
+	ais = ais_get_search_item(n_item);
+	GetMutex()->Unlock();
 	
-	_AisList->ClearHtml();
-	_AisList->SetHtml(_("<a name='top'></a><br>"));
-	_AisList->SetHtml(PrintHtmlAnchors(ais));
-	
-	for(size_t i = 1; i < AIS_MESSAGES_LENGTH; i++)
+	if(ais)
 	{
-		if(ais->valid[i])
-		{
-			_AisList->SetHtml(PrintHtmlMsg(ais,i));
-		}
+		_AisList->ClearHtml();
+		_AisList->SetHtml(_("<a name='top'></a><br>"));
+		_AisList->SetHtml(PrintHtmlAnchors(ais));
 	
+		for(size_t i = 1; i < AIS_MESSAGES_LENGTH; i++)
+		{
+			if(ais->valid[i])
+			{
+				_AisList->SetHtml(PrintHtmlMsg(ais,i));
+			}
+		}
 	}
 
 }
@@ -145,12 +156,10 @@ void CListCtrl::OnActivate(wxListEvent &event)
 	
 	ais_t *ais = NULL;
 
-	if(ais_get_search_item_count() > 0)
-		ais = ais_get_search_item(n_item);
-	else
-		ais = ais_get_item(n_item);
-
-	
+	GetMutex()->Lock();
+	ais = ais_get_search_item(n_item);
+	GetMutex()->Unlock();
+		
 	_AisList->ClearHtml();
 	_AisList->SetHtml(_("<a name='top'></a><br>"));
 	_AisList->SetHtml(PrintHtmlAnchors(ais));
@@ -223,6 +232,22 @@ long CListCtrl::GetLastSelectedItem()
 	return last_selected_item;
 }
 
+void CListCtrl::OnCacheHint(wxListEvent& event)
+{
+    m_From = event.GetCacheFrom();
+	m_To = event.GetCacheTo();
+}
+
+long CListCtrl::_GetFrom()
+{
+	return m_From;
+}
+
+long CListCtrl::_GetTo()
+{
+	return m_To;
+}
+
 wxString CListCtrl::OnGetItemText(long item, long column) const
 {
 		
@@ -230,17 +255,13 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 		return _("N/A"); 
 	
 	GetMutex()->Lock();
-	//	return _("N/A"); 
-	
+			
 	wxString str;
 	wxString name;
 
 	ais_t *ais = NULL;
+	ais = ais_get_search_item(item);
 	
-	if(m_FromSearch)
-		ais = ais_get_search_item(item);
-	else
-		ais = ais_get_item(item);
 	GetMutex()->Unlock();
 	
 	wxString mes;

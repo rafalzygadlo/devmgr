@@ -305,11 +305,9 @@ void CMapPlugin::OnInitGL()
 }
 void CMapPlugin::SetShip(SFunctionData *data)
 {
-	//GetMutex()->Lock();
 	memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 	Prepare();
-	//GetMutex()->Unlock();
 }
 
 void CMapPlugin::SetFrequency(int id)
@@ -624,12 +622,10 @@ void CMapPlugin::OnTickerTick()
 
 	if( m_ShipTick >= m_ShipInterval ) 
 	{
-		//GetMutex()->Lock();
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
 		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-		//GetMutex()->Unlock();
 		
 	}
 	
@@ -637,6 +633,8 @@ void CMapPlugin::OnTickerTick()
 	{	
 		m_AisBufferTick = 0;
 		PrepareBuffer();
+		PrepareSearchBuffer();
+	
 	}
 	
 }
@@ -1306,6 +1304,15 @@ void CMapPlugin::SetBuffers()
 
 }
 
+void CMapPlugin::PrepareSearchBuffer()
+{
+	if(GetMutex()->TryLock() == wxMUTEX_BUSY)
+		return;
+
+
+
+	GetMutex()->Unlock();
+}
 
 void CMapPlugin::PrepareBuffer()
 {
@@ -1315,7 +1322,7 @@ void CMapPlugin::PrepareBuffer()
 	
 	SetPtr0();
 	ClearBuffers();
-	SetBuffers();	
+	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
 	
@@ -2937,6 +2944,7 @@ void CMapPlugin::ThreadBegin()
 {
 	m_ThreadCounter++;
 	PrepareBuffer();
+		
 	if(m_MouseUp)
 	{
 		m_SelectedPtr = NULL;

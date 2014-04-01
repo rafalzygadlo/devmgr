@@ -4,6 +4,7 @@
 #include "tools.h"
 #include "ais.h"
 #include "tools.h"
+#include "options.h"
 
 CParser::CParser()
 {
@@ -224,9 +225,11 @@ bool CParser::Ais(char *line)
 	
 	if(decode)
 	{
-		GetMutex()->Lock();
+		if(GetMutex()->TryLock() == wxMUTEX_BUSY)
+			return false;
 		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
 		ais_prepare_buffer(ais);
+		ais_set_search_buffer(GetSearchText());
 		GetMutex()->Unlock();
 		free(m_Bits);
 		m_Bits = NULL;

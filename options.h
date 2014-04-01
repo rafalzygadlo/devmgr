@@ -17,4 +17,7 @@ void SetAlpha(int type, int value);
 int GetAlpha(int type);
 void SetFilter(int val);
 int GetFilter();
+void SetSearchText(char *txt);
+char *GetSearchText();
+
 #endif

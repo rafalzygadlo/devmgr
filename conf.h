@@ -232,7 +232,6 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define WORK_WIZARD			0
 #define WORK_RENDER_BUFFER	1
-#define WORK_SEARCH			2
 
 #define CONNECTION_TYPE_SOCKET	0
 #define CONNECTION_TYPE_SERIAL	1

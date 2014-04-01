@@ -8,6 +8,7 @@ CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
 int option = 0;
+bool m_SearchReady = false;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -361,48 +362,37 @@ bool ais_get_filter(ais_t *ais)
 	return false;
 
 }
+bool ais_get_search_ready()
+{
+	return m_SearchReady;
+}
 
 void ais_set_search_buffer(char *str)
 {
 	vAisSearch.Clear();
-	
-	if(str != NULL)
+	m_SearchReady = false;
+
+	for(size_t i = 0; i < vAisData.Length(); i++)
 	{
-
-		for(size_t i = 0; i < vAisData.Length(); i++)
+		ais_t *ais = ais_get_item(i);
+		char mmsi[12];
+		
+		SAisData data;
+		if(ais_set_name(ais,&data))
 		{
-			ais_t *ais = ais_get_item(i);
-			char mmsi[12];
-		
-			SAisData data;
-			if(ais_set_name(ais,&data))
-			{
-				toupper(str);
-				toupper(data.name);
+			toupper(str);
+			toupper(data.name);
 
-				if( (strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL)) 
-					vAisSearch.Append(ais);
-			}else{
-			
-				if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) 
-					vAisSearch.Append(ais);
-			}
-		
-		}
-	
-	}else{
-	
-		
-		for(size_t i = 0; i < vAisData.Length(); i++)
-		{
-			ais_t *ais = ais_get_item(i);
-			if(ais_get_filter(ais))
+			if( (strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) && ais_get_filter(ais)) 
 				vAisSearch.Append(ais);
-	
+		}else{
+			
+			if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL && ais_get_filter(ais)) 
+				vAisSearch.Append(ais);
 		}
-		
+	
 	}
-		
+	m_SearchReady = true;
 	
 }
 

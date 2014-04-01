@@ -9,6 +9,9 @@ bool m_ShowNames = false;
 bool m_ShowHDT = true;
 bool m_ShowCOG = true;
 int m_Filter = DEFAULT_FILTER;
+char m_SearchText[64];
+
+
 
 nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton;
 
@@ -127,6 +130,16 @@ int GetFilter()
 void SetFilter(int val)
 {
 	m_Filter = val;
+}
+
+void SetSearchText(char *txt)
+{
+	memcpy(m_SearchText,txt,64);
+}
+
+char *GetSearchText()
+{
+	return m_SearchText;
 }
 
 void ReadOptionsConfig()

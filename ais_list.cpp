@@ -13,7 +13,7 @@
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_TIMER(ID_TIMER,OnTimer)
 	EVT_SEARCHCTRL_SEARCH_BTN(ID_SEARCH,OnSearchButton)
-//	EVT_TEXT(ID_SEARCH,OnSearchText)
+	EVT_TEXT(ID_SEARCH,OnSearchText)
 	EVT_TEXT_ENTER(ID_SEARCH,OnSearchEnter)
 	EVT_CHECKBOX(ID_SHOW_NAMES,OnShowNames)
 	EVT_CHECKBOX(ID_SHOW_COG,OnShowCOG)
@@ -33,7 +33,7 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 	m_Display = display;
 	GetPanel();
 	m_Timer = new wxTimer(this,ID_TIMER);
-	m_Timer->Start(2000);
+	m_Timer->Start(1000);
 	SetList();
 	m_Working = false;
 }
@@ -46,9 +46,7 @@ CAisList::~CAisList()
 
 void CAisList::OnTimer(wxTimerEvent &event)
 {
-	StartThread();
-	//SetList();
-	//fprintf(stdout,"%d\n",c);
+	SetList();
 }
 
 void CAisList::SetSignal(int signal)
@@ -67,19 +65,14 @@ void CAisList::ClearList()
 void CAisList::SetList()
 {
 	int count = 0;
-	count = ais_get_search_item_count();
-
-	if(count > 0)
+	if(ais_get_search_ready())
 	{
+		count = ais_get_search_item_count();
 		m_List->SetItemCount(count);
+		m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
 		m_List->SetSearch(true);
-	
-	}else{
-	
-		m_List->SetItemCount(ais_get_item_count());
-		m_List->SetSearch(false);
-	
 	}
+	
 }
 
 void CAisList::SetHtml(wxString html)
@@ -100,42 +93,42 @@ void CAisList::ShowHtmlPanel()
 
 void CAisList::OnSearchButton(wxCommandEvent &event)
 {
-	//CThread *Thread = new CThread(this);
-	//Thread->SetWorkId(WORK_SEARCH);
-	//Thread->Start();
-}
 
-void CAisList::StartThread()
-{
-	if(m_Working)
-		return;
-
-	m_Working = true;
-	CThread *Thread = new CThread(this);
-	Thread->SetWorkId(WORK_SEARCH);
-	Thread->Start();
 }
 
 void CAisList::OnSearchEnter(wxCommandEvent &event)
 {
-	StartThread();
+	SetSearchText(m_SearchText->GetValue().char_str());
+}
+
+void CAisList::OnSearchText(wxCommandEvent &event)
+{
+	SetSearchText(m_SearchText->GetValue().char_str());
 }
 
 void CAisList::ThreadBegin()
 {
-	if(m_SearchText->GetValue().Length() > 0)
-		ais_set_search_buffer(m_SearchText->GetValue().char_str());
-	else
-		ais_set_search_buffer(NULL);
+	
+	//fprintf(stdout,"begin\n");
+	
+	//if(GetMutex()->TryLock() == wxMUTEX_BUSY)
+		//return;
+	
+	//m_List->SetItemCount(0);
+	//if(m_SearchText->GetValue().Length() > 0)
+		//ais_set_search_buffer(m_SearchText->GetValue().char_str());
+	//else
+	//	ais_set_search_buffer(NULL);
+	
+	//GetMutex()->Unlock();
+
+	//fprintf(stdout,"end\n");
+
 }
 
 void CAisList::ThreadEnd()
 {
-	int c = ais_get_search_item_count();
-	m_List->SetItemCount(c);
-	//m_List->Refresh();
-	m_List->SetSearch(true);
-	m_Working = false;
+	
 }
 
 void CAisList::OnShowNames(wxCommandEvent &event)
@@ -203,7 +196,7 @@ void CAisList::OnFilter(wxCommandEvent &event)
 	CFilter *Filter = new CFilter();
 	Filter->ShowModal();
 	delete Filter;
-	StartThread();	
+	//StartThread();	
 }
 
 void CAisList::GetPanel()
@@ -212,6 +205,7 @@ void CAisList::GetPanel()
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
 
 	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
+	Notebook->SetDoubleBuffered(true);
 	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
 	wxPanel *Page1 = new wxPanel(Notebook);
 	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
@@ -228,9 +222,7 @@ void CAisList::GetPanel()
 	hSizer->Add(BFilter,0,wxALL,0);
 
 	//m_SearchText->SetValue(m_SearchText);
-
-
-
+	
 
 	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;

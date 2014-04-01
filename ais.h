@@ -1064,6 +1064,7 @@ CNaviArray <SAisData*> *ais_get_buffer();
 void ais_save_file();
 void ais_load_file();
 void ais_set_option(int val);
+bool ais_get_search_ready();
 
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();

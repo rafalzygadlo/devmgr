@@ -172,6 +172,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSocketConfig(int index);
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
+	void PrepareSearchBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareShipNamesBuffer(SAisData *ptr);
 	

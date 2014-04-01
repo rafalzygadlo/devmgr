@@ -31,10 +31,10 @@ class CAisList : public wxPanel
 	void GetPanel();
 	void SetList();
 	void ClearList();
-	void StartThread();
+	//void StartThread();
 	void OnTimer(wxTimerEvent &event);
 	void OnSearchButton(wxCommandEvent &event);
-	//void OnSearchText(wxCommandEvent &event);
+	void OnSearchText(wxCommandEvent &event);
 	void OnSearchEnter(wxCommandEvent &event);
 	void OnShowNames(wxCommandEvent &event);
 	void OnFontSize(wxCommandEvent &event);
