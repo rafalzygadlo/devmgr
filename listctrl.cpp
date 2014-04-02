@@ -14,6 +14,7 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	EVT_CONTEXT_MENU(CListCtrl::OnContextMenu)
 	EVT_LIST_ITEM_SELECTED(ID_LIST,CListCtrl::OnSelected)
 	EVT_PAINT(CListCtrl::OnPaint)
+	//EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
 	EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
@@ -255,7 +256,10 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 		return _("N/A"); 
 	
 	GetMutex()->Lock();
-			
+		
+	if(item > ais_get_search_item_count())
+		return _("N/A"); 
+	
 	wxString str;
 	wxString name;
 
@@ -299,19 +303,12 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	wxString lat(_("N/A"));
 	
 	double _lon,_lat;
-	if(ais_set_lon_lat(ais,&_lon,&_lat))
-	{
-		lon = wxString::Format(_("%4.2f"),_lon);
-		lat = wxString::Format(_("%4.2f"),_lat);
-	}
-
+	
 	switch (column)
 	{
 		case 0:	str = mes;										break;
 		case 1:	str = wxString::Format(_("%d"),ais->mmsi);		break;
 		case 2:	str = wxString::Format(_("%s"),name.wc_str());	break;
-		case 3: str = lon;										break;
-		case 4: str = lat;										break;
 	}
 
 	return str;

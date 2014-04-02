@@ -264,6 +264,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ShowFrameWindow(bool show);
 	void Synchro();
 	void SendSynchroSignal();
+	void ShowMenu();
 	
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);

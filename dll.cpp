@@ -1308,10 +1308,10 @@ void CMapPlugin::PrepareSearchBuffer()
 {
 	if(GetMutex()->TryLock() == wxMUTEX_BUSY)
 		return;
-
-
-
+	ais_set_search_buffer(GetSearchText());
 	GetMutex()->Unlock();
+	
+	SendSignal(SIGNAL_UPDATE_LIST,0);
 }
 
 void CMapPlugin::PrepareBuffer()
@@ -2909,6 +2909,9 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 		m_MouseUp = true;	
 	}
 	
+	if(rmb)
+		ShowMenu();
+
 	if(lmb)
 	{
 		m_MouseLmb = true;
@@ -2929,6 +2932,12 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 void CMapPlugin::MouseDBLClick(int x, int y)
 {
 	m_MouseDLmb = true;
+}
+
+void CMapPlugin::ShowMenu()
+{
+	wxMenu *Menu = new wxMenu();
+	Menu->Append(0,_("test"));
 }
 
 void CMapPlugin::RunThread()

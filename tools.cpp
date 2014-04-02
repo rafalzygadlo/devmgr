@@ -102,7 +102,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Second of UTC timestamp"),
 		_("Speed"),
 		_("Navigation Status"),
-		_("ROT"),
+		_("Turn"),
 		_("Turning left at more than 5deg/30s (No TI available)"),
 		_("Turning right at more than 5deg/30s (No TI available)"),
 		_("Turning left at up to 708 degrees per minute or higher"),
@@ -170,6 +170,8 @@ const wchar_t *nvLanguage[2][183] =
 		_("Ship color 2"),
 		_("Aton color"),
 		_(".."),
+		_("Simple"),
+		_("All"),
 
 	},
 	

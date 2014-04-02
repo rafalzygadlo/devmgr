@@ -20,13 +20,14 @@ class CAisList : public wxPanel
 	CNaviBroker *m_Broker;
 	CDisplayPlugin *m_Display;
 	CListCtrl *m_List;
-	wxTimer *m_Timer;
+	wxNotebook *m_Notebook;
 	wxBoxSizer *m_Page1Sizer;
 	wxSearchCtrl *m_SearchText;
 	wxCheckBox *m_ShipNames;
 	wxSlider *m_FontSize;
 	wxCheckBox *m_COGLine,*m_HDTLine;
 	wxColourPickerCtrl *m_ShipColor0, *m_ShipColor1 , *m_ShipColor2, *m_AtonColor;
+	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
 	void SetList();

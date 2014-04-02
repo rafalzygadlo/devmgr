@@ -16,18 +16,18 @@ class CMyFrame: public wxDialog
 {
 	SAisData *SelectedPtr;
 	CMapPlugin *m_DLL;	
-	wxPanel *Panel;
+	wxPanel *Page0,*Page1;
 	wxButton *ButtonClose;
 	int ParentX, ParentY;
 	wxWindow *_ParentPtr;
-	wxHtmlWindow *Html;
+	wxHtmlWindow *m_Html0, *m_Html1;
 	bool AfterInit;
 	
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
-	void SetHtml(wxString html);
+	void SetHtml(wxString html, int page);
 	void ShowHtmlPanel();
-	void ClearHtml();
+	void ClearHtml(int page);
 	bool IsOnScreen(int x, int y);
 					
 public:

@@ -67,6 +67,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DATA_SIGNAL					14	// sygnał danych
 #define CLEAR_AIS_LIST				15	// set item count na 0
 #define	SIGNAL_SYNCHRO_OPTIONS		16
+#define SIGNAL_UPDATE_LIST			17	//aktualizacja listy ais w kontrolce
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
@@ -227,6 +228,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_SHIP_COLOR_2				147
 #define MSG_ATON_COLOR					148
 #define MSG_FILTER						149
+#define MSG_AIS_INFO_SIMPLE				150
+#define MSG_AIS_INFO_ALL				151
 
 #define MAX_DATA_POSITIONS	10
 
@@ -247,6 +250,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_FRAGMENT_COUNTER	1
 #define AIS_DATA				5
 #define AIS_SHIPNAME_MAXLEN		20
+#define AIS_CALLSIGN_MAXLEN		8
 #define AIS_NAME_MAXLEN			64
 #define AIS_ATON_NAME_MAXLEN	35
 #define AIS_PARTS				7 // czesci wiadomosci
@@ -304,6 +308,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define IS_BIT_SET(k, n)  ((k) & (1 << (n)))
 #define DEFAULT_FILTER	134217727
 
+#define PAGE_0 0
+#define PAGE_1 1
+
 typedef struct SData
 {
 	int		id;
@@ -330,11 +337,13 @@ typedef struct
 	float cog;
 	float hdg;
 	float sog;
+	int turn;
 	int to_bow;
 	int to_stern;
 	int to_port;
 	int to_starboard;
 	char name[64 + 1];	// shipname, aton name itp
+	char callsign[AIS_CALLSIGN_MAXLEN];
 	int time;
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja

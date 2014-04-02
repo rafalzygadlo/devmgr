@@ -11,7 +11,6 @@
 #include "filter.h"
 
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
-	EVT_TIMER(ID_TIMER,OnTimer)
 	EVT_SEARCHCTRL_SEARCH_BTN(ID_SEARCH,OnSearchButton)
 	EVT_TEXT(ID_SEARCH,OnSearchText)
 	EVT_TEXT_ENTER(ID_SEARCH,OnSearchEnter)
@@ -32,28 +31,21 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 	m_Broker = plugin->GetBroker();
 	m_Display = display;
 	GetPanel();
-	m_Timer = new wxTimer(this,ID_TIMER);
-	m_Timer->Start(1000);
-	SetList();
+	m_OldCount = 0;
 	m_Working = false;
+	SetList();
 }
 
 CAisList::~CAisList()
 {
-	m_Timer->Stop();
-	delete m_Timer;
-}
-
-void CAisList::OnTimer(wxTimerEvent &event)
-{
-	SetList();
 }
 
 void CAisList::SetSignal(int signal)
 {
 	switch(signal)
 	{
-		case CLEAR_AIS_LIST:	ClearList();	break;
+		case CLEAR_AIS_LIST:		ClearList();	break;
+		case SIGNAL_UPDATE_LIST:	SetList();		break;
 	}
 }
 
@@ -71,6 +63,11 @@ void CAisList::SetList()
 		m_List->SetItemCount(count);
 		m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
 		m_List->SetSearch(true);
+
+		//if(m_OldCount != count)
+			//m_Notebook->SetPageText(PAGE_0,wxString::Format(GetMsg(MSG_AIS_TARGETS),count));
+		//m_OldCount = count;
+		
 	}
 	
 }
@@ -108,21 +105,6 @@ void CAisList::OnSearchText(wxCommandEvent &event)
 
 void CAisList::ThreadBegin()
 {
-	
-	//fprintf(stdout,"begin\n");
-	
-	//if(GetMutex()->TryLock() == wxMUTEX_BUSY)
-		//return;
-	
-	//m_List->SetItemCount(0);
-	//if(m_SearchText->GetValue().Length() > 0)
-		//ais_set_search_buffer(m_SearchText->GetValue().char_str());
-	//else
-	//	ais_set_search_buffer(NULL);
-	
-	//GetMutex()->Unlock();
-
-	//fprintf(stdout,"end\n");
 
 }
 
@@ -204,13 +186,13 @@ void CAisList::GetPanel()
 
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
 
-	wxNotebook *Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME);
-	Notebook->SetDoubleBuffered(true);
-	m_Sizer->Add(Notebook,1,wxALL|wxEXPAND,0);
-	wxPanel *Page1 = new wxPanel(Notebook);
+	m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME|wxCLIP_CHILDREN);
+	m_Notebook->SetDoubleBuffered(true);
+	m_Sizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
+	wxPanel *Page1 = new wxPanel(m_Notebook);
 	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(m_Page1Sizer);
-	Notebook->AddPage(Page1,GetMsg(MSG_AIS_TARGETS));
+	m_Notebook->AddPage(Page1,(GetMsg(MSG_AIS_TARGETS)));
 
 	wxBoxSizer *hSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_Page1Sizer->Add(hSizer,0,wxALL|wxEXPAND,0);
@@ -229,18 +211,18 @@ void CAisList::GetPanel()
 	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);
 	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
 	item.SetWidth(100);	item.SetText(GetMsg(MSG_SHIPNAME));	m_List->InsertColumn(2,item);
-	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
-	item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
+	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
+	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
 
 	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
 	
-	wxPanel *Page2 = new wxPanel(Notebook);
+	wxPanel *Page2 = new wxPanel(m_Notebook);
 	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
 	Page2->SetSizer(m_Page2Sizer);
-	Notebook->AddPage(Page2,GetMsg(MSG_AIS_OPTIONS));
+	m_Notebook->AddPage(Page2,GetMsg(MSG_AIS_OPTIONS));
 
 	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
 	wxScrolledWindow *Scroll = new wxScrolledWindow(Page2, wxID_ANY, wxDefaultPosition, wxDefaultSize);

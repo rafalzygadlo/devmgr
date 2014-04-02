@@ -26,17 +26,30 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	_ParentPtr = ParentPtr;
 	AfterInit = false;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
-	Panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize);
-	// Page1
-	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
-		
-	Panel->SetSizer(PanelSizer);
+	wxNotebook *m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME|wxCLIP_CHILDREN);
+	m_Notebook->SetDoubleBuffered(true);
+	MainSizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
 	
-	Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxSize(350,400));
-	PanelSizer->Add(Html,1,wxALL|wxEXPAND,0);
+	// Page0
+	Page0 = new wxPanel(m_Notebook,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	m_Notebook->AddPage(Page0,(GetMsg(MSG_AIS_INFO_SIMPLE)));
+	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Page0->SetSizer(Page1Sizer);
+	m_Html0 = new wxHtmlWindow(Page0,wxID_ANY,wxDefaultPosition,wxSize(350,400));
+	Page1Sizer->Add(m_Html0,1,wxALL|wxEXPAND,0);
 			
+	// Page2
+	Page1 = new wxPanel(m_Notebook,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	m_Notebook->AddPage(Page1,(GetMsg(MSG_AIS_INFO_ALL)));
+	wxBoxSizer *Page2Sizer = new wxBoxSizer(wxVERTICAL);
+	Page1->SetSizer(Page2Sizer);
+	m_Html1 = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxSize(350,400));
+	Page2Sizer->Add(m_Html1,1,wxALL|wxEXPAND,0);
+	
+	//Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxSize(350,400));
+	//Page2Sizer->Add(Html,1,wxALL|wxEXPAND,0);
+		
 	//Other
-	MainSizer->Add(Panel,1,wxALL|wxEXPAND,0);
 	//ButtonClose = new wxButton(this,ID_CLOSE,GetMsg(MSG_CLOSE),wxDefaultPosition,wxDefaultSize);
 	//MainSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 		
@@ -46,7 +59,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 		GetSizer()->SetSizeHints(this);
 		
 	Center();
-	this->SetTransparent(200);
+	this->SetTransparent(220);
 	AfterInit = true;
 }
 
@@ -69,16 +82,23 @@ void CMyFrame::OnClose(wxCloseEvent &event)
 	Hide();
 }
 
-void CMyFrame::SetHtml(wxString html)
+void CMyFrame::SetHtml(wxString html,int page)
 {
-	Html->AppendToPage(html);
+	switch(page)
+	{
+		case PAGE_0: m_Html0->AppendToPage(html); break;
+		case PAGE_1: m_Html1->AppendToPage(html); break;
+	}
 }
 
-void CMyFrame::ClearHtml()
+void CMyFrame::ClearHtml(int page)
 {
-	Html->SetPage(wxEmptyString);
+	switch(page)
+	{
+		case PAGE_0: m_Html0->SetPage(wxEmptyString); break;
+		case PAGE_1: m_Html1->SetPage(wxEmptyString); break;
+	}
 }
-
 
 void CMyFrame::ShowWindow(bool show)
 {
@@ -125,24 +145,28 @@ void CMyFrame::ShowWindow(bool show)
 		
 		this->SetPosition(pt);
 	
-		ClearHtml();
-		SetHtml(_("<a name='top'></a><br>"));
 		ais_t *ais = (ais_t*)SelectedPtr->ais_ptr;
-		SetHtml(PrintHtmlAnchors(ais));
+		ClearHtml(PAGE_0);
+		SetHtml(_("<a name='top'></a><br>"),PAGE_0);
+		SetHtml(PrintHtmlSimple(ais),PAGE_0);
+	
+		ClearHtml(PAGE_1);
+		SetHtml(_("<a name='top'></a><br>"),PAGE_1);
+		
+		SetHtml(PrintHtmlAnchors(ais),PAGE_1);
 	
 		for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
 		{
 			if(ais->valid[i])
 			{
-				SetHtml(PrintHtmlMsg(ais,i));
+				SetHtml(PrintHtmlMsg(ais,i),PAGE_1);
 			}
 		}
 		
 	}
 	
 	Show(show);
-	if(show)
-		Html->SetFocus();
+	
 }
 
 bool CMyFrame::IsOnScreen(int x, int y)

@@ -598,7 +598,7 @@ void ais_prepare_buffer(ais_t *ais)
 	AisData->time = GetTickCount();
 	bool exists = false;
 	
-	if(ais_set_lon_lat(ais,&AisData->lon,&AisData->lat))
+	if(ais_set_lon_lat(ais,AisData))
 	{
 		exists = true;			// wystarczy ze mamy lon lat
 		AisData->valid_pos = true;
@@ -635,19 +635,19 @@ void ais_prepare_buffer(ais_t *ais)
 
 }	
 
-bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
+bool ais_set_lon_lat(ais_t *ais,  SAisData *ptr)
 {
 	
-	if(ais->valid[AIS_MSG_1])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
-	if(ais->valid[AIS_MSG_2])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
-	if(ais->valid[AIS_MSG_3])	{	*lon = get_lon_lat(ais->type1.lon);		*lat = get_lon_lat(ais->type1.lat);		return true;	}
-	if(ais->valid[AIS_MSG_4])	{	*lon = get_lon_lat(ais->type4.lon);		*lat = get_lon_lat(ais->type4.lat);		return true;	}
-	if(ais->valid[AIS_MSG_9])	{	*lon = get_lon_lat(ais->type9.lon);		*lat = get_lon_lat(ais->type9.lat);		return true;	}
-	if(ais->valid[AIS_MSG_17])	{	*lon = get_lon_lat(ais->type17.lon);	*lat = get_lon_lat(ais->type17.lat);	return true;	}
-	if(ais->valid[AIS_MSG_18])	{	*lon = get_lon_lat(ais->type18.lon);	*lat = get_lon_lat(ais->type18.lat);	return true;	}
-	if(ais->valid[AIS_MSG_19])	{	*lon = get_lon_lat(ais->type19.lon);	*lat = get_lon_lat(ais->type19.lat);	return true;	}
-	if(ais->valid[AIS_MSG_21])	{	*lon = get_lon_lat(ais->type21.lon);	*lat = get_lon_lat(ais->type21.lat);	return true;	}
-	if(ais->valid[AIS_MSG_27])	{	*lon = get_lon_lat(ais->type27.lon);	*lat = get_lon_lat(ais->type27.lat);	return true;	}
+	if(ais->valid[AIS_MSG_1])	{	ptr->lon = get_lon_lat(ais->type1.lon);		ptr->lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_2])	{	ptr->lon = get_lon_lat(ais->type1.lon);		ptr->lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_3])	{	ptr->lon = get_lon_lat(ais->type1.lon);		ptr->lat = get_lon_lat(ais->type1.lat);		return true;	}
+	if(ais->valid[AIS_MSG_4])	{	ptr->lon = get_lon_lat(ais->type4.lon);		ptr->lat = get_lon_lat(ais->type4.lat);		return true;	}
+	if(ais->valid[AIS_MSG_9])	{	ptr->lon = get_lon_lat(ais->type9.lon);		ptr->lat = get_lon_lat(ais->type9.lat);		return true;	}
+	if(ais->valid[AIS_MSG_17])	{	ptr->lon = get_lon_lat(ais->type17.lon);	ptr->lat = get_lon_lat(ais->type17.lat);	return true;	}
+	if(ais->valid[AIS_MSG_18])	{	ptr->lon = get_lon_lat(ais->type18.lon);	ptr->lat = get_lon_lat(ais->type18.lat);	return true;	}
+	if(ais->valid[AIS_MSG_19])	{	ptr->lon = get_lon_lat(ais->type19.lon);	ptr->lat = get_lon_lat(ais->type19.lat);	return true;	}
+	if(ais->valid[AIS_MSG_21])	{	ptr->lon = get_lon_lat(ais->type21.lon);	ptr->lat = get_lon_lat(ais->type21.lat);	return true;	}
+	if(ais->valid[AIS_MSG_27])	{	ptr->lon = get_lon_lat(ais->type27.lon);	ptr->lat = get_lon_lat(ais->type27.lat);	return true;	}
 
 	
 	/*
@@ -670,6 +670,32 @@ bool ais_set_lon_lat(ais_t *ais, double *lon, double *lat)
 	
 	//return true;
 //}
+
+bool ais_set_mmsi(ais_t *ais, SAisData *ptr)
+{
+	ptr->mmsi = ais->mmsi;
+	return true;
+}
+
+bool ais_set_turn(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_1])	{	ptr->turn = ais->type1.turn;	return true;}
+	if(ais->valid[AIS_MSG_2])	{	ptr->turn = ais->type1.turn;	return true;}
+	if(ais->valid[AIS_MSG_3])	{	ptr->turn = ais->type1.turn;	return true;}
+
+	return false;
+}
+
+bool ais_set_callsign(ais_t *ais, SAisData *ptr)
+{
+	if(ais->valid[AIS_MSG_5])
+	{
+		memcpy(ptr->callsign,ais->type5.callsign,AIS_CALLSIGN_MAXLEN + 1);
+		return true;
+	}
+
+	return false;
+}
 
 bool ais_set_name(ais_t *ais, SAisData *ptr)
 {
@@ -1987,6 +2013,49 @@ wxString PrintHtmlAnchors(ais_t *msg)
 	
 }
 
+wxString PrintHtmlSimple(ais_t *msg)
+{
+	wxArrayString ar;
+	wxString str;
+	
+	SAisData ptr;
+	ptr.cog = AIS_COURSE_NOT_AVAILABLE;
+	ptr.hdg = AIS_HEADING_NOT_AVAILABLE;
+	ptr.lon = AIS_LON_NOT_AVAILABLE;
+	ptr.lat = AIS_LAT_NOT_AVAILABLE;
+	ptr.sog = AIS_SPEED_NOT_AVAILABLE;
+	ptr.turn = AIS_TURN_NOT_AVAILABLE;
+
+	ais_set_mmsi(msg,&ptr);		ar.Add(GetMsg(MSG_MMSI));		ar.Add(get_value_as_string(ptr.mmsi));
+	ais_set_callsign(msg,&ptr);	ar.Add(GetMsg(MSG_CALLSIGN));	ar.Add(get_value_as_string(ptr.callsign));
+	ais_set_name(msg,&ptr);		ar.Add(GetMsg(MSG_SHIPNAME));	ar.Add(get_value_as_string(ptr.name));
+	ais_set_cog(msg,&ptr);		ar.Add(GetMsg(MSG_COG));		ar.Add(get_value_as_string(get_cog(ptr.cog),true,AIS_COURSE_NOT_AVAILABLE));
+	ais_set_hdg(msg,&ptr);		ar.Add(GetMsg(MSG_HEADING));	ar.Add(get_value_as_string(get_hdg(ptr.hdg),true,AIS_HEADING_NOT_AVAILABLE));
+	
+	ais_set_lon_lat(msg, &ptr);	ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(ptr.lat*AIS_LATLON_DIV),true,AIS_LAT_NOT_AVAILABLE));
+								ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(ptr.lon*AIS_LATLON_DIV),true,AIS_LON_NOT_AVAILABLE));
+	
+	
+	ais_set_sog(msg, &ptr);		ar.Add(GetMsg(MSG_SPEED));		ar.Add(get_value_as_string(get_speed(ptr.sog),true,AIS_SPEED_NOT_AVAILABLE));
+		
+	ais_set_turn(msg, &ptr);	ar.Add(GetMsg(MSG_TURN));		ar.Add((GetTurn(ptr.turn)));
+	
+
+	str.Append(_("<table border=0 cellpadding=3 cellspacing=0>"));
+	
+	for(size_t i = 0; i < ar.size(); i+=2)
+	{
+		str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),ar.Item(i),ar.Item(i + 1)));
+	}
+	
+	
+	str.Append(GetHtmlFooter());	
+
+
+	return str;
+
+}
+
 wxString PrintHtmlMsg(ais_t *msg, int type)
 {
 	wxString str;
@@ -2031,7 +2100,7 @@ wxArrayString PrepareMsg_1(ais_t::msg1 msg)
 	ar.Add(GetMsg(MSG_SECOND));				ar.Add(get_value_as_string(msg.second,true,AIS_SEC_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_SPEED));				ar.Add(get_value_as_string(get_speed(msg.speed),true,AIS_SPEED_NOT_AVAILABLE));
 	ar.Add(GetMsg(MSG_NAVIGATION_STATUS));	ar.Add(GetNavigationStatus(msg.status));
-	ar.Add(GetMsg(MSG_TURN));				ar.Add(GetTurn(msg.status));
+	ar.Add(GetMsg(MSG_TURN));				ar.Add(GetTurn(msg.turn));
 	
 
 	return ar;
