@@ -650,15 +650,15 @@ bool ais_set_lon_lat(ais_t *ais,  SAisData *ptr)
 	if(ais->valid[AIS_MSG_27])	{	ptr->lon = get_lon_lat(ais->type27.lon);	ptr->lat = get_lon_lat(ais->type27.lat);	return true;	}
 
 	
-	/*
+	
 	if(ais->valid[AIS_MSG_8] )	
 	{	
-		if(ais->type8.dac1fid11.valid)	{	*lon = ais->type8.dac1fid11.lon;	*lat = ais->type8.dac1fid11.lat;		return true;}
-		if(ais->type8.dac1fid19.valid)	{	*lon = ais->type8.dac1fid19.lon;	*lat = ais->type8.dac1fid19.lat;		return true;}
-		if(ais->type8.dac1fid31.valid)	{	*lon = ais->type8.dac1fid31.lon;	*lat = ais->type8.dac1fid31.lat;		return true;}
-		if(ais->type8.dac200fid40.valid){	*lon = ais->type8.dac200fid40.lon;	*lat = ais->type8.dac200fid40.lat;		return true;}	
+		if(ais->type8.dac1fid11.valid)	{	ptr->lon  = ais->type8.dac1fid11.lon;	ptr->lat = ais->type8.dac1fid11.lat;		return true;}
+		if(ais->type8.dac1fid19.valid)	{	ptr->lon  = ais->type8.dac1fid19.lon;	ptr->lat = ais->type8.dac1fid19.lat;		return true;}
+		if(ais->type8.dac1fid31.valid)	{	ptr->lon  = ais->type8.dac1fid31.lon;	ptr->lat = ais->type8.dac1fid31.lat;		return true;}
+		if(ais->type8.dac200fid40.valid){	ptr->lon  = ais->type8.dac200fid40.lon;	ptr->lat = ais->type8.dac200fid40.lat;		return true;}	
 	}
-	*/
+	
 	return false;
 }
 //bool ais_set_aton_name(ais_t *ais, SAisData *ptr)
@@ -1890,7 +1890,6 @@ float get_hdg(unsigned int v)
 	return (float)(v);
 }
 
-
 float get_lon_lat(int val)
 {
 	return (float)(val / AIS_LATLON_DIV);
@@ -2036,7 +2035,7 @@ wxString PrintHtmlSimple(ais_t *msg)
 								ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(ptr.lon*AIS_LATLON_DIV),true,AIS_LON_NOT_AVAILABLE));
 	
 	
-	ais_set_sog(msg, &ptr);		ar.Add(GetMsg(MSG_SPEED));		ar.Add(get_value_as_string(get_speed(ptr.sog),true,AIS_SPEED_NOT_AVAILABLE));
+	ais_set_sog(msg, &ptr);		ar.Add(GetMsg(MSG_SPEED));		ar.Add(get_value_as_string(get_speed(ptr.sog*10),true,AIS_SPEED_NOT_AVAILABLE));
 		
 	ais_set_turn(msg, &ptr);	ar.Add(GetMsg(MSG_TURN));		ar.Add((GetTurn(ptr.turn)));
 	
@@ -2238,6 +2237,28 @@ wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg)
 	ar.Add(GetMsg(MSG_SPEED_INF_QUALITY));		ar.Add(GetSpeedQuality(msg.speed_q));
 	ar.Add(GetMsg(MSG_COURSE_INF_QUALITY));		ar.Add(GetCourseQuality(msg.course_q));
 	ar.Add(GetMsg(MSG_HEADING_INF_QUALITY));	ar.Add(GetHeadingQuality(msg.course_q));
+
+	return ar;
+
+}
+
+
+wxArrayString PrepareMsg_21(ais_t::msg21 msg)
+{
+	wxArrayString ar;
+
+	//ar.Add(GetMsg(MSG_ACCURACY));	ar.Add(get_value_as_string(msg.accuracy));
+	//ar.Add(GetMsg(MSG_RAIM));		ar.Add(get_value_as_string(msg.raim));
+	//ar.Add(GetMsg(MSG_RADIO));		ar.Add(get_value_as_string(msg.radio));
+	//ar.Add(GetMsg(MSG_YEAR));		ar.Add(get_value_as_string(msg.year,true,AIS_YEAR_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_MONTH));		ar.Add(get_value_as_string(msg.month,true,AIS_MONTH_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_DAY));		ar.Add(get_value_as_string(msg.day,true,AIS_DAY_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_HOUR));		ar.Add(get_value_as_string(msg.hour,true,AIS_HOUR_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_MINUTE));		ar.Add(get_value_as_string(msg.minute,true,AIS_MINUTE_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_SECONDS));	ar.Add(get_value_as_string(msg.second,true,AIS_SECOND_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(msg.lat),true,AIS_LAT_NOT_AVAILABLE).wc_str());
+	//ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(msg.lon),true,AIS_LON_NOT_AVAILABLE));
+	//ar.Add(GetMsg(MSG_EPFD));		ar.Add(GetEPFDFixTypes(msg.epfd));
 
 	return ar;
 

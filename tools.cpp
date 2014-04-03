@@ -5,6 +5,7 @@
 #include "GeometryTools.h"
 
 wxMutex *mutex = NULL;
+wxMutex *smutex = NULL;
 int GlobalLanguageID;
 bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
@@ -375,6 +376,7 @@ void FreeMutex()
 		delete mutex;
 	mutex = NULL;
 }
+
 void InitMutex()
 {
 	mutex = new wxMutex();
@@ -383,6 +385,23 @@ void InitMutex()
 wxMutex *GetMutex()
 {
 	return mutex;
+}
+
+void FreeSearchMutex()
+{
+	if(smutex)
+		delete smutex;
+	smutex = NULL;
+}
+
+void InitSearchMutex()
+{
+	smutex = new wxMutex();
+}
+
+wxMutex *GetSearchMutex()
+{
+	return smutex;
 }
 
 bool SetGlobalPrioryty(int fid)

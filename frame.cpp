@@ -27,7 +27,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	AfterInit = false;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	wxNotebook *m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME|wxCLIP_CHILDREN);
-	m_Notebook->SetDoubleBuffered(true);
+	//m_Notebook->SetDoubleBuffered(true);
 	MainSizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
 	
 	// Page0
@@ -59,7 +59,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 		GetSizer()->SetSizeHints(this);
 		
 	Center();
-	this->SetTransparent(220);
+	//this->SetTransparent(220);
 	AfterInit = true;
 }
 

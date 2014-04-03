@@ -54,7 +54,7 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = plugin;
-	SetDoubleBuffered(true);
+	//SetDoubleBuffered(true);
 	
 	
 	m_FirstTime = true;

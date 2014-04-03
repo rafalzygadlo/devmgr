@@ -14,6 +14,7 @@
 #include "images/ship.img"
 #include "options.h"
 #include "signals.h"
+#include "NaviDrawer.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -124,6 +125,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	
 	SetTickerTick();
 	InitMutex();
+	InitSearchMutex();
 	ais_load_file();
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -141,6 +143,7 @@ CMapPlugin::~CMapPlugin()
 	
 	ClearBuffers();
 	FreeMutex();
+	FreeSearchMutex();
 	
 }
 
@@ -296,13 +299,11 @@ void CMapPlugin::CreateTextures(void)
 	CreateTexture( m_TextureTGA_0,  &m_TextureID_0 );
 }
 
-
 void CMapPlugin::OnInitGL()
 {
-	
-	
 	m_Font->InitGL();
 }
+
 void CMapPlugin::SetShip(SFunctionData *data)
 {
 	memcpy(m_ShipGlobalState,data->values,sizeof(data->values));
@@ -827,7 +828,7 @@ void CMapPlugin::SetSmoothScaleFactor(double _Scale)
 
 bool CMapPlugin::IsOnScreen(double x, double y)
 {
-	if(IsPointInsideBox(x, y, m_ScreenX1 , m_ScreenY1, m_ScreenX2, m_ScreenY2))
+	if(nvIsPointInCircle(x,y,m_MapCircle.Center.x,m_MapCircle.Center.y,m_MapCircle.Radius))
 		return true;
 	
 	return false;
@@ -1303,13 +1304,78 @@ void CMapPlugin::SetBuffers()
 	}
 
 }
+/*
+void CMapPlugin::PrepareListBuffer()
+{
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+
+	wxString str;
+	wxString name;
+
+	ais_t *ais = NULL;
+	int count = ais_get
+	for(size_t i = 0 i < 
+	
+	ais = ais_get_search_item(item);
+		
+	wxString mes;
+	for(size_t i = 1; i < AIS_MESSAGES_LENGTH;i++)
+	{
+		if(ais->valid[i])
+			mes.Append(wxString::Format(_("[%d]"),i));
+	}
+	
+	if(ais->valid[AIS_MSG_5])
+	{
+		wxString name5(ais->type5.shipname,wxConvUTF8);
+		name = name5;
+	}
+	
+	if(ais->valid[AIS_MSG_19])
+	{
+		wxString name19(ais->type5.shipname,wxConvUTF8);
+		name = name19;
+	}
+	
+	if(ais->valid[AIS_MSG_21])
+	{
+		wxString name21(ais->type21.name,wxConvUTF8);
+		name = name21;
+	}
+	
+	if(ais->valid[AIS_MSG_24])
+	{
+		wxString name24(ais->type24.shipname,wxConvUTF8);
+		name = name24;
+	}
+	
+	wxString lon(_("N/A"));
+	wxString lat(_("N/A"));
+	
+	double _lon,_lat;
+	
+	switch (column)
+	{
+		case 0:	str = mes;										break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);		break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());	break;
+
+	}	
+	
+	GetMutex()->Unlock();
+
+}
+*/
 
 void CMapPlugin::PrepareSearchBuffer()
 {
-	if(GetMutex()->TryLock() == wxMUTEX_BUSY)
+	int counter = 0;
+	if(GetSearchMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
+
 	ais_set_search_buffer(GetSearchText());
-	GetMutex()->Unlock();
+	GetSearchMutex()->Unlock();
 	
 	SendSignal(SIGNAL_UPDATE_LIST,0);
 }
@@ -1317,14 +1383,15 @@ void CMapPlugin::PrepareSearchBuffer()
 void CMapPlugin::PrepareBuffer()
 {
 	m_Ready = false;
-	if(GetMutex()->TryLock() == wxMUTEX_BUSY)
-		return;
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;	
 	
 	SetPtr0();
 	ClearBuffers();
 	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
+	
 	
 	GetMutex()->Unlock();
 	m_Ready = true;
@@ -2785,7 +2852,7 @@ void CMapPlugin::_RenderShips()
 
 void CMapPlugin::Render()
 {
-		
+	
 	Generate();
 	SetValues();
 	glEnable(GL_BLEND);
@@ -2804,7 +2871,8 @@ void CMapPlugin::Render()
 	RenderGPS();
 	RenderSelection();
 	RenderShipNames();
-	
+		
+
 	glLineWidth(1);		
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -2858,10 +2926,18 @@ void CMapPlugin::SetValues()
 	double vmap[4];
 	m_Broker->GetVisibleMap(vmap);
 
-	m_ScreenX1 = vmap[0];
-	m_ScreenY1 = vmap[1];
-	m_ScreenX2 = vmap[2];
-	m_ScreenY2 = vmap[3];
+	m_ScreenX1 = vmap[0]*2;
+	m_ScreenY1 = vmap[1]*2;
+	m_ScreenX2 = vmap[2]*2;
+	m_ScreenY2 = vmap[3]*2;
+	
+	double rx = sqrt((vmap[2] - vmap[0]) * (vmap[2] - vmap[0]) + (vmap[3] - vmap[1]) * (vmap[3] - vmap[1])) * 2.0;
+	float x = (vmap[0] + vmap[2])/2;
+	float y = (vmap[1] + vmap[3])/2;
+	
+	m_MapCircle.Center.x = x;
+	m_MapCircle.Center.y = y;
+	m_MapCircle.Radius = rx;
 	
 	m_Broker->GetMouseOM(mom);
 	m_Broker->Unproject(mom[0],mom[1],&_x,&_y);
@@ -2970,7 +3046,7 @@ void CMapPlugin::ThreadEnd()
 		if(m_SelectedPtr != NULL && m_MouseDLmb)
 			ShowFrameWindow(true);
 		//else
-			//ShowFrameWindow(false);
+		//	ShowFrameWindow(false);
 	}
 	
 	m_MouseUp = false;

@@ -27,7 +27,7 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 :wxPanel(parent)
 {
 	m_Broker = NULL;
-	SetDoubleBuffered(true);
+	//SetDoubleBuffered(true);
 	m_Broker = plugin->GetBroker();
 	m_Display = display;
 	GetPanel();
@@ -187,7 +187,7 @@ void CAisList::GetPanel()
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
 
 	m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME|wxCLIP_CHILDREN);
-	m_Notebook->SetDoubleBuffered(true);
+	//m_Notebook->SetDoubleBuffered(true);
 	m_Sizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
 	wxPanel *Page1 = new wxPanel(m_Notebook);
 	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
@@ -209,8 +209,8 @@ void CAisList::GetPanel()
 	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);
-	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
-	item.SetWidth(100);	item.SetText(GetMsg(MSG_SHIPNAME));	m_List->InsertColumn(2,item);
+	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
+	item.SetWidth(200);	item.SetText(GetMsg(MSG_SHIPNAME));	m_List->InsertColumn(2,item);
 	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
 	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);

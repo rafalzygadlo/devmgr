@@ -10,6 +10,11 @@ wxString GetProductInfo();
 wxString GetProductName();
 wxMutex *GetMutex();
 void FreeMutex();
+
+wxMutex *GetSearchMutex();
+void FreeSearchMutex();
+void InitSearchMutex();
+
 wxString GetPluginConfigPath();								
 wxString GetWorkDir(void);
 void PrintInfo(CNaviBroker *Broker,wchar_t *text);	// drukuj info na mapie

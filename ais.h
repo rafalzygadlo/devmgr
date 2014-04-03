@@ -897,7 +897,7 @@ struct ais_t
 	    unsigned int increment4;	/* repeat increment */
 	} type20;
 	/* Type 21 - Aids to Navigation Report */
-	struct {
+	struct msg21{
 	    unsigned int aid_type;	/* aid type */
 	    char name[AIS_ATON_NAME_MAXLEN + 1];		/* name of aid to navigation */
 	    bool accuracy;		/* position accuracy */
@@ -1038,6 +1038,7 @@ wxArrayString PrepareMsg_5(ais_t::msg5 msg);
 wxArrayString PrepareMsg_8(ais_t::msg8 msg);
 wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg);
 wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg);
+wxArrayString PrepareMsg_21(ais_t::msg21 msg);
 
 wxString PrintHtmlSimple(ais_t *msg);
 wxString PrintHtmlMsg(ais_t *msg, int type);

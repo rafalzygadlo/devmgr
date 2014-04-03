@@ -78,8 +78,8 @@ class CMapPlugin :public CNaviMapIOApi
 	SAisData *m_SelectedPtr,*m_OldSelectedPtr;
 	bool m_MouseLmb, m_MouseDLmb,m_MouseUp;
 	CMyFrame *m_MyFrame;
+	nvCircle m_MapCircle;
 	
-
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
 	GLuint m_SmallShipArrayBuffer, m_SmallShipTriangleIndicesBuffer, m_SmallShipLineIndicesBuffer, m_SmallShipColorBuffer;

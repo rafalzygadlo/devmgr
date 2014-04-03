@@ -28,7 +28,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
-	SetDoubleBuffered(true);
+	//SetDoubleBuffered(true);
 		
 	this->Disable();
 	m_FirstTime = true;

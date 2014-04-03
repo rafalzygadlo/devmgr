@@ -260,7 +260,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DEFAULT_FREQUENCY		1000				//milisekundy
 #define DEFAULT_MAX_FREQUENCY	100					//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
 #define AIS_BUFFER_INTERVAL		1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
-#define DEFAULT_FACTOR			3000.0
+#define DEFAULT_FACTOR			500.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000/TICKER_SLEEP	//odswiez display
 

@@ -41,7 +41,7 @@ class CListCtrl: public wxListCtrl
 	void OnColClick(wxListEvent &event);
 	void OnEraseBackground(wxEraseEvent &event);
 	void OnPaint(wxPaintEvent &event);
-	void OnCacheHint(wxListEvent &event);
+	//void OnCacheHint(wxListEvent &event);
 	long GetLastSelectedItem();
 	void SetColumnImage(int col, int image);
 
