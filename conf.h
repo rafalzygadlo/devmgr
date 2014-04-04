@@ -40,7 +40,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_SHIP_COLOR_1 "ship_color1"
 #define KEY_SHIP_COLOR_2 "ship_color2"
 #define KEY_ATON_COLOR "aton_color"
-#define KEY_FILTER	"filter"
+#define KEY_FILTER "filter"
+#define KEY_FREQUENCY "frequency"
 
 #define DIR_WORKDIR "workdir"
 
@@ -230,6 +231,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_FILTER						149
 #define MSG_AIS_INFO_SIMPLE				150
 #define MSG_AIS_INFO_ALL				151
+#define MSG_DEVICE_OPTIONS				152
+#define MSG_DEVICE_FREQUENCY			153
+
 
 #define MAX_DATA_POSITIONS	10
 
@@ -256,13 +260,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_PARTS				7 // czesci wiadomosci
 #define MARKER_LENGTH			5
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
-#define TICKER_SLEEP			100
-#define DEFAULT_FREQUENCY		1000				//milisekundy
-#define DEFAULT_MAX_FREQUENCY	100					//maksymalna czestotliwosc tickera na ktora moze byc ustawiony
+#define TICKER_SLEEP			1
+#define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
+#define DEFAULT_MAX_FREQUENCY	500				
 #define AIS_BUFFER_INTERVAL		1000/TICKER_SLEEP	//co sekunde zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			500.0
 #define DEFAULT_FONT_FACTOR		50.0
-#define DISPLAY_REFRESH			1000/TICKER_SLEEP	//odswiez display
+#define DISPLAY_REFRESH			1000	//odswiez display
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
@@ -303,6 +307,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define TICK_0	0
 #define TICK_1	1
+#define TICK_2	2
 
 #define CONTROL_OFFSET	2
 #define IS_BIT_SET(k, n)  ((k) & (1 << (n)))

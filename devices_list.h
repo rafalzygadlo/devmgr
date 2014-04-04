@@ -47,8 +47,8 @@ class CDevicesList : public wxPanel
 	wxHyperlinkCtrl *m_Monitor;
 	int m_ControlType;
 	wxString m_Caption;
-	//wxArrayString ArrayOfTypes;
 	CReader *m_Reader;
+	wxSlider *m_Frequency;
 		
 	int GetControlType();
 	void GetPanel();
@@ -92,6 +92,7 @@ class CDevicesList : public wxPanel
 	void OnStatus(wxCommandEvent &event);
 	void OnSetIcon(wxCommandEvent &event);
 	void OnSetText(wxCommandEvent &event);
+	void OnFrequency(wxCommandEvent &event);
 	void OnConnected();
 	void OnNoSignal();
 	void OnReconnect();
@@ -118,6 +119,7 @@ public:
 		ID_ICON,
 		ID_TEXT,
 		ID_DEVICE_WIZARD,
+		ID_FREQUENCY,
 	};
 
 

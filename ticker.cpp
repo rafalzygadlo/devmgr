@@ -40,20 +40,22 @@ void *CTicker::Ticker(void *Param)
 
     CTicker *Ticker = ((CTicker*)Param);
     Ticker->OnTickerStart();
+	
+	DWORD tick = 0;
     
-    while (true)
+	while (true)
     {
-		
 		Ticker->OnTickerTick();
-
-
+		
 #ifdef _WIN32
         Sleep(Ticker->GetTick());
+		
 #endif
 #if defined(_LINUX32) || defined(_LINUX64)
         usleep(TICKER_SLEEP * 1000);
 #endif
 
+		
 		if(Ticker->GetExit())
 			break;
     }
@@ -93,8 +95,9 @@ void CTicker::OnTickerStart()
 {
 	switch(Id)
 	{
-		case TICK_0:	((CMapPlugin*)Parent)->OnTickerStart();		break;
+		case TICK_0:	((CMapPlugin*)Parent)->OnTicker1Start();		break;
 		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerStart(); break;
+		case TICK_2:	((CMapPlugin*)Parent)->OnTicker2Start();		break;
 	}
 }
 
@@ -102,8 +105,9 @@ void CTicker::OnTickerStop()
 {
 	switch(Id)
 	{
-		case TICK_0:	((CMapPlugin*)Parent)->OnTickerStop();		break;
+		case TICK_0:	((CMapPlugin*)Parent)->OnTicker1Stop();		break;
 		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerStop();	break;
+		case TICK_2:	((CMapPlugin*)Parent)->OnTicker2Stop();		break;
 	}
 }
 
@@ -111,8 +115,9 @@ void CTicker::OnTickerTick()
 {  
 	switch(Id)
 	{
-		case TICK_0:	((CMapPlugin*)Parent)->OnTickerTick();		break;
+		case TICK_0:	((CMapPlugin*)Parent)->OnTicker1Tick();		break;
 		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
+		case TICK_2:	((CMapPlugin*)Parent)->OnTicker2Tick();		break;
 	}
 
 }

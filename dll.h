@@ -56,7 +56,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_EnableControls;
 	CNotifier *m_SearchThread;
 	SData *m_Data;
-	CTicker *m_Ticker;
+	CTicker *m_Ticker1, *m_Ticker2;
 	double m_MilesPerDeg;
 	nvFastFont *m_Font;
 	bool m_Prepare;
@@ -316,9 +316,13 @@ public:
 	int GetDeviceId();
 	bool GetEnableControlsFlag();
 
-	void OnTickerStart();
-	void OnTickerStop();
-	void OnTickerTick();
+	void OnTicker1Start();
+	void OnTicker1Stop();
+	void OnTicker1Tick();
+
+	void OnTicker2Start();
+	void OnTicker2Stop();
+	void OnTicker2Tick();
 
 	void ThreadBegin();
 	void ThreadEnd();

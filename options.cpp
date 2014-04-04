@@ -10,6 +10,7 @@ bool m_ShowHDT = true;
 bool m_ShowCOG = true;
 int m_Filter = DEFAULT_FILTER;
 char m_SearchText[64];
+int m_Frequency = DEFAULT_FREQUENCY;
 
 
 
@@ -142,6 +143,21 @@ char *GetSearchText()
 	return m_SearchText;
 }
 
+int GetFrequency()
+{
+	return  DEFAULT_MAX_FREQUENCY / (m_Frequency * 10);
+}
+
+void SetControlFrequency(int value)
+{
+	m_Frequency = value;
+}
+
+int GetControlFrequency()
+{
+	return m_Frequency;
+}
+
 void ReadOptionsConfig()
 {
 
@@ -151,6 +167,7 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_SHOW_COG),&m_ShowCOG, true);
 	FileConfig->Read(_(KEY_SHOW_HDT),&m_ShowHDT, true);
 	FileConfig->Read(_(KEY_FILTER),&m_Filter, DEFAULT_FILTER);
+	FileConfig->Read(_(KEY_FREQUENCY),&m_Frequency, DEFAULT_FREQUENCY);
 	
 	wxString _color;
 	
@@ -181,6 +198,7 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_SHOW_COG),m_ShowCOG);
 	FileConfig->Write(_(KEY_SHOW_HDT),m_ShowHDT);
 	FileConfig->Write(_(KEY_FILTER),m_Filter);
+	FileConfig->Write(_(KEY_FREQUENCY),m_Frequency);
 
 	FileConfig->Write(_(KEY_SHIP_COLOR_0),RGBAToStr(&GetColor(SHIP_COLOR_0)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_1),RGBAToStr(&GetColor(SHIP_COLOR_1)));

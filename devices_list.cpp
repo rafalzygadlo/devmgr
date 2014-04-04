@@ -1,6 +1,7 @@
 ﻿#include <wx/wx.h>
 #include <wx/mstream.h>
 #include <wx/notebook.h>
+#include <wx/slider.h>
 #include "conf.h"
 #include "tools.h"
 #include "devices_list.h"
@@ -9,6 +10,7 @@
 #include "status.h"
 #include "info.h"
 #include "wizard.h"
+#include "options.h"
 
 
 #include "images/computer.img"
@@ -41,7 +43,8 @@ BEGIN_EVENT_TABLE(CDevicesList,wxPanel)
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDevicesList::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDevicesList::OnSetIcon)
 	EVT_COMMAND(ID_TEXT,EVT_SET_TEXT,CDevicesList::OnSetText)
-	//EVT_TOOL(ID_TOOL_STOP,
+
+	EVT_SLIDER(ID_FREQUENCY,CDevicesList::OnFrequency)
 END_EVENT_TABLE()
 
 
@@ -177,7 +180,36 @@ void CDevicesList::GetPanel()
 	m_Logger = new wxTextCtrl(m_InfoPanel,wxID_ANY,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_MULTILINE|wxTE_DONTWRAP);
 	m_InfoPanelSizer->Add(m_Logger,0,wxALL|wxEXPAND);
 	m_Logger->Hide();
-			
+	
+
+	//opcje
+	wxPanel *Page2 = new wxPanel(Notebook);
+	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
+	Page2->SetSizer(m_Page2Sizer);
+	Notebook->AddPage(Page2,GetMsg(MSG_DEVICE_OPTIONS));
+
+	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
+	wxScrolledWindow *Scroll = new wxScrolledWindow(Page2, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Page2Sizer->Add(Scroll,1,wxALL|wxEXPAND,0);
+	Scroll->SetFocusIgnoringChildren();
+	Scroll->SetSizer(ScrollSizer);
+	Scroll->SetScrollbars(20, 20, 20, 20);
+		
+	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
+	FlexSizer->AddGrowableCol(1,1);
+	ScrollSizer->Add(FlexSizer,1,wxALL|wxEXPAND,0);
+	
+	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,2);
+	
+	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,0,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
+	
+	FlexSizer->Add(m_Frequency,0,wxALL|wxEXPAND,2);
+	m_Frequency->SetMin(1);
+	m_Frequency->SetMax(DEFAULT_MAX_FREQUENCY/10);
+	m_Frequency->SetValue(GetControlFrequency());
+	//m_Frequency->SetValue(GetFontSize() * 10);
+	
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
@@ -635,6 +667,13 @@ void CDevicesList::SetIconEvent(int icon_id)
 	evt.SetClientData(m_Reader);
 	evt.SetInt(icon_id);
 	wxPostEvent(this,evt);
+}
+
+void CDevicesList::OnFrequency(wxCommandEvent &event)
+{
+	SetControlFrequency(event.GetInt());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
 }
 
 void CDevicesList::OnSetText(wxCommandEvent &event)

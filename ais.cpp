@@ -345,6 +345,7 @@ void toupper(char *str)
 		str[i] = toupper(str[i]);
 	}
 }
+
 void ais_clear_search_buffer()
 {
 	vAisSearch.Clear();
@@ -648,19 +649,19 @@ bool ais_set_lon_lat(ais_t *ais,  SAisData *ptr)
 	if(ais->valid[AIS_MSG_19])	{	ptr->lon = get_lon_lat(ais->type19.lon);	ptr->lat = get_lon_lat(ais->type19.lat);	return true;	}
 	if(ais->valid[AIS_MSG_21])	{	ptr->lon = get_lon_lat(ais->type21.lon);	ptr->lat = get_lon_lat(ais->type21.lat);	return true;	}
 	if(ais->valid[AIS_MSG_27])	{	ptr->lon = get_lon_lat(ais->type27.lon);	ptr->lat = get_lon_lat(ais->type27.lat);	return true;	}
-
 	
 	
-	if(ais->valid[AIS_MSG_8] )	
+	if(ais->valid[AIS_MSG_8] )
 	{	
-		if(ais->type8.dac1fid11.valid)	{	ptr->lon  = ais->type8.dac1fid11.lon;	ptr->lat = ais->type8.dac1fid11.lat;		return true;}
-		if(ais->type8.dac1fid19.valid)	{	ptr->lon  = ais->type8.dac1fid19.lon;	ptr->lat = ais->type8.dac1fid19.lat;		return true;}
-		if(ais->type8.dac1fid31.valid)	{	ptr->lon  = ais->type8.dac1fid31.lon;	ptr->lat = ais->type8.dac1fid31.lat;		return true;}
-		if(ais->type8.dac200fid40.valid){	ptr->lon  = ais->type8.dac200fid40.lon;	ptr->lat = ais->type8.dac200fid40.lat;		return true;}	
+		if(ais->type8.dac1fid11.valid)	{	ptr->lon  = ais->type8.dac1fid11.lon;	ptr->lat = ais->type8.dac1fid11.lat;	return true;	}
+		if(ais->type8.dac1fid19.valid)	{	ptr->lon  = ais->type8.dac1fid19.lon;	ptr->lat = ais->type8.dac1fid19.lat;	return true;	}
+		if(ais->type8.dac1fid31.valid)	{	ptr->lon  = ais->type8.dac1fid31.lon;	ptr->lat = ais->type8.dac1fid31.lat;	return true;	}
+		if(ais->type8.dac200fid40.valid){	ptr->lon  = ais->type8.dac200fid40.lon;	ptr->lat = ais->type8.dac200fid40.lat;	return true;	}
 	}
 	
 	return false;
 }
+
 //bool ais_set_aton_name(ais_t *ais, SAisData *ptr)
 //{
 	//if(ais->valid[AIS_MSG_21])
@@ -679,9 +680,9 @@ bool ais_set_mmsi(ais_t *ais, SAisData *ptr)
 
 bool ais_set_turn(ais_t *ais, SAisData *ptr)
 {
-	if(ais->valid[AIS_MSG_1])	{	ptr->turn = ais->type1.turn;	return true;}
-	if(ais->valid[AIS_MSG_2])	{	ptr->turn = ais->type1.turn;	return true;}
-	if(ais->valid[AIS_MSG_3])	{	ptr->turn = ais->type1.turn;	return true;}
+	if(ais->valid[AIS_MSG_1])	{	ptr->turn = ais->type1.turn;	return true;	}
+	if(ais->valid[AIS_MSG_2])	{	ptr->turn = ais->type1.turn;	return true;	}
+	if(ais->valid[AIS_MSG_3])	{	ptr->turn = ais->type1.turn;	return true;	}
 
 	return false;
 }

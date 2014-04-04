@@ -173,6 +173,8 @@ const wchar_t *nvLanguage[2][183] =
 		_(".."),
 		_("Simple"),
 		_("All"),
+		_("Options"),
+		_("Frequency"),
 
 	},
 	

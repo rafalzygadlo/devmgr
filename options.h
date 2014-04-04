@@ -19,5 +19,7 @@ void SetFilter(int val);
 int GetFilter();
 void SetSearchText(char *txt);
 char *GetSearchText();
-
+int GetFrequency();
+void SetControlFrequency(int value);
+int GetControlFrequency();
 #endif

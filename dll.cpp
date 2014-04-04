@@ -50,14 +50,12 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
-	m_Ticker = new CTicker(this,TICK_0);
-	m_Ticker->Start();
+	
 	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
-	m_MaxFrequency = DEFAULT_FREQUENCY; // w milisekundach 10 sekund domyslnie
 	m_ShipTick = 0;
 	m_AisBufferTick = 0;
-	m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-	m_GlobalTick = m_OldGlobalTick = 0;	
+	m_ShipInterval = 0;
+	m_GlobalTick = m_OldGlobalTick = 0;
 	m_OldPositionTick = m_OldHDTTick = 0;
 	m_Factor = DEFAULT_FACTOR;
 	m_FirstTime = true;
@@ -81,7 +79,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_SignalID = -1;
 	m_MaxFrequencyID = -1;
 	memset(m_ShipValidFrequencyTable,0,MAX_SHIP_VALUES_LEN);
-	m_ShipValidFrequency = false;
+	m_ShipValidFrequency = true;
 	m_Interpolation = false;
 	m_SelectedVertexId = -1;
 	m_ThreadCounter = 0;
@@ -123,10 +121,16 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	AddExecuteFunction("devmgr_OnSynchro",OnSynchro);
 	
-	SetTickerTick();
+	
 	InitMutex();
 	InitSearchMutex();
 	ais_load_file();
+
+	m_Ticker1 = new CTicker(this,TICK_0);
+	m_Ticker1->Start();
+	m_Ticker2 = new CTicker(this,TICK_2);
+	m_Ticker2->Start();
+	SetTickerTick();
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -509,7 +513,8 @@ bool CMapPlugin::InterpolateHDT()
 
 void CMapPlugin::SetTickerTick()
 {
-	m_Ticker->SetTick(TICKER_SLEEP);
+	m_Ticker1->SetTick(TICKER_SLEEP);
+	m_Ticker2->SetTick(TICKER_SLEEP);
 }
 
 bool CMapPlugin::NewPosition(int time)
@@ -603,39 +608,35 @@ void CMapPlugin::SendShipData()
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
 
+void CMapPlugin::OnTicker2Start(){}
+void CMapPlugin::OnTicker2Stop(){}
 
-void CMapPlugin::OnTickerStart()
+void CMapPlugin::OnTicker2Tick()
 {
-
-}
-
-void CMapPlugin::OnTickerStop()
-{
-
-}
-
-void CMapPlugin::OnTickerTick()
-{
-	
-	m_ShipTick++;
 	m_AisBufferTick++;
-	
-
-	if( m_ShipTick >= m_ShipInterval ) 
-	{
-		m_ShipTick = 0;
-		Interpolate();
-		SendShipData();
-		m_ShipInterval = m_MaxFrequency/TICKER_SLEEP;
-		
-	}
-	
 	if( m_AisBufferTick >= m_AisBufferInterval)	
 	{	
 		m_AisBufferTick = 0;
 		PrepareBuffer();
 		PrepareSearchBuffer();
+	}
+
+}
+
+void CMapPlugin::OnTicker1Start(){}
+void CMapPlugin::OnTicker1Stop(){}
+void CMapPlugin::OnTicker1Tick()
+{
 	
+	m_ShipTick++;
+	//fprintf(stdout,"%d %d\n",m_ShipTick,m_ShipInterval);
+	if( m_ShipTick >= m_ShipInterval ) 
+	{
+		m_ShipTick = 0;
+		Interpolate();
+		SendShipData();
+		m_ShipInterval = GetFrequency();
+		
 	}
 	
 }
@@ -787,8 +788,11 @@ void CMapPlugin::Run(void *Params)
 
 void CMapPlugin::Kill(void)
 {
-	m_Ticker->Stop();
-	delete m_Ticker;
+	m_Ticker1->Stop();
+	delete m_Ticker1;
+
+	m_Ticker2->Stop();
+	delete m_Ticker2;
 	m_EnableControls = false;
 		
 	m_NeedExit = true;
@@ -3139,6 +3143,7 @@ void *CMapPlugin::OnSynchro(void *NaviMapIOApiPtr, void *Params)
 
 void CMapPlugin::Synchro()
 {
+	m_ShipInterval = GetFrequency();
 	SendSynchroSignal();
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
