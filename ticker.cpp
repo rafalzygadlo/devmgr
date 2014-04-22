@@ -96,7 +96,7 @@ void CTicker::OnTickerStart()
 	switch(Id)
 	{
 		case TICK_0:	((CMapPlugin*)Parent)->OnTicker1Start();		break;
-		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerStart(); break;
+		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerStart();		break;
 		case TICK_2:	((CMapPlugin*)Parent)->OnTicker2Start();		break;
 	}
 }
