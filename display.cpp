@@ -42,7 +42,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets"));
 		
 	m_Ticker = new CTicker(this,TICK_1);
-	m_Ticker->Start();
+	m_Ticker->Start(DISPLAY_REFRESH);
 
 	m_RefreshTick = 0;
 	m_RefreshInterval = DISPLAY_REFRESH;
@@ -67,7 +67,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 			wxString name(signal_s->name,wxConvUTF8);
 			m_Menu->AppendCheckItem(CONTROL_OFFSET + signal_s->id + ID_MENU_BEGIN, name);
 		}
-				
+
 		delete Definition;
 	}
 
@@ -369,22 +369,22 @@ void CDisplayPlugin::OnTickerTick()
 {
 	
 	bool refresh = false;
-	m_RefreshTick++;
-	if( m_RefreshTick >= m_RefreshInterval)	
-	{	
-		m_RefreshTick = 0;
+	//m_RefreshTick++;
+	//if( m_RefreshTick >= m_RefreshInterval)	
+	//{	
+	//m_RefreshTick = 0;
 	
-		size_t count = GetDeviceSignalCount();
-		for(size_t i = 0; i < count; i++)
-		{
-			SData * ptr = GetDeviceSignal(i);
-			if(ptr->id == GetControlId())
-				refresh = true;
-		}
-		
-		if(refresh)
-			Refresh();
+	size_t count = GetDeviceSignalCount();
+	for(size_t i = 0; i < count; i++)
+	{
+		SData * ptr = GetDeviceSignal(i);
+		if(ptr->id == GetControlId())
+			refresh = true;
 	}
+		
+	if(refresh)
+		Refresh();
+	//}
 	
 }
 
@@ -404,7 +404,7 @@ const wchar_t *NaviDisplayIntroduce(int LanguageID)
 	switch( LanguageID ) 
 	{
 
-		case 0: 
+		case 0:
 			return TEXT(PRODUCT_NAME);
 			break;
 

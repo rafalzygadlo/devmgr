@@ -145,7 +145,7 @@ char *GetSearchText()
 
 int GetFrequency()
 {
-	return  DEFAULT_MAX_FREQUENCY / (m_Frequency * 10);
+	return  DEFAULT_MAX_FREQUENCY / m_Frequency * 10;
 }
 
 void SetControlFrequency(int value)

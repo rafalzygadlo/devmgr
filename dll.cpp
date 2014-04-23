@@ -51,7 +51,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
 	
-	m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
+	//m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_ShipTick = 0;
 	m_AisBufferTick = 0;
 	m_ShipInterval = 0;
@@ -103,8 +103,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
 	m_Font->SetGlowCenter( 4.0f );
 
-	//m_Ready = false;
-	//m_Render = false;
+	m_Ready = false;
+	m_Render = false;
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
@@ -126,11 +126,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	InitSearchMutex();
 	ais_load_file();
 
-	m_Ticker1 = new CTicker(this,TICK_0);
-	m_Ticker1->Start();
-	m_Ticker2 = new CTicker(this,TICK_2);
-	m_Ticker2->Start();
-	SetTickerTick();
+	m_Ticker1 = new CTicker(this,TICK_0);	//frequency
+	m_Ticker1->Start(1000);
+	m_Ticker2 = new CTicker(this,TICK_2);	//ais buffer
+	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
+	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -511,12 +511,6 @@ bool CMapPlugin::InterpolateHDT()
 	return true;
 }
 
-void CMapPlugin::SetTickerTick()
-{
-	m_Ticker1->SetTick(TICKER_SLEEP);
-	m_Ticker2->SetTick(TICKER_SLEEP);
-}
-
 bool CMapPlugin::NewPosition(int time)
 {
 	
@@ -613,14 +607,10 @@ void CMapPlugin::OnTicker2Stop(){}
 
 void CMapPlugin::OnTicker2Tick()
 {
-	m_AisBufferTick++;
-	if( m_AisBufferTick >= m_AisBufferInterval)	
-	{	
-		m_AisBufferTick = 0;
-		PrepareBuffer();
-		PrepareSearchBuffer();
-	}
-
+	m_AisBufferTick = 0;
+	PrepareBuffer();
+	PrepareSearchBuffer();
+	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 void CMapPlugin::OnTicker1Start(){}
@@ -630,7 +620,7 @@ void CMapPlugin::OnTicker1Tick()
 	
 	m_ShipTick++;
 	//fprintf(stdout,"%d %d\n",m_ShipTick,m_ShipInterval);
-	if( m_ShipTick >= m_ShipInterval ) 
+	if( m_ShipTick >= m_ShipInterval )
 	{
 		m_ShipTick = 0;
 		Interpolate();
@@ -1268,11 +1258,15 @@ void CMapPlugin::CopyBuffers()
 	//HDG
 	CopyNvPoint2d(&m_HDGVerticesBuffer0,&m_HDGVerticesBuffer1);
 
+	//nazwy
+	CopySAisNames(&m_ShipNamesBuffer0,&m_ShipNamesBuffer1);
+
 }
 
 void CMapPlugin::SetBuffers()
 {
 	CNaviArray <SAisData*> *buffer = ais_get_buffer();
+	//SetValues();
 
 	for(size_t i = 0; i < buffer->Length(); i++)
 	{
@@ -1386,6 +1380,9 @@ void CMapPlugin::PrepareSearchBuffer()
 
 void CMapPlugin::PrepareBuffer()
 {
+	if(m_Render)
+		return;
+
 	m_Ready = false;
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;	
@@ -1395,8 +1392,7 @@ void CMapPlugin::PrepareBuffer()
 	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
-	
-	
+		
 	GetMutex()->Unlock();
 	m_Ready = true;
 		
@@ -1428,6 +1424,16 @@ void CMapPlugin::CopyInt(CNaviArray <int> *src, CNaviArray <int> *dst)
 	for(size_t i = 0; i < src->Length(); i++)
 		dst->Set(i,src->Get(i));
 }
+
+void CMapPlugin::CopySAisNames(CNaviArray <SAisNames*> *src, CNaviArray <SAisNames*> *dst)
+{
+	dst->Clear();
+	dst->SetSize(src->Length());
+	
+	for(size_t i = 0; i < src->Length(); i++)
+		dst->Set(i,src->Get(i));
+}
+
 
 void CMapPlugin::PreparePointsBuffer(SAisData *ptr)
 {
@@ -1504,7 +1510,7 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 {
-	if(ptr->valid[AIS_MSG_5])
+	if(ptr->valid[AIS_MSG_5] || ptr->valid[AIS_MSG_24])
 	{
 		// jako male statki
 		if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
@@ -2279,10 +2285,17 @@ void CMapPlugin::RenderShipNames()
 		return;
 
 	size_t size = m_CurrentShipNamesBufferPtr->Length();
-	m_Font->Clear();
 	if(size == 0)
 		return;
 
+	if(!m_Ready)
+	{
+		m_Font->CreateBuffers();
+		m_Font->Render();
+		return;
+	}
+	
+	m_Font->Clear();
 	size_t CaptionsSize = size;
     vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );    // czêœæ ca³kowita jednostki sondowania
     float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
@@ -2674,7 +2687,7 @@ void  CMapPlugin::RenderSelection()
 	wchar_t mmsi[16];
 	wchar_t wc[64];
 	
-	m_Font->Clear();
+	//m_Font->Clear();
 	
 	if(m_SelectedPtr->valid_pos)
 	{
@@ -2760,32 +2773,26 @@ void CMapPlugin::RenderHDG()
 {
 	if(!GetShowHDT())
 		return;
-
-	glPointSize(4);
-	
+		
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
 		//RenderGeometry(GL_POINTS,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG punkty
 	}
-	
-	glPointSize(1);
+
 }
 
 void CMapPlugin::RenderCOG()
 {
 	if(!GetShowCOG())
 		return;
-
-	glPointSize(4);
-	
+		
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 	{
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
 		//RenderGeometry(GL_POINTS,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG punkty
 	}
-	
-	glPointSize(1);
+
 }
 
 void CMapPlugin::RenderGPS()
@@ -2852,19 +2859,9 @@ void CMapPlugin::_RenderShips()
 	
 }
 
-
-
-void CMapPlugin::Render()
+void CMapPlugin::RenderNormalScale()
 {
-	
-	Generate();
-	SetValues();
-	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(1);	
-	
-	wxMutexLocker locker(*GetMutex());
-	
+
 	_RenderShips();
 	_RenderSmallShips();
 	_RenderTriangles();
@@ -2874,13 +2871,38 @@ void CMapPlugin::Render()
 	RenderHDG();
 	RenderGPS();
 	RenderSelection();
+	//wxMutexLocker locker(*GetMutex());
 	RenderShipNames();
+
+}
+
+void CMapPlugin::RenderSmallScale()
+{
+	RenderGPS();
+}
+
+void CMapPlugin::Render()
+{
+	m_Render = true;
+	Generate();
+	SetValues();
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1);
+
+	
+	
+	if(m_MapScale < m_Factor/5)
+		RenderSmallScale();
+	else
+		RenderNormalScale();
 		
 
-	glLineWidth(1);		
+	glLineWidth(1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 	
+	m_Render = false;
 		
 }
 void CMapPlugin::Generate()
@@ -2926,22 +2948,14 @@ void CMapPlugin::SetValues()
 	// kolejnosc wa¿na
 	m_MapScale = m_Broker->GetMapScale();
 	SetSmoothScaleFactor( m_MapScale );
-	
-	double vmap[4];
-	m_Broker->GetVisibleMap(vmap);
+		
+	double cr[3];
 
-	m_ScreenX1 = vmap[0]*2;
-	m_ScreenY1 = vmap[1]*2;
-	m_ScreenX2 = vmap[2]*2;
-	m_ScreenY2 = vmap[3]*2;
-	
-	double rx = sqrt((vmap[2] - vmap[0]) * (vmap[2] - vmap[0]) + (vmap[3] - vmap[1]) * (vmap[3] - vmap[1])) * 2.0;
-	float x = (vmap[0] + vmap[2])/2;
-	float y = (vmap[1] + vmap[3])/2;
-	
-	m_MapCircle.Center.x = x;
-	m_MapCircle.Center.y = y;
-	m_MapCircle.Radius = rx;
+	m_Broker->GetMapCircle(m_Broker->GetParentPtr(),cr);
+
+	m_MapCircle.Center.x = cr[0];
+	m_MapCircle.Center.y = cr[1];
+	m_MapCircle.Radius = cr[2] * 2;
 	
 	m_Broker->GetMouseOM(mom);
 	m_Broker->Unproject(mom[0],mom[1],&_x,&_y);
@@ -3142,7 +3156,7 @@ void *CMapPlugin::OnSynchro(void *NaviMapIOApiPtr, void *Params)
 }
 
 void CMapPlugin::Synchro()
-{
+{ 
 	m_ShipInterval = GetFrequency();
 	SendSynchroSignal();
 	m_Broker->Refresh(m_Broker->GetParentPtr());

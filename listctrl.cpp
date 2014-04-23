@@ -17,7 +17,7 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	//EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
-//	EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
+	EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
 END_EVENT_TABLE()
  
 CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
@@ -232,14 +232,13 @@ long CListCtrl::GetLastSelectedItem()
 {
 	return last_selected_item;
 }
-/*
+
 void CListCtrl::OnCacheHint(wxListEvent& event)
 {
-    //m_From = event.GetCacheFrom();
-	//m_To = event.GetCacheTo();
-	//event.Veto();
+    m_From = event.GetCacheFrom();
+	m_To = event.GetCacheTo();
 }
-*/
+
 long CListCtrl::_GetFrom()
 {
 	return m_From;

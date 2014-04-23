@@ -57,7 +57,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CNotifier *m_SearchThread;
 	SData *m_Data;
 	CTicker *m_Ticker1, *m_Ticker2;
-	double m_MilesPerDeg;
+	//double m_MilesPerDeg;
 	nvFastFont *m_Font;
 	bool m_Prepare;
 	int m_MaxFrequency;
@@ -79,6 +79,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_MouseLmb, m_MouseDLmb,m_MouseUp;
 	CMyFrame *m_MyFrame;
 	nvCircle m_MapCircle;
+	bool m_Render;
 	
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
@@ -220,7 +221,6 @@ class CMapPlugin :public CNaviMapIOApi
 	bool NewHDT(int time);
 	bool NewCOG();
 	bool NewSOG();
-	void SetTickerTick();
 	void Interpolate();
 	bool InterpolatePosition();
 	bool InterpolateHDT();
@@ -251,6 +251,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void CopyInt(CNaviArray <int> *a, CNaviArray <int> *b);
 	void CopyNvPoint2d(CNaviArray <nvPoint2d> *src, CNaviArray <nvPoint2d> *dst);
 	void CopyNvRGBA(CNaviArray <nvRGBA> *src, CNaviArray <nvRGBA> *dst);
+	void CopySAisNames(CNaviArray <SAisNames*> *src, CNaviArray <SAisNames*> *dst);
 	void SetPtr0();
 	void SetPtr1();
 	void CopyBuffers();
@@ -277,6 +278,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderCOG();
 	void RenderHDG();
 	void RenderBS();
+	void RenderSmallScale();
+	void RenderNormalScale();
 	void _RenderShips();
 	void _RenderSmallShips();
 	void _RenderTriangles();

@@ -4,7 +4,7 @@
 #include <windows.h>
 #endif
 
-class CTicker
+class CTicker :public wxTimer
 {
 	void *Parent;
 	bool Exit;
@@ -29,11 +29,8 @@ class CTicker
 public:
 	CTicker(void *parent, int id);
 	~CTicker();
-	void Start();
-	void Stop();
-	int GetTick();
-	void SetTick(int tick);
-
+	void Notify();
+	
 };
 
 #endif

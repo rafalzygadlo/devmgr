@@ -64,9 +64,9 @@ void CAisList::SetList()
 		m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
 		m_List->SetSearch(true);
 
-		//if(m_OldCount != count)
-			//m_Notebook->SetPageText(PAGE_0,wxString::Format(GetMsg(MSG_AIS_TARGETS),count));
-		//m_OldCount = count;
+		if(m_OldCount != count)
+			m_Notebook->SetPageText(PAGE_0,wxString::Format(GetMsg(MSG_AIS_TARGETS),count));
+		m_OldCount = count;
 		
 	}
 	
