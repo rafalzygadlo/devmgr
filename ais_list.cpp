@@ -20,6 +20,7 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_SLIDER(ID_FONT_SIZE,OnFontSize)
 	EVT_COLOURPICKER_CHANGED(wxID_ANY,OnColorPicker)
 	EVT_BUTTON(ID_FILTER,OnFilter)
+	EVT_SPINCTRL(ID_VIEW_NAME_SCALE, OnNameScale)
 END_EVENT_TABLE()
 
 
@@ -181,6 +182,14 @@ void CAisList::OnFilter(wxCommandEvent &event)
 	//StartThread();	
 }
 
+void CAisList::OnNameScale(wxSpinEvent &event)
+{
+	SetViewFontScale(event.GetInt());
+
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
 void CAisList::GetPanel()
 {
 
@@ -290,6 +299,15 @@ void CAisList::GetPanel()
 	m_HDTLine->SetValue(GetShowHDT());
 	ScrollSizer->Add(m_HDTLine,0,wxALL,5);
 	
+
+	wxStaticText *TextNameScale = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextNameScale,1,wxALL,2);
+	
+	m_ViewNameScale = new wxSpinCtrl(Scroll,ID_VIEW_NAME_SCALE,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	m_ViewNameScale->SetMin(1);
+	m_ViewNameScale->SetMax(10000);
+	m_ViewNameScale->SetValue(wxString::Format(_("%d"),GetViewFontScale()));
+	FlexSizer->Add(m_ViewNameScale,0,wxALL,2);
 	
 	Scroll->SetScrollbars(20, 20, 20, 20);
 

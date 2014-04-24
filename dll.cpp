@@ -91,25 +91,34 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_MyFrame = NULL;
 	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
 
-	m_Font = new nvFastFont();
-	m_Font->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
-	m_Font->SetEffect( nvEFFECT_SMOOTH );
-	m_Font->SetEffect( nvEFFECT_GLOW );
+	m_NameFont = new nvFastFont();
+	m_NameFont->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
+	m_NameFont->SetEffect( nvEFFECT_SMOOTH );
+	m_NameFont->SetEffect( nvEFFECT_GLOW );
     
-	m_Font->SetGlyphColor(0.0f, 0.0f, 0.0f);
+	m_NameFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
 	//Font->SetGlyphCenter(0.0001f);
     //Font->SetGlyphOffset( 0.5f );
-
-	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
-	m_Font->SetGlowCenter( 4.0f );
-
+	m_NameFont->SetGlowColor(0.8f, 0.8f, 0.8f );
+	m_NameFont->SetGlowCenter( 4.0f );
+		
+	m_MMSIFont = new nvFastFont();
+	m_MMSIFont->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali
+	m_MMSIFont->SetEffect( nvEFFECT_SMOOTH );
+	m_MMSIFont->SetEffect( nvEFFECT_GLOW );
+    
+	m_MMSIFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
+	//Font->SetGlyphCenter(0.0001f);
+    //Font->SetGlyphOffset( 0.5f );
+	m_MMSIFont->SetGlowColor(0.8f, 0.8f, 0.8f );
+	m_MMSIFont->SetGlowCenter( 4.0f );
+	
 	m_Ready = false;
 	m_Render = false;
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
-
-
+	
 	Reset(m_ShipState);			//wysylany do statku
 	Reset(m_ShipGlobalState);	
 	Reset(m_ShipStaticState);	// statyczny state ktory nie jest resetowany przetrzymuje ostatnio otrzymane dane
@@ -127,7 +136,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_0);	//frequency
-	m_Ticker1->Start(1000);
+	m_Ticker1->Start(200);
 	m_Ticker2 = new CTicker(this,TICK_2);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 	
@@ -142,7 +151,8 @@ CMapPlugin::~CMapPlugin()
 	m_Devices->Clear();
 	delete m_Devices;
 	delete m_DisplaySignal;
-	delete m_Font;
+	delete m_NameFont;
+	delete m_MMSIFont;
 	delete m_MyFrame;
 	
 	ClearBuffers();
@@ -305,7 +315,8 @@ void CMapPlugin::CreateTextures(void)
 
 void CMapPlugin::OnInitGL()
 {
-	m_Font->InitGL();
+	m_NameFont->InitGL();
+	m_MMSIFont->InitGL();
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -440,7 +451,7 @@ void CMapPlugin::Interpolate()
 	bool result = false;
 	m_GlobalTick = GetTickCount();
 	//Reset(m_ShipState);
-	result = InterpolatePosition();	
+	result = InterpolatePosition();
 	result = InterpolateHDT();
 	m_OldGlobalTick = m_GlobalTick;
 		
@@ -610,7 +621,7 @@ void CMapPlugin::OnTicker2Tick()
 	m_AisBufferTick = 0;
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	m_Broker->Refresh(m_Broker->GetParentPtr());
+	//m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 void CMapPlugin::OnTicker1Start(){}
@@ -620,14 +631,14 @@ void CMapPlugin::OnTicker1Tick()
 	
 	m_ShipTick++;
 	//fprintf(stdout,"%d %d\n",m_ShipTick,m_ShipInterval);
-	if( m_ShipTick >= m_ShipInterval )
-	{
+	//if( m_ShipTick >= m_ShipInterval )
+	//{
 		m_ShipTick = 0;
 		Interpolate();
 		SendShipData();
 		m_ShipInterval = GetFrequency();
 		
-	}
+	//}
 	
 }
 
@@ -692,10 +703,10 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 		}
 	}
 
-	ReindexDevics();
+	ReindexDevices();
 }
 
-void CMapPlugin::ReindexDevics()
+void CMapPlugin::ReindexDevices()
 {
 	for(size_t i = 0; i < m_Devices->size(); i++)
 	{
@@ -2289,13 +2300,8 @@ void CMapPlugin::RenderShipNames()
 		return;
 
 	if(!m_Ready)
-	{
-		m_Font->CreateBuffers();
-		m_Font->Render();
 		return;
-	}
 	
-	m_Font->Clear();
 	size_t CaptionsSize = size;
     vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );    // czêœæ ca³kowita jednostki sondowania
     float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
@@ -2304,7 +2310,8 @@ void CMapPlugin::RenderShipNames()
     float *vy = (float*)malloc( CaptionsSize * sizeof( float ) );
     wchar_t **CaptionsStr = (wchar_t**)malloc(  CaptionsSize * sizeof( wchar_t** ) );
 	double to_x,to_y;
-    for(size_t i = 0 ; i < m_CurrentShipNamesBufferPtr->Length(); i++ ) 
+    
+	for(size_t i = 0 ; i < m_CurrentShipNamesBufferPtr->Length(); i++ ) 
 	{
 		
 		SAisNames *a = m_CurrentShipNamesBufferPtr->Get(i);
@@ -2318,12 +2325,9 @@ void CMapPlugin::RenderShipNames()
 		Angle[i] = m_Broker->GetAngle();
     }
 
-	m_Font->Clear();
-    m_Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
-	m_Font->ClearBuffers();
-	m_Font->CreateBuffers();
-	m_Font->Render();
-
+	m_NameFont->Clear();
+    m_NameFont->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
+	
 	free( CaptionsStr );    // ³añcuchy nie zosta³y skopiowane, nie ma koniecznoœci zwalniania ca³ej listy
     free( Positions );
     free( Scale );
@@ -2676,6 +2680,8 @@ void CMapPlugin::RenderShips()
 
 void  CMapPlugin::RenderSelection()
 {
+	m_MMSIFont->Clear();
+
 	if(m_SelectedPtr == NULL)
 		return;
 	
@@ -2687,18 +2693,12 @@ void  CMapPlugin::RenderSelection()
 	wchar_t mmsi[16];
 	wchar_t wc[64];
 	
-	//m_Font->Clear();
-	
 	if(m_SelectedPtr->valid_pos)
 	{
 		swprintf(mmsi,L"%d",m_SelectedPtr->mmsi);	
-		m_Font->Print(to_x,to_y,GetFontSize()/m_SmoothScaleFactor/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
+		m_MMSIFont->Print(to_x,to_y,GetFontSize()/m_SmoothScaleFactor/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
 	}	
 	
-	m_Font->ClearBuffers();
-	m_Font->CreateBuffers();
-	m_Font->Render();
-
 	// quad selection
 	double width =  SHIP_QUAD_WIDTH/m_SmoothScaleFactor;
 	double height = SHIP_QUAD_HEIGHT/m_SmoothScaleFactor;
@@ -2746,7 +2746,7 @@ void  CMapPlugin::RenderSelection()
 	p15.x += to_x; p15.y += to_y;
 	p16.x += to_x; p16.y += to_y;
 
-	glLineWidth(2);
+	glLineWidth(4);
 	glBegin(GL_LINES);
 		glVertex2d(p1.x ,p1.y);
 		glVertex2d(p2.x ,p2.y);
@@ -2771,40 +2771,36 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::RenderHDG()
 {
+	glColor4f(1.0,0.0,0.0,0.6);
+	
 	if(!GetShowHDT())
 		return;
 		
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
-	{
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
-		//RenderGeometry(GL_POINTS,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG punkty
-	}
 
 }
 
 void CMapPlugin::RenderCOG()
 {
+	glColor4f(0.0,1.0,0.0,0.6);
+	
 	if(!GetShowCOG())
 		return;
 		
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
-	{
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
-		//RenderGeometry(GL_POINTS,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG punkty
-	}
-
+	
 }
 
 void CMapPlugin::RenderGPS()
 {
-	glColor4f(0.0,0.0,1.0,0.7);
-	glPointSize(5);
+	glColor4f(0.0,0.0,1.0,0.6);
+	glPointSize(4);
 	
 	if(m_CurrentPointsBufferPtr != NULL && m_CurrentPointsBufferPtr->Length() > 0)
-	{
 		RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length());			//miejsce przyczepienia GPS
-	}
-	
+		
 	glPointSize(1);
 
 }
@@ -2870,9 +2866,22 @@ void CMapPlugin::RenderNormalScale()
 	RenderCOG();
 	RenderHDG();
 	RenderGPS();
-	RenderSelection();
-	//wxMutexLocker locker(*GetMutex());
+
 	RenderShipNames();
+	RenderSelection();
+	
+	if(m_MapScale > GetViewFontScale())
+	{
+		m_NameFont->ClearBuffers(); 
+		m_NameFont->CreateBuffers();
+		m_NameFont->Render();
+		
+		m_MMSIFont->ClearBuffers();
+		m_MMSIFont->CreateBuffers();
+		m_MMSIFont->Render();
+	}
+
+	// napisy
 
 }
 
@@ -2889,15 +2898,14 @@ void CMapPlugin::Render()
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
-
+		
+	wxMutexLocker lock(*GetMutex());	
 	
-	
-	if(m_MapScale < m_Factor/5)
+	if(m_MapScale < m_Factor/3)
 		RenderSmallScale();
 	else
 		RenderNormalScale();
 		
-
 	glLineWidth(1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -3065,11 +3073,12 @@ void CMapPlugin::ThreadEnd()
 			ShowFrameWindow(true);
 		//else
 		//	ShowFrameWindow(false);
+		m_Broker->Refresh(m_Broker->GetParentPtr());
 	}
 	
 	m_MouseUp = false;
 	m_MouseDLmb = false;
-	m_Broker->Refresh(m_Broker->GetParentPtr());
+	
 				
 }
 

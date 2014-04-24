@@ -58,7 +58,7 @@ class CMapPlugin :public CNaviMapIOApi
 	SData *m_Data;
 	CTicker *m_Ticker1, *m_Ticker2;
 	//double m_MilesPerDeg;
-	nvFastFont *m_Font;
+	nvFastFont *m_NameFont, *m_MMSIFont;
 	bool m_Prepare;
 	int m_MaxFrequency;
 	int m_ShipTick,m_AisBufferTick;
@@ -309,7 +309,7 @@ public:
 	void RemoveDevice(CReader *ptr);
 	void StartDevice(CReader *ptr);
 	void StopDevice(CReader *ptr);
-	void ReindexDevics();
+	void ReindexDevices();
 	SAisData *GetSelectedPtr();
 	
 	SData *GetData();

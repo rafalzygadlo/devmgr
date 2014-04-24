@@ -11,8 +11,7 @@ bool m_ShowCOG = true;
 int m_Filter = DEFAULT_FILTER;
 char m_SearchText[64];
 int m_Frequency = DEFAULT_FREQUENCY;
-
-
+int m_ViewFontScale = DEFAULT_VIEW_FONT_SCALE;
 
 nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton;
 
@@ -158,6 +157,17 @@ int GetControlFrequency()
 	return m_Frequency;
 }
 
+int GetViewFontScale()
+{
+	return m_ViewFontScale;
+}
+
+void SetViewFontScale(int value) 
+{
+	m_ViewFontScale = value;
+}
+
+
 void ReadOptionsConfig()
 {
 
@@ -168,7 +178,8 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_SHOW_HDT),&m_ShowHDT, true);
 	FileConfig->Read(_(KEY_FILTER),&m_Filter, DEFAULT_FILTER);
 	FileConfig->Read(_(KEY_FREQUENCY),&m_Frequency, DEFAULT_FREQUENCY);
-	
+	FileConfig->Read(_(KEY_VIEW_FONT_SCALE),&m_ViewFontScale,DEFAULT_VIEW_FONT_SCALE);
+
 	wxString _color;
 	
 	FileConfig->Read(_(KEY_SHIP_COLOR_0),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_0)));
@@ -199,12 +210,13 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_SHOW_HDT),m_ShowHDT);
 	FileConfig->Write(_(KEY_FILTER),m_Filter);
 	FileConfig->Write(_(KEY_FREQUENCY),m_Frequency);
+	FileConfig->Write(_(KEY_VIEW_FONT_SCALE),m_ViewFontScale);
+	
 
 	FileConfig->Write(_(KEY_SHIP_COLOR_0),RGBAToStr(&GetColor(SHIP_COLOR_0)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_1),RGBAToStr(&GetColor(SHIP_COLOR_1)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_2),RGBAToStr(&GetColor(SHIP_COLOR_2)));
 	
 	delete FileConfig;
-
 
 }

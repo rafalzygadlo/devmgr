@@ -9,6 +9,7 @@
 #include <wx/html/htmlwin.h>
 #include <wx/srchctrl.h>
 #include <wx/clrpicker.h>
+#include <wx/spinctrl.h>
 
 
 class CMapPlugin;
@@ -27,6 +28,7 @@ class CAisList : public wxPanel
 	wxSlider *m_FontSize;
 	wxCheckBox *m_COGLine,*m_HDTLine;
 	wxColourPickerCtrl *m_ShipColor0, *m_ShipColor1 , *m_ShipColor2, *m_AtonColor;
+	wxSpinCtrl *m_ViewNameScale;
 	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
@@ -43,6 +45,7 @@ class CAisList : public wxPanel
 	void OnShowCOG(wxCommandEvent &event);
 	void OnColorPicker(wxColourPickerEvent &event);
 	void OnFilter(wxCommandEvent &event);
+	void OnNameScale(wxSpinEvent &event);
 
 public:
 	
@@ -70,6 +73,7 @@ public:
 		ID_SHIP_COLOR_2,
 		ID_ATON_COLOR,
 		ID_FILTER,
+		ID_VIEW_NAME_SCALE,
 	};
 
 	DECLARE_EVENT_TABLE();

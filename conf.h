@@ -42,6 +42,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_ATON_COLOR "aton_color"
 #define KEY_FILTER "filter"
 #define KEY_FREQUENCY "frequency"
+#define KEY_VIEW_FONT_SCALE "view_font_scale"
 
 #define DIR_WORKDIR "workdir"
 
@@ -266,6 +267,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
+#define DEFAULT_VIEW_FONT_SCALE 1000
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
