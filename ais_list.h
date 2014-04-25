@@ -24,11 +24,11 @@ class CAisList : public wxPanel
 	wxNotebook *m_Notebook;
 	wxBoxSizer *m_Page1Sizer;
 	wxSearchCtrl *m_SearchText;
-	wxCheckBox *m_ShipNames;
 	wxSlider *m_FontSize;
-	wxCheckBox *m_COGLine,*m_HDTLine;
+	wxCheckBox *m_ShipNames,*m_COGLine,*m_HDTLine,*m_GPSPoint,*m_ShowObjects;
 	wxColourPickerCtrl *m_ShipColor0, *m_ShipColor1 , *m_ShipColor2, *m_AtonColor;
-	wxSpinCtrl *m_ViewNameScale;
+	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
+	wxSlider *m_ViewNameScale;
 	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
@@ -43,9 +43,11 @@ class CAisList : public wxPanel
 	void OnFontSize(wxCommandEvent &event);
 	void OnShowHDT(wxCommandEvent &event);
 	void OnShowCOG(wxCommandEvent &event);
+	void OnShowGPS(wxCommandEvent &event);
+	void OnShowOBJECTS(wxCommandEvent &event);
 	void OnColorPicker(wxColourPickerEvent &event);
 	void OnFilter(wxCommandEvent &event);
-	void OnNameScale(wxSpinEvent &event);
+	void OnNameScale(wxCommandEvent &event);
 
 public:
 	
@@ -57,8 +59,8 @@ public:
 	void ClearHtml();
 	void ThreadBegin();
 	void ThreadEnd();
-	void _SetShowNames(bool val);
-	void _SetFontSize(int val);
+	void Synchro();
+	
 
 	enum 
 	{
@@ -74,6 +76,11 @@ public:
 		ID_ATON_COLOR,
 		ID_FILTER,
 		ID_VIEW_NAME_SCALE,
+		ID_COG_COLOR,
+		ID_HDT_COLOR,
+		ID_GPS_COLOR,
+		ID_SHOW_GPS,
+		ID_SHOW_OBJECTS,
 	};
 
 	DECLARE_EVENT_TABLE();

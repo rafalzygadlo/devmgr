@@ -24,5 +24,9 @@ void SetControlFrequency(int value);
 int GetControlFrequency();
 int GetViewFontScale();
 void SetViewFontScale(int value);
+bool GetShowGPS();
+void SetShowGPS(bool value);
+bool GetShowOBJECTS();
+void SetShowOBJECTS(bool value);
 
 #endif

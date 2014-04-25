@@ -36,10 +36,15 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_CONTROL_TYPE "control_type"
 #define KEY_SHOW_COG "show_cog"
 #define KEY_SHOW_HDT "show_hdt"
+#define KEY_SHOW_GPS "show_gps"
+#define KEY_SHOW_OBJECTS "show_objects"
 #define KEY_SHIP_COLOR_0 "ship_color0"
 #define KEY_SHIP_COLOR_1 "ship_color1"
 #define KEY_SHIP_COLOR_2 "ship_color2"
 #define KEY_ATON_COLOR "aton_color"
+#define KEY_HDT_COLOR "hdt_color"
+#define KEY_COG_COLOR "cog_color"
+#define KEY_GPS_COLOR "gps_color"	
 #define KEY_FILTER "filter"
 #define KEY_FREQUENCY "frequency"
 #define KEY_VIEW_FONT_SCALE "view_font_scale"
@@ -234,6 +239,12 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_AIS_INFO_ALL				151
 #define MSG_DEVICE_OPTIONS				152
 #define MSG_DEVICE_FREQUENCY			153
+#define MSG_VIEW_NAME_SCALE				154
+#define MSG_COG_COLOR					155
+#define MSG_HDT_COLOR					156
+#define MSG_SHOW_GPS					157
+#define MSG_GPS_COLOR					158
+#define MSG_SHOW_OBJECTS				159
 
 
 #define MAX_DATA_POSITIONS	10
@@ -305,6 +316,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_COLOR_1 1
 #define SHIP_COLOR_2 2
 #define ATON_COLOR	 3
+#define COG_COLOR	 4
+#define HDT_COLOR	 5
+#define GPS_COLOR	 6
 
 #define TICK_0	0
 #define TICK_1	1

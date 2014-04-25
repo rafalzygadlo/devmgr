@@ -175,6 +175,12 @@ const wchar_t *nvLanguage[2][183] =
 		_("All"),
 		_("Options"),
 		_("Frequency"),
+		_("View Names Scale"),
+		_("COG Color"),
+		_("HDT Color"),
+		_("Show GPS"),
+		_("GPS Color"),
+		_("Show Objects"),
 
 	},
 	

@@ -325,11 +325,8 @@ int CDisplayPlugin::GetControlId()
 void CDisplayPlugin::SynchroOptions()
 {
 	if(m_AisList)
-	{
-		m_AisList->_SetShowNames(GetShowNames());
-		//m_AisList->_SetFontSize(GetFontSize()*10);
-	}
-		
+		m_AisList->Synchro();
+			
 }
 
 void CDisplayPlugin::OnRender(wxGCDC &dc) 

@@ -1380,11 +1380,11 @@ void CMapPlugin::PrepareListBuffer()
 void CMapPlugin::PrepareSearchBuffer()
 {
 	int counter = 0;
-	if(GetSearchMutex()->TryLock() != wxMUTEX_NO_ERROR)
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
 
 	ais_set_search_buffer(GetSearchText());
-	GetSearchMutex()->Unlock();
+	GetMutex()->Unlock();
 	
 	SendSignal(SIGNAL_UPDATE_LIST,0);
 }
@@ -2290,7 +2290,10 @@ void CMapPlugin::RenderGeometry(GLenum Mode,GLvoid* RawData,size_t DataLength)
 void CMapPlugin::RenderShipNames()
 {
 	if(!GetShowNames())
+	{
+		m_NameFont->Clear();
 		return;
+	}
 
 	if(m_CurrentShipNamesBufferPtr == NULL)
 		return;
@@ -2746,7 +2749,8 @@ void  CMapPlugin::RenderSelection()
 	p15.x += to_x; p15.y += to_y;
 	p16.x += to_x; p16.y += to_y;
 
-	glLineWidth(4);
+	glLineWidth(3);
+	glColor4f(0.0,0.0,1.0,0.8);
 	glBegin(GL_LINES);
 		glVertex2d(p1.x ,p1.y);
 		glVertex2d(p2.x ,p2.y);
@@ -2771,11 +2775,11 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::RenderHDG()
 {
-	glColor4f(1.0,0.0,0.0,0.6);
-	
 	if(!GetShowHDT())
 		return;
-		
+	
+	glColor4ub(GetColor(HDT_COLOR).R ,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
+			
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
 
@@ -2783,11 +2787,11 @@ void CMapPlugin::RenderHDG()
 
 void CMapPlugin::RenderCOG()
 {
-	glColor4f(0.0,1.0,0.0,0.6);
-	
 	if(!GetShowCOG())
 		return;
-		
+	
+	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+			
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
 	
@@ -2795,7 +2799,12 @@ void CMapPlugin::RenderCOG()
 
 void CMapPlugin::RenderGPS()
 {
-	glColor4f(0.0,0.0,1.0,0.6);
+	
+	if(!GetShowGPS())
+		return;
+	
+	glColor4ub(GetColor(GPS_COLOR).R ,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
+
 	glPointSize(4);
 	
 	if(m_CurrentPointsBufferPtr != NULL && m_CurrentPointsBufferPtr->Length() > 0)
@@ -2892,6 +2901,9 @@ void CMapPlugin::RenderSmallScale()
 
 void CMapPlugin::Render()
 {
+	if(!GetShowOBJECTS())
+		return;
+
 	m_Render = true;
 	Generate();
 	SetValues();
@@ -2901,9 +2913,9 @@ void CMapPlugin::Render()
 		
 	wxMutexLocker lock(*GetMutex());	
 	
-	if(m_MapScale < m_Factor/3)
-		RenderSmallScale();
-	else
+	if(m_MapScale > m_Factor/3)
+		//RenderSmallScale();
+	//else
 		RenderNormalScale();
 		
 	glLineWidth(1);

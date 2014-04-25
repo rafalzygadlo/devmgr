@@ -8,12 +8,14 @@ double m_FontSize = DEFAULT_FONT_SIZE;
 bool m_ShowNames = false;
 bool m_ShowHDT = true;
 bool m_ShowCOG = true;
+bool m_ShowGPS = true;
+bool m_ShowObjects = true;
 int m_Filter = DEFAULT_FILTER;
 char m_SearchText[64];
 int m_Frequency = DEFAULT_FREQUENCY;
 int m_ViewFontScale = DEFAULT_VIEW_FONT_SCALE;
 
-nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton;
+nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton, ColorHDT, ColorCOG, ColorGPS;
 
 void SetFontSize( float size)
 {
@@ -45,6 +47,16 @@ void SetShowHDT(bool value)
 	m_ShowHDT = value;
 }
 
+bool GetShowGPS()
+{
+	return m_ShowGPS;
+}
+
+void SetShowGPS(bool value)
+{
+	m_ShowGPS = value;
+}
+
 bool GetShowCOG()
 {
 	return m_ShowCOG;
@@ -60,10 +72,13 @@ nvRGBA GetDefaultColor(int type)
 	nvRGBA rgba;
 	switch(type)
 	{
-		case SHIP_COLOR_0:	rgba.R = 0;		rgba.G = 255;	rgba.B = 0;	rgba.A = 200;	break;
-		case SHIP_COLOR_1:	rgba.R = 255;	rgba.G = 255;	rgba.B = 0;	rgba.A = 200;	break;
-		case SHIP_COLOR_2:	rgba.R = 255;	rgba.G = 0;		rgba.B = 0;	rgba.A = 200;	break;
-		case ATON_COLOR:	rgba.R = 0;		rgba.G = 255;	rgba.B = 0;	rgba.A = 200;	break;
+		case SHIP_COLOR_0:	rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_1:	rgba.R = 255;	rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_2:	rgba.R = 255;	rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
+		case ATON_COLOR:	rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case COG_COLOR:		rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case HDT_COLOR:		rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
+		case GPS_COLOR:		rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
 	}
 		
 	return rgba;
@@ -78,6 +93,9 @@ nvRGBA GetColor(int type)
 		case SHIP_COLOR_1:	rgba.R = ColorShip1.R;	rgba.G = ColorShip1.G;	rgba.B = ColorShip1.B;	rgba.A = ColorShip1.A;	break;
 		case SHIP_COLOR_2:	rgba.R = ColorShip2.R;	rgba.G = ColorShip2.G;	rgba.B = ColorShip2.B;	rgba.A = ColorShip2.A;	break;
 		case ATON_COLOR:	rgba.R = ColorAton.R;	rgba.G = ColorAton.G;	rgba.B = ColorAton.B;	rgba.A = ColorAton.A;	break;
+		case COG_COLOR:		rgba.R = ColorCOG.R;	rgba.G = ColorCOG.G;	rgba.B = ColorCOG.B;	rgba.A = ColorCOG.A;	break;
+		case HDT_COLOR:		rgba.R = ColorHDT.R;	rgba.G = ColorHDT.G;	rgba.B = ColorHDT.B;	rgba.A = ColorHDT.A;	break;
+		case GPS_COLOR:		rgba.R = ColorGPS.R;	rgba.G = ColorGPS.G;	rgba.B = ColorGPS.B;	rgba.A = ColorGPS.A;	break;
 	}
 		
 	return rgba;
@@ -91,6 +109,9 @@ void SetColor(int type, nvRGBA color)
 		case SHIP_COLOR_1:	ColorShip1.R = color.R;	ColorShip1.G = color.G;	ColorShip1.B = color.B;	ColorShip1.A = color.A;	break;
 		case SHIP_COLOR_2:	ColorShip2.R = color.R;	ColorShip2.G = color.G;	ColorShip2.B = color.B;	ColorShip2.A = color.A;	break;
 		case ATON_COLOR:	ColorAton.R = color.R;	ColorAton.G = color.G;	ColorAton.B = color.B;	ColorAton.A = color.A;	break;
+		case COG_COLOR:		ColorCOG.R = color.R;	ColorCOG.G = color.G;	ColorCOG.B = color.B;	ColorCOG.A = color.A;	break;
+		case HDT_COLOR:		ColorHDT.R = color.R;	ColorHDT.G = color.G;	ColorHDT.B = color.B;	ColorHDT.A = color.A;	break;
+		case GPS_COLOR:		ColorGPS.R = color.R;	ColorGPS.G = color.G;	ColorGPS.B = color.B;	ColorGPS.A = color.A;	break;
 	}
 
 }
@@ -103,7 +124,6 @@ void SetAlpha(int type, int value)
 		case SHIP_COLOR_1:	ColorShip1.A = value;	break;
 		case SHIP_COLOR_2:	ColorShip2.A = value;	break;
 		case ATON_COLOR:	ColorAton.A = value;	break;	
-	
 	}
 
 }
@@ -162,11 +182,20 @@ int GetViewFontScale()
 	return m_ViewFontScale;
 }
 
+bool GetShowOBJECTS()
+{
+	return m_ShowObjects;
+}
+
+void SetShowOBJECTS(bool value)
+{
+	m_ShowObjects = value;
+}
+
 void SetViewFontScale(int value) 
 {
 	m_ViewFontScale = value;
 }
-
 
 void ReadOptionsConfig()
 {
@@ -176,6 +205,8 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_FONT_SIZE),&m_FontSize, DEFAULT_FONT_SIZE);
 	FileConfig->Read(_(KEY_SHOW_COG),&m_ShowCOG, true);
 	FileConfig->Read(_(KEY_SHOW_HDT),&m_ShowHDT, true);
+	FileConfig->Read(_(KEY_SHOW_GPS),&m_ShowGPS, true);
+	FileConfig->Read(_(KEY_SHOW_OBJECTS),&m_ShowObjects, true);
 	FileConfig->Read(_(KEY_FILTER),&m_Filter, DEFAULT_FILTER);
 	FileConfig->Read(_(KEY_FREQUENCY),&m_Frequency, DEFAULT_FREQUENCY);
 	FileConfig->Read(_(KEY_VIEW_FONT_SCALE),&m_ViewFontScale,DEFAULT_VIEW_FONT_SCALE);
@@ -194,7 +225,14 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_ATON_COLOR),&_color,RGBAToStr(&GetDefaultColor(ATON_COLOR)));
 	SetColor(ATON_COLOR,StrToRGBA(_color));
 	
+	FileConfig->Read(_(KEY_COG_COLOR),&_color,RGBAToStr(&GetDefaultColor(COG_COLOR)));
+	SetColor(COG_COLOR,StrToRGBA(_color));
 	
+	FileConfig->Read(_(KEY_HDT_COLOR),&_color,RGBAToStr(&GetDefaultColor(HDT_COLOR)));
+	SetColor(HDT_COLOR,StrToRGBA(_color));
+	
+	FileConfig->Read(_(KEY_GPS_COLOR),&_color,RGBAToStr(&GetDefaultColor(GPS_COLOR)));
+	SetColor(GPS_COLOR,StrToRGBA(_color));
 	delete FileConfig;
 
 }
@@ -208,14 +246,17 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_FONT_SIZE),m_FontSize);
 	FileConfig->Write(_(KEY_SHOW_COG),m_ShowCOG);
 	FileConfig->Write(_(KEY_SHOW_HDT),m_ShowHDT);
+	FileConfig->Write(_(KEY_SHOW_GPS),m_ShowGPS);
+	FileConfig->Write(_(KEY_SHOW_OBJECTS),m_ShowObjects);
 	FileConfig->Write(_(KEY_FILTER),m_Filter);
 	FileConfig->Write(_(KEY_FREQUENCY),m_Frequency);
 	FileConfig->Write(_(KEY_VIEW_FONT_SCALE),m_ViewFontScale);
-	
-
 	FileConfig->Write(_(KEY_SHIP_COLOR_0),RGBAToStr(&GetColor(SHIP_COLOR_0)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_1),RGBAToStr(&GetColor(SHIP_COLOR_1)));
 	FileConfig->Write(_(KEY_SHIP_COLOR_2),RGBAToStr(&GetColor(SHIP_COLOR_2)));
+	FileConfig->Write(_(KEY_COG_COLOR),RGBAToStr(&GetColor(COG_COLOR)));
+	FileConfig->Write(_(KEY_HDT_COLOR),RGBAToStr(&GetColor(HDT_COLOR)));
+	FileConfig->Write(_(KEY_GPS_COLOR),RGBAToStr(&GetColor(GPS_COLOR)));
 	
 	delete FileConfig;
 

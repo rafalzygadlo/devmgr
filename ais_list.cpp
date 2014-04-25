@@ -17,10 +17,12 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_CHECKBOX(ID_SHOW_NAMES,OnShowNames)
 	EVT_CHECKBOX(ID_SHOW_COG,OnShowCOG)
 	EVT_CHECKBOX(ID_SHOW_HDT,OnShowHDT)
+	EVT_CHECKBOX(ID_SHOW_GPS,OnShowGPS)
+	EVT_CHECKBOX(ID_SHOW_OBJECTS,OnShowOBJECTS)
 	EVT_SLIDER(ID_FONT_SIZE,OnFontSize)
 	EVT_COLOURPICKER_CHANGED(wxID_ANY,OnColorPicker)
 	EVT_BUTTON(ID_FILTER,OnFilter)
-	EVT_SPINCTRL(ID_VIEW_NAME_SCALE, OnNameScale)
+	EVT_SLIDER(ID_VIEW_NAME_SCALE, OnNameScale)
 END_EVENT_TABLE()
 
 
@@ -48,6 +50,36 @@ void CAisList::SetSignal(int signal)
 		case CLEAR_AIS_LIST:		ClearList();	break;
 		case SIGNAL_UPDATE_LIST:	SetList();		break;
 	}
+}
+
+void CAisList::Synchro()
+{
+	m_GPSPoint->SetValue(GetShowGPS());
+	m_COGLine->SetValue(GetShowCOG());
+	m_HDTLine->SetValue(GetShowHDT());
+	m_ShipNames->SetValue(GetShowNames());	
+	m_FontSize->SetValue(GetFontSize());
+
+	wxColor color;
+	color.Set(GetColor(COG_COLOR).R,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+	m_COGColor->SetColour(color);
+
+	color.Set(GetColor(HDT_COLOR).R,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
+	m_HDTColor->SetColour(color);
+
+	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
+	m_GPSColor->SetColour(color);
+
+	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
+	m_ShipColor0->SetColour(color);
+		
+	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
+	m_ShipColor1->SetColour(color);
+		
+	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
+	m_ShipColor2->SetColour(color);
+		
+
 }
 
 void CAisList::ClearList()
@@ -122,21 +154,13 @@ void CAisList::OnShowNames(wxCommandEvent &event)
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
 }
 
-void CAisList::_SetShowNames(bool val)
-{
-	m_ShipNames->SetValue(val);
-}
+
 
 void CAisList::OnFontSize(wxCommandEvent &event)
 {
 	SetFontSize(event.GetInt());
 	if(m_Broker != NULL)
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
-}
-
-void CAisList::_SetFontSize(int val)
-{
-	m_FontSize->SetValue(val);
 }
 
 void CAisList::OnShowCOG(wxCommandEvent &event)
@@ -149,6 +173,20 @@ void CAisList::OnShowCOG(wxCommandEvent &event)
 void CAisList::OnShowHDT(wxCommandEvent &event)
 {
 	SetShowHDT(event.GetSelection());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::OnShowGPS(wxCommandEvent &event)
+{
+	SetShowGPS(event.GetSelection());
+	if(m_Broker != NULL)
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+}
+
+void CAisList::OnShowOBJECTS(wxCommandEvent &event)
+{
+	SetShowOBJECTS(event.GetSelection());
 	if(m_Broker != NULL)
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
 }
@@ -166,7 +204,11 @@ void CAisList::OnColorPicker(wxColourPickerEvent &event)
 	{
 		case ID_SHIP_COLOR_0:	color.A = GetColor(SHIP_COLOR_0).A;	SetColor(SHIP_COLOR_0,color);	break;
 		case ID_SHIP_COLOR_1:	color.A = GetColor(SHIP_COLOR_1).A;	SetColor(SHIP_COLOR_1,color);	break;
+		case ID_SHIP_COLOR_2:	color.A = GetColor(SHIP_COLOR_2).A;	SetColor(SHIP_COLOR_2,color);	break;
 		case ID_ATON_COLOR:	    color.A = GetColor(ATON_COLOR).A;	SetColor(ATON_COLOR,color);		break;
+		case ID_COG_COLOR:	    color.A = GetColor(COG_COLOR).A;	SetColor(COG_COLOR,color);		break;
+		case ID_HDT_COLOR:	    color.A = GetColor(HDT_COLOR).A;	SetColor(HDT_COLOR,color);		break;
+		case ID_GPS_COLOR:	    color.A = GetColor(GPS_COLOR).A;	SetColor(GPS_COLOR,color);		break;
 	}
 
 	if(m_Broker != NULL)
@@ -182,7 +224,7 @@ void CAisList::OnFilter(wxCommandEvent &event)
 	//StartThread();	
 }
 
-void CAisList::OnNameScale(wxSpinEvent &event)
+void CAisList::OnNameScale(wxCommandEvent &event)
 {
 	SetViewFontScale(event.GetInt());
 
@@ -228,6 +270,7 @@ void CAisList::GetPanel()
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
 	
+	//Page2
 	wxPanel *Page2 = new wxPanel(m_Notebook);
 	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
 	Page2->SetSizer(m_Page2Sizer);
@@ -244,10 +287,10 @@ void CAisList::GetPanel()
 	ScrollSizer->Add(m_ShipNames,0,wxALL,5);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,0);
+	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,2);
 
 	wxStaticText *TextFontSize = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextFontSize,1,wxALL,2);
+	FlexSizer->Add(TextFontSize,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	
 	m_FontSize = new wxSlider(Scroll,ID_FONT_SIZE,0,0,0,wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(m_FontSize,0,wxALL,2);
@@ -255,60 +298,102 @@ void CAisList::GetPanel()
 	m_FontSize->SetMax(200);
 	m_FontSize->SetValue(GetFontSize() * 10);
 
+	wxStaticText *TextViewNameScale = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_VIEW_NAME_SCALE),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextViewNameScale,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+	m_ViewNameScale = new wxSlider(Scroll,ID_VIEW_NAME_SCALE,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ViewNameScale->SetMin(1);
+	m_ViewNameScale->SetMax(10000);
+	m_ViewNameScale->SetValue(GetViewFontScale());
+	FlexSizer->Add(m_ViewNameScale,0,wxALL,2);
+	
+	//OBJECTS
+	m_ShowObjects = new wxCheckBox(Scroll,ID_SHOW_OBJECTS,GetMsg(MSG_SHOW_OBJECTS));
+	m_ShowObjects->SetValue(GetShowOBJECTS());
+	ScrollSizer->Add(m_ShowObjects,0,wxALL,5);
+
+	wxFlexGridSizer *FlexOBJECTSSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexOBJECTSSizer,0,wxLEFT,8);
 
 	wxStaticText *TextShipColor0 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextShipColor0,0,wxALL,2);
-	
+	FlexOBJECTSSizer->Add(TextShipColor0,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	m_ShipColor0 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0);
 	wxColor color;
 	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
 	m_ShipColor0->SetColour(color);
-	FlexSizer->Add(m_ShipColor0,0,wxALL,2);
+	FlexOBJECTSSizer->Add(m_ShipColor0,0,wxALL,2);
 
 	wxStaticText *TextShipColor1 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextShipColor1,1,wxALL,2);
-
+	FlexOBJECTSSizer->Add(TextShipColor1,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	m_ShipColor1 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1);
 	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
 	m_ShipColor1->SetColour(color);
-	FlexSizer->Add(m_ShipColor1,0,wxALL,2);
+	FlexOBJECTSSizer->Add(m_ShipColor1,0,wxALL,2);
 		
 	wxStaticText *TextShipColor2 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextShipColor2,1,wxALL,2);
-
+	FlexOBJECTSSizer->Add(TextShipColor2,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	m_ShipColor2 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2);
 	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
 	m_ShipColor2->SetColour(color);
-	FlexSizer->Add(m_ShipColor2,0,wxALL,2);
+	FlexOBJECTSSizer->Add(m_ShipColor2,0,wxALL,2);
 
 
 	wxStaticText *TextAtonColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ATON_COLOR),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextAtonColor,1,wxALL,2);
-
+	FlexOBJECTSSizer->Add(TextAtonColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	m_AtonColor = new wxColourPickerCtrl(Scroll,ID_ATON_COLOR);
 	color.Set(GetColor(ATON_COLOR).R,GetColor(ATON_COLOR).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
 	m_AtonColor->SetColour(color);
-	FlexSizer->Add(m_AtonColor,0,wxALL,2);
-		
+	FlexOBJECTSSizer->Add(m_AtonColor,0,wxALL,2);
 	
+	//COG
 	m_COGLine = new wxCheckBox(Scroll,ID_SHOW_COG,GetMsg(MSG_SHOW_COG));
 	m_COGLine->SetValue(GetShowCOG());
 	ScrollSizer->Add(m_COGLine,0,wxALL,5);
 	
+	wxFlexGridSizer *FlexCOGSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexCOGSizer,0,wxLEFT,8);
+
+	wxStaticText *TextCOGColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG_COLOR),wxDefaultPosition,wxDefaultSize);
+	FlexCOGSizer->Add(TextCOGColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+	m_COGColor = new wxColourPickerCtrl(Scroll,ID_COG_COLOR );
+	color.Set(GetColor(COG_COLOR).R,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+	m_COGColor->SetColour(color);
+	FlexCOGSizer->Add(m_COGColor,0,wxALL,2);
+		
+	//HDT
 	m_HDTLine = new wxCheckBox(Scroll,ID_SHOW_HDT,GetMsg(MSG_SHOW_HDT));
 	m_HDTLine->SetValue(GetShowHDT());
 	ScrollSizer->Add(m_HDTLine,0,wxALL,5);
+
+	wxFlexGridSizer *FlexHDTSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexHDTSizer,0,wxLEFT,8);
+
+	wxStaticText *TextHDTColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT_COLOR),wxDefaultPosition,wxDefaultSize);
+	FlexHDTSizer->Add(TextHDTColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
+	m_HDTColor = new wxColourPickerCtrl(Scroll,ID_HDT_COLOR);
+	color.Set(GetColor(HDT_COLOR).R,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
+	m_HDTColor->SetColour(color);
+	FlexHDTSizer->Add(m_HDTColor,0,wxALL,2);
+	
+	//GPS
+	m_GPSPoint = new wxCheckBox(Scroll,ID_SHOW_GPS,GetMsg(MSG_SHOW_GPS));
+	m_GPSPoint->SetValue(GetShowGPS());
+	ScrollSizer->Add(m_GPSPoint,0,wxALL,5);
+
+	wxFlexGridSizer *FlexGPSSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexGPSSizer,0,wxLEFT,8);
+
+	wxStaticText *TextGPSColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_GPS_COLOR),wxDefaultPosition,wxDefaultSize);
+	FlexGPSSizer->Add(TextGPSColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
+	m_GPSColor = new wxColourPickerCtrl(Scroll,ID_GPS_COLOR);
+	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
+	m_GPSColor->SetColour(color);
+	FlexGPSSizer->Add(m_GPSColor,0,wxALL,2);
 	
 
-	wxStaticText *TextNameScale = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextNameScale,1,wxALL,2);
-	
-	m_ViewNameScale = new wxSpinCtrl(Scroll,ID_VIEW_NAME_SCALE,wxEmptyString,wxDefaultPosition,wxDefaultSize);
-	m_ViewNameScale->SetMin(1);
-	m_ViewNameScale->SetMax(10000);
-	m_ViewNameScale->SetValue(wxString::Format(_("%d"),GetViewFontScale()));
-	FlexSizer->Add(m_ViewNameScale,0,wxALL,2);
-	
 	Scroll->SetScrollbars(20, 20, 20, 20);
 
 

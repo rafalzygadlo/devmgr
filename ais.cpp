@@ -2041,7 +2041,7 @@ wxString PrintHtmlSimple(ais_t *msg)
 	ais_set_turn(msg, &ptr);	ar.Add(GetMsg(MSG_TURN));		ar.Add((GetTurn(ptr.turn)));
 	
 
-	str.Append(_("<table border=0 cellpadding=3 cellspacing=0>"));
+	str.Append(_("<table border=0 cellpadding=2 cellspacing=2>"));
 	
 	for(size_t i = 0; i < ar.size(); i+=2)
 	{
