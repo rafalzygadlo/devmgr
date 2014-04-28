@@ -245,7 +245,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_SHOW_GPS					157
 #define MSG_GPS_COLOR					158
 #define MSG_SHOW_OBJECTS				159
-
+#define MSG_FLAG						160
 
 #define MAX_DATA_POSITIONS	10
 

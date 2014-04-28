@@ -1393,7 +1393,7 @@ void CMapPlugin::PrepareBuffer()
 {
 	if(m_Render)
 		return;
-
+	
 	m_Ready = false;
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;	
@@ -2911,11 +2911,11 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	wxMutexLocker lock(*GetMutex());	
+	//wxMutexLocker lock(*GetMutex());	
 	
-	if(m_MapScale > m_Factor/3)
-		//RenderSmallScale();
-	//else
+	if(m_MapScale < m_Factor/5)
+		RenderSmallScale();
+	else
 		RenderNormalScale();
 		
 	glLineWidth(1);

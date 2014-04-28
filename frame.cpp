@@ -147,7 +147,6 @@ void CMyFrame::ShowWindow(bool show)
 	
 		ais_t *ais = (ais_t*)SelectedPtr->ais_ptr;
 		ClearHtml(PAGE_0);
-		SetHtml(_("<a name='top'></a><br>"),PAGE_0);
 		SetHtml(PrintHtmlSimple(ais),PAGE_0);
 	
 		ClearHtml(PAGE_1);

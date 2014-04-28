@@ -269,6 +269,34 @@ const wchar_t *nvNavigationStatus[2][16] =
 
 };
 
+struct ais_mid MID[] =
+{	
+	#include "data/mid.dat"
+	{-1,-1},
+};
+
+ais_mid *ais_get_mid(unsigned int mmsi)
+{
+	char _mmsi[9];
+	char _mid[4];
+	memset(_mid,0,4);
+	int mid = 0;
+	itoa(mmsi,_mmsi,10);
+	memcpy(_mid,_mmsi,3);
+
+	mid = atoi(_mid);
+	int i = 0;
+	while(MID[i].id != -1)
+	{
+		if(MID[i].id == mid)
+			return &MID[i];
+		i++;
+	}
+	
+	return NULL;
+
+}
+
 void ais_set_option(int val)
 {
 	option |= val;
@@ -2025,35 +2053,53 @@ wxString PrintHtmlSimple(ais_t *msg)
 	ptr.lat = AIS_LAT_NOT_AVAILABLE;
 	ptr.sog = AIS_SPEED_NOT_AVAILABLE;
 	ptr.turn = AIS_TURN_NOT_AVAILABLE;
-
-	ais_set_mmsi(msg,&ptr);		ar.Add(GetMsg(MSG_MMSI));		ar.Add(get_value_as_string(ptr.mmsi));
-	ais_set_callsign(msg,&ptr);	ar.Add(GetMsg(MSG_CALLSIGN));	ar.Add(get_value_as_string(ptr.callsign));
-	ais_set_name(msg,&ptr);		ar.Add(GetMsg(MSG_SHIPNAME));	ar.Add(get_value_as_string(ptr.name));
-	ais_set_cog(msg,&ptr);		ar.Add(GetMsg(MSG_COG));		ar.Add(get_value_as_string(get_cog(ptr.cog),true,AIS_COURSE_NOT_AVAILABLE));
-	ais_set_hdg(msg,&ptr);		ar.Add(GetMsg(MSG_HEADING));	ar.Add(get_value_as_string(get_hdg(ptr.hdg),true,AIS_HEADING_NOT_AVAILABLE));
-	
-	ais_set_lon_lat(msg, &ptr);	ar.Add(GetMsg(MSG_LAT));		ar.Add(get_value_as_string(get_lon_lat(ptr.lat*AIS_LATLON_DIV),true,AIS_LAT_NOT_AVAILABLE));
-								ar.Add(GetMsg(MSG_LON));		ar.Add(get_value_as_string(get_lon_lat(ptr.lon*AIS_LATLON_DIV),true,AIS_LON_NOT_AVAILABLE));
-	
-	
-	ais_set_sog(msg, &ptr);		ar.Add(GetMsg(MSG_SPEED));		ar.Add(get_value_as_string(get_speed(ptr.sog*10),true,AIS_SPEED_NOT_AVAILABLE));
 		
-	ais_set_turn(msg, &ptr);	ar.Add(GetMsg(MSG_TURN));		ar.Add((GetTurn(ptr.turn)));
-	
+	if(ais_set_name(msg,&ptr))
+		ar.Add(get_value_as_string(ptr.name));
+	else
+		ar.Add(_("N/A"));
 
+	ais_set_mmsi(msg,&ptr);
+	ar.Add(get_value_as_string(ptr.mmsi));
+	
+	ais_mid *mid = ais_get_mid(ptr.mmsi);
+	if(mid)
+		ar.Add(mid->name);
+	else
+		ar.Add(_("N/A"));
+	
+	ais_set_callsign(msg,&ptr);
+	ar.Add(get_value_as_string(ptr.callsign));
+	
+	ais_set_cog(msg,&ptr);
+	ar.Add(get_value_as_string(get_cog(ptr.cog),true,AIS_COURSE_NOT_AVAILABLE));
+	
+	ais_set_hdg(msg,&ptr);
+	ar.Add(get_value_as_string(get_hdg(ptr.hdg),true,AIS_HEADING_NOT_AVAILABLE));
+	
+	ais_set_lon_lat(msg, &ptr);
+	ar.Add(get_value_as_string(get_lon_lat(ptr.lat*AIS_LATLON_DIV),true,AIS_LAT_NOT_AVAILABLE));
+	ar.Add(get_value_as_string(get_lon_lat(ptr.lon*AIS_LATLON_DIV),true,AIS_LON_NOT_AVAILABLE));
+	
+	ais_set_sog(msg, &ptr);
+	ar.Add(get_value_as_string(get_speed(ptr.sog*10),true,AIS_SPEED_NOT_AVAILABLE));
+		
+	ais_set_turn(msg, &ptr);
+	ar.Add((GetTurn(ptr.turn)));
+		
 	str.Append(_("<table border=0 cellpadding=2 cellspacing=2>"));
-	
-	for(size_t i = 0; i < ar.size(); i+=2)
-	{
-		str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),ar.Item(i),ar.Item(i + 1)));
-	}
-	
-	
+	str.Append(wxString::Format(_("<tr><td colspan=2><font size=5><b>%s</b></font></td></tr>"),ar.Item(0)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_MMSI),ar.Item(1)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_FLAG),ar.Item(2)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_CALLSIGN),ar.Item(3)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_COG),ar.Item(4)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_HEADING),ar.Item(5)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LON),ar.Item(6)));
+	str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),GetMsg(MSG_LAT),ar.Item(7)));
+
 	str.Append(GetHtmlFooter());	
 
-
 	return str;
-
 }
 
 wxString PrintHtmlMsg(ais_t *msg, int type)

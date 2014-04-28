@@ -181,6 +181,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Show GPS"),
 		_("GPS Color"),
 		_("Show Objects"),
+		_("Flag"),
 
 	},
 	

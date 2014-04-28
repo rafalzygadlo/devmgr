@@ -49,6 +49,13 @@
 //#define AIS_SHIPNAME_MAXLEN	20
 #define MAX_TYPE24_INTERLEAVE	8	/* max number of queued type 24s */
 
+struct ais_mid
+{
+	int id;
+	wchar_t name[64];
+
+};
+
 struct ais_p
 {
 	float lon;
@@ -1068,6 +1075,7 @@ void ais_save_file();
 void ais_load_file();
 void ais_set_option(int val);
 bool ais_get_search_ready();
+ais_mid *ais_get_mid(unsigned int mmsi);
 
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();
