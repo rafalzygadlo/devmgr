@@ -23,6 +23,10 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_COLOURPICKER_CHANGED(wxID_ANY,OnColorPicker)
 	EVT_BUTTON(ID_FILTER,OnFilter)
 	EVT_SLIDER(ID_VIEW_NAME_SCALE, OnNameScale)
+	EVT_SPINCTRL(ID_COG_TIME, OnCOGTime)
+	EVT_SPINCTRL(ID_HDT_TIME, OnHDTTime)
+	EVT_SPINCTRL(ID_HDT_LINE_WIDTH, OnHDTLineWidth)
+	EVT_SPINCTRL(ID_COG_LINE_WIDTH, OnCOGLineWidth)
 END_EVENT_TABLE()
 
 
@@ -149,44 +153,65 @@ void CAisList::ThreadEnd()
 void CAisList::OnShowNames(wxCommandEvent &event)
 {
 	SetShowNames(event.GetSelection());
-
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
 }
-
-
 
 void CAisList::OnFontSize(wxCommandEvent &event)
 {
 	SetFontSize(event.GetInt());
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
 }
 
 void CAisList::OnShowCOG(wxCommandEvent &event)
 {
 	SetShowCOG(event.GetSelection());
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
 }
 
 void CAisList::OnShowHDT(wxCommandEvent &event)
 {
 	SetShowHDT(event.GetSelection());
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
 }
 
 void CAisList::OnShowGPS(wxCommandEvent &event)
 {
 	SetShowGPS(event.GetSelection());
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
 }
 
 void CAisList::OnShowOBJECTS(wxCommandEvent &event)
 {
 	SetShowOBJECTS(event.GetSelection());
+	Signal();
+}
+
+void CAisList::OnCOGTime(wxSpinEvent &event)
+{
+	SetCOGTime(event.GetInt());
+	Signal();
+}
+
+void CAisList::OnHDTTime(wxSpinEvent &event)
+{
+	SetHDTTime(event.GetInt());
+	Signal();
+}
+
+void CAisList::OnCOGLineWidth(wxSpinEvent &event)
+{
+	SetCOGLineWidth(event.GetInt());
+	Signal();
+}
+
+void CAisList::OnHDTLineWidth(wxSpinEvent &event)
+{
+	SetHDTLineWidth(event.GetInt());
+	Signal();
+}
+
+void CAisList::Signal()
+{
 	if(m_Broker != NULL)
 		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
 }
@@ -281,19 +306,19 @@ void CAisList::GetPanel()
 	m_Page2Sizer->Add(Scroll,1,wxALL|wxEXPAND,0);
 	Scroll->SetFocusIgnoringChildren();
 	Scroll->SetSizer(ScrollSizer);
-	
+		
 	m_ShipNames = new wxCheckBox(Scroll,ID_SHOW_NAMES,GetMsg(MSG_SHOW_NAMES));
 	m_ShipNames->SetValue(GetShowNames());
 	ScrollSizer->Add(m_ShipNames,0,wxALL,5);
-
+		
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,2);
-
+	ScrollSizer->Add(FlexSizer,0,wxALL,5);
+			
 	wxStaticText *TextFontSize = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextFontSize,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	
 	m_FontSize = new wxSlider(Scroll,ID_FONT_SIZE,0,0,0,wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(m_FontSize,0,wxALL,2);
+	FlexSizer->Add(m_FontSize,0,wxALL|wxALIGN_RIGHT,2);
 	m_FontSize->SetMin(50);
 	m_FontSize->SetMax(200);
 	m_FontSize->SetValue(GetFontSize() * 10);
@@ -305,19 +330,19 @@ void CAisList::GetPanel()
 	m_ViewNameScale->SetMin(1);
 	m_ViewNameScale->SetMax(10000);
 	m_ViewNameScale->SetValue(GetViewFontScale());
-	FlexSizer->Add(m_ViewNameScale,0,wxALL,2);
+	FlexSizer->Add(m_ViewNameScale,0,wxALL|wxALIGN_RIGHT,2);
 	
 	//OBJECTS
 	m_ShowObjects = new wxCheckBox(Scroll,ID_SHOW_OBJECTS,GetMsg(MSG_SHOW_OBJECTS));
 	m_ShowObjects->SetValue(GetShowOBJECTS());
 	ScrollSizer->Add(m_ShowObjects,0,wxALL,5);
 
-	wxFlexGridSizer *FlexOBJECTSSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexOBJECTSSizer,0,wxLEFT,8);
-
+	wxGridSizer *FlexOBJECTSSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexOBJECTSSizer,0,wxALL,5);
+	
 	wxStaticText *TextShipColor0 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
 	FlexOBJECTSSizer->Add(TextShipColor0,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor0 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0);
+	m_ShipColor0 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	wxColor color;
 	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
 	m_ShipColor0->SetColour(color);
@@ -325,14 +350,14 @@ void CAisList::GetPanel()
 
 	wxStaticText *TextShipColor1 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
 	FlexOBJECTSSizer->Add(TextShipColor1,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor1 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1);
+	m_ShipColor1 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
 	m_ShipColor1->SetColour(color);
 	FlexOBJECTSSizer->Add(m_ShipColor1,0,wxALL,2);
 		
 	wxStaticText *TextShipColor2 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
 	FlexOBJECTSSizer->Add(TextShipColor2,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor2 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2);
+	m_ShipColor2 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
 	m_ShipColor2->SetColour(color);
 	FlexOBJECTSSizer->Add(m_ShipColor2,0,wxALL,2);
@@ -340,7 +365,7 @@ void CAisList::GetPanel()
 
 	wxStaticText *TextAtonColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ATON_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexOBJECTSSizer->Add(TextAtonColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_AtonColor = new wxColourPickerCtrl(Scroll,ID_ATON_COLOR);
+	m_AtonColor = new wxColourPickerCtrl(Scroll,ID_ATON_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	color.Set(GetColor(ATON_COLOR).R,GetColor(ATON_COLOR).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
 	m_AtonColor->SetColour(color);
 	FlexOBJECTSSizer->Add(m_AtonColor,0,wxALL,2);
@@ -351,44 +376,79 @@ void CAisList::GetPanel()
 	ScrollSizer->Add(m_COGLine,0,wxALL,5);
 	
 	wxFlexGridSizer *FlexCOGSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexCOGSizer,0,wxLEFT,8);
-
+	ScrollSizer->Add(FlexCOGSizer,0,wxALL|wxEXPAND,5);
 	wxStaticText *TextCOGColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexCOGSizer->Add(TextCOGColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	
-	m_COGColor = new wxColourPickerCtrl(Scroll,ID_COG_COLOR );
+	m_COGColor = new wxColourPickerCtrl(Scroll,ID_COG_COLOR, *wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL );
 	color.Set(GetColor(COG_COLOR).R,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
 	m_COGColor->SetColour(color);
 	FlexCOGSizer->Add(m_COGColor,0,wxALL,2);
-		
+
+	wxStaticText *TextCOGTime = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG_TIME),wxDefaultPosition,wxDefaultSize);
+	FlexCOGSizer->Add(TextCOGTime,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
+	m_COGTime = new wxSpinCtrl(Scroll,ID_COG_TIME,wxEmptyString,wxDefaultPosition,wxSize(80,-1));
+	m_COGTime->SetMin(0);
+	m_COGTime->SetMax(3600);
+	m_COGTime->SetValue(GetCOGTime());
+	FlexCOGSizer->Add(m_COGTime,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+	wxStaticText *TextCOGLineWidth = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG_LINE_WIDTH),wxDefaultPosition,wxDefaultSize);
+	FlexCOGSizer->Add(TextCOGLineWidth,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
+	m_COGLineWidth = new wxSpinCtrl(Scroll,ID_COG_LINE_WIDTH,wxEmptyString,wxDefaultPosition,wxSize(80,-1));
+	m_COGLineWidth->SetMin(0);
+	m_COGLineWidth->SetMax(50);
+	m_COGLineWidth->SetValue(GetCOGLineWidth());
+	FlexCOGSizer->Add(m_COGLineWidth,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
 	//HDT
 	m_HDTLine = new wxCheckBox(Scroll,ID_SHOW_HDT,GetMsg(MSG_SHOW_HDT));
 	m_HDTLine->SetValue(GetShowHDT());
 	ScrollSizer->Add(m_HDTLine,0,wxALL,5);
 
 	wxFlexGridSizer *FlexHDTSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexHDTSizer,0,wxLEFT,8);
+	ScrollSizer->Add(FlexHDTSizer,0,wxALL,5);
 
 	wxStaticText *TextHDTColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexHDTSizer->Add(TextHDTColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 
-	m_HDTColor = new wxColourPickerCtrl(Scroll,ID_HDT_COLOR);
+	m_HDTColor = new wxColourPickerCtrl(Scroll,ID_HDT_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	color.Set(GetColor(HDT_COLOR).R,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
 	m_HDTColor->SetColour(color);
 	FlexHDTSizer->Add(m_HDTColor,0,wxALL,2);
+
+	wxStaticText *TextHDTTime = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT_TIME),wxDefaultPosition,wxDefaultSize);
+	FlexHDTSizer->Add(TextHDTTime,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
+	m_HDTTime = new wxSpinCtrl(Scroll,ID_HDT_TIME,wxEmptyString,wxDefaultPosition,wxSize(80,-1));
+	m_HDTTime->SetMin(0);
+	m_HDTTime->SetMax(3600);
+	m_HDTTime->SetValue(GetHDTTime());
+	FlexHDTSizer->Add(m_HDTTime,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	
+	wxStaticText *TextHDTLineWidth = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT_LINE_WIDTH),wxDefaultPosition,wxDefaultSize);
+	FlexHDTSizer->Add(TextHDTLineWidth,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+	m_HDTLineWidth = new wxSpinCtrl(Scroll,ID_HDT_LINE_WIDTH,wxEmptyString,wxDefaultPosition,wxSize(80,-1));
+	m_HDTLineWidth->SetMin(0);
+	m_HDTLineWidth->SetMax(50);
+	m_HDTLineWidth->SetValue(GetHDTLineWidth());
+	FlexHDTSizer->Add(m_HDTLineWidth,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+
 	//GPS
 	m_GPSPoint = new wxCheckBox(Scroll,ID_SHOW_GPS,GetMsg(MSG_SHOW_GPS));
 	m_GPSPoint->SetValue(GetShowGPS());
 	ScrollSizer->Add(m_GPSPoint,0,wxALL,5);
 
 	wxFlexGridSizer *FlexGPSSizer = new wxFlexGridSizer(2);
-	ScrollSizer->Add(FlexGPSSizer,0,wxLEFT,8);
+	ScrollSizer->Add(FlexGPSSizer,0,wxALL|wxEXPAND,5);
 
 	wxStaticText *TextGPSColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_GPS_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexGPSSizer->Add(TextGPSColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 
-	m_GPSColor = new wxColourPickerCtrl(Scroll,ID_GPS_COLOR);
+	m_GPSColor = new wxColourPickerCtrl(Scroll,ID_GPS_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
 	m_GPSColor->SetColour(color);
 	FlexGPSSizer->Add(m_GPSColor,0,wxALL,2);

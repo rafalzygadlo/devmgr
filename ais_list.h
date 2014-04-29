@@ -29,11 +29,13 @@ class CAisList : public wxPanel
 	wxColourPickerCtrl *m_ShipColor0, *m_ShipColor1 , *m_ShipColor2, *m_AtonColor;
 	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
 	wxSlider *m_ViewNameScale;
+	wxSpinCtrl *m_HDTTime,*m_COGTime,*m_COGLineWidth,*m_HDTLineWidth;
 	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
 	void SetList();
 	void ClearList();
+	void Signal();
 	//void StartThread();
 	void OnTimer(wxTimerEvent &event);
 	void OnSearchButton(wxCommandEvent &event);
@@ -48,6 +50,10 @@ class CAisList : public wxPanel
 	void OnColorPicker(wxColourPickerEvent &event);
 	void OnFilter(wxCommandEvent &event);
 	void OnNameScale(wxCommandEvent &event);
+	void OnCOGTime(wxSpinEvent &event);
+	void OnHDTTime(wxSpinEvent &event);
+	void OnCOGLineWidth(wxSpinEvent &event);
+	void OnHDTLineWidth(wxSpinEvent &event);
 
 public:
 	
@@ -60,7 +66,6 @@ public:
 	void ThreadBegin();
 	void ThreadEnd();
 	void Synchro();
-	
 
 	enum 
 	{
@@ -81,6 +86,10 @@ public:
 		ID_GPS_COLOR,
 		ID_SHOW_GPS,
 		ID_SHOW_OBJECTS,
+		ID_COG_TIME,
+		ID_HDT_TIME,
+		ID_COG_LINE_WIDTH,
+		ID_HDT_LINE_WIDTH,
 	};
 
 	DECLARE_EVENT_TABLE();

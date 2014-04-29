@@ -101,7 +101,7 @@ const wchar_t *nvLanguage[2][183] =
 		_("Radio status"),
 		_("RAIM flag"),
 		_("Second of UTC timestamp"),
-		_("Speed"),
+		_("SOG"),
 		_("Navigation Status"),
 		_("Turn"),
 		_("Turning left at more than 5deg/30s (No TI available)"),
@@ -182,7 +182,10 @@ const wchar_t *nvLanguage[2][183] =
 		_("GPS Color"),
 		_("Show Objects"),
 		_("Flag"),
-
+		_("HDT Projection Time"),
+		_("COG Projection Time"),
+		_("COG Line Width"),
+		_("HDT Line Width"),
 	},
 	
 	/*PL*/

@@ -48,6 +48,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_FILTER "filter"
 #define KEY_FREQUENCY "frequency"
 #define KEY_VIEW_FONT_SCALE "view_font_scale"
+#define KEY_COG_TIME "cog_time"
+#define KEY_HDT_TIME "hdt_time"
+#define KEY_COG_LINE_WIDTH "cog_line_width"
+#define KEY_HDT_LINE_WIDTH "hdt_line_width"
 
 #define DIR_WORKDIR "workdir"
 
@@ -246,6 +250,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_GPS_COLOR					158
 #define MSG_SHOW_OBJECTS				159
 #define MSG_FLAG						160
+#define MSG_HDT_TIME					161
+#define MSG_COG_TIME					162
+#define MSG_COG_LINE_WIDTH				163
+#define MSG_HDT_LINE_WIDTH				164
 
 #define MAX_DATA_POSITIONS	10
 
@@ -331,6 +339,12 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define PAGE_0 0
 #define PAGE_1 1
 
+//sekundy
+#define DEFAULT_COG_TIME 60 
+#define DEFAULT_HDT_TIME 60 
+#define DEFAULT_COG_LINE_WIDTH 2
+#define DEFAULT_HDT_LINE_WIDTH 2
+
 typedef struct SData
 {
 	int		id;
@@ -357,6 +371,7 @@ typedef struct
 	float cog;
 	float hdg;
 	float sog;
+	int draught;
 	int turn;
 	int to_bow;
 	int to_stern;
@@ -371,6 +386,7 @@ typedef struct
 	bool valid_hdg;
 	bool valid_sog;
 	bool valid_name;
+	bool valid_draught;
 	void *ais_ptr;
 
 }SAisData;

@@ -90,6 +90,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_SelectedPtr = m_OldSelectedPtr = NULL;
 	m_MyFrame = NULL;
 	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
+	m_COGTime = DEFAULT_COG_TIME;
+	m_HDTTime = DEFAULT_HDT_TIME;
+
 
 	m_NameFont = new nvFastFont();
 	m_NameFont->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
@@ -2221,7 +2224,7 @@ void CMapPlugin::PrepareCOGVerticesBuffer(SAisData *ptr)
 	p1.x = to_x;p1.y = to_y;
 	
 	double new_lon, new_lat;
-	NewLonLat(60,pt.x,pt.y,sog,cog,&new_lon,&new_lat);
+	NewLonLat(GetCOGTime(),pt.x,pt.y,sog,cog,&new_lon,&new_lat);
 	p2.x = new_lon; p2.y = new_lat;
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
 	p2.x = to_x; p2.y = to_y;
@@ -2251,7 +2254,7 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	p1.x = to_x;p1.y = to_y;
 	
 	double new_lon, new_lat;
-	NewLonLat(60,pt.x,pt.y,sog,hdg,&new_lon,&new_lat);
+	NewLonLat(GetHDTTime(),pt.x,pt.y,sog,hdg,&new_lon,&new_lat);
 	p2.x = new_lon; p2.y = new_lat;
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
 	p2.x = to_x; p2.y = to_y;
@@ -2260,7 +2263,6 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	m_HDGVerticesBuffer0.Append(p2);
 	
 }
-
 
 
 void CMapPlugin::DeleteShipsVBO()
@@ -2778,10 +2780,12 @@ void CMapPlugin::RenderHDG()
 	if(!GetShowHDT())
 		return;
 	
+	glLineWidth(GetHDTLineWidth());
 	glColor4ub(GetColor(HDT_COLOR).R ,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
 			
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
+	glLineWidth(1);
 
 }
 
@@ -2790,11 +2794,12 @@ void CMapPlugin::RenderCOG()
 	if(!GetShowCOG())
 		return;
 	
+	glLineWidth(GetCOGLineWidth());
 	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
 			
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
-	
+	glLineWidth(1);
 }
 
 void CMapPlugin::RenderGPS()

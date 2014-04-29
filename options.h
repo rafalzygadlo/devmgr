@@ -28,5 +28,12 @@ bool GetShowGPS();
 void SetShowGPS(bool value);
 bool GetShowOBJECTS();
 void SetShowOBJECTS(bool value);
-
+void SetCOGTime(int value);
+int GetCOGTime();
+void SetHDTTime(int value);
+int GetHDTTime();
+void SetCOGLineWidth(int value);
+int GetCOGLineWidth();
+void SetHDTLineWidth(int value);
+int GetHDTLineWidth();
 #endif

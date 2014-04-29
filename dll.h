@@ -80,6 +80,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CMyFrame *m_MyFrame;
 	nvCircle m_MapCircle;
 	bool m_Render;
+	int m_COGTime,m_HDTTime;
 	
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;

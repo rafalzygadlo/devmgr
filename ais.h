@@ -1070,6 +1070,7 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr);
 bool ais_set_cog(ais_t *ais, SAisData *ptr);
 bool ais_set_hdg(ais_t *ais, SAisData *ptr);
 bool ais_set_sog(ais_t *ais, SAisData *ptr);
+bool ais_set_draught(ais_t *ais, SAisData *ptr);
 CNaviArray <SAisData*> *ais_get_buffer();
 void ais_save_file();
 void ais_load_file();

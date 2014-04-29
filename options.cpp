@@ -14,8 +14,52 @@ int m_Filter = DEFAULT_FILTER;
 char m_SearchText[64];
 int m_Frequency = DEFAULT_FREQUENCY;
 int m_ViewFontScale = DEFAULT_VIEW_FONT_SCALE;
+int m_COGTime = DEFAULT_COG_TIME;
+int m_HDTTime = DEFAULT_HDT_TIME;
+int m_COGLineWidth = DEFAULT_COG_LINE_WIDTH;
+int m_HDTLineWidth = DEFAULT_HDT_LINE_WIDTH;
 
 nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton, ColorHDT, ColorCOG, ColorGPS;
+
+void SetHDTLineWidth(int value)
+{
+	m_HDTLineWidth = value;
+}
+
+int GetHDTLineWidth()
+{
+	return m_HDTLineWidth;
+}
+
+void SetCOGLineWidth(int value)
+{
+	m_COGLineWidth = value;
+}
+
+int GetCOGLineWidth()
+{
+	return m_COGLineWidth;
+}
+
+void SetCOGTime(int value)
+{
+	m_COGTime = value;
+}
+
+int GetCOGTime()
+{
+	return m_COGTime;
+}
+
+void SetHDTTime(int value)
+{
+	m_HDTTime = value;
+}
+
+int GetHDTTime()
+{
+	return m_HDTTime;
+}
 
 void SetFontSize( float size)
 {
@@ -210,7 +254,10 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_FILTER),&m_Filter, DEFAULT_FILTER);
 	FileConfig->Read(_(KEY_FREQUENCY),&m_Frequency, DEFAULT_FREQUENCY);
 	FileConfig->Read(_(KEY_VIEW_FONT_SCALE),&m_ViewFontScale,DEFAULT_VIEW_FONT_SCALE);
-
+	FileConfig->Read(_(KEY_COG_TIME),&m_COGTime, DEFAULT_COG_TIME);
+	FileConfig->Read(_(KEY_HDT_TIME),&m_HDTTime, DEFAULT_HDT_TIME);
+	FileConfig->Read(_(KEY_COG_LINE_WIDTH),&m_COGLineWidth, DEFAULT_COG_LINE_WIDTH);
+	FileConfig->Read(_(KEY_HDT_LINE_WIDTH),&m_HDTLineWidth, DEFAULT_HDT_LINE_WIDTH);
 	wxString _color;
 	
 	FileConfig->Read(_(KEY_SHIP_COLOR_0),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_0)));
@@ -257,6 +304,10 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_COG_COLOR),RGBAToStr(&GetColor(COG_COLOR)));
 	FileConfig->Write(_(KEY_HDT_COLOR),RGBAToStr(&GetColor(HDT_COLOR)));
 	FileConfig->Write(_(KEY_GPS_COLOR),RGBAToStr(&GetColor(GPS_COLOR)));
+	FileConfig->Read(_(KEY_COG_TIME),m_COGTime);
+	FileConfig->Read(_(KEY_HDT_TIME),m_HDTTime);
+	FileConfig->Read(_(KEY_COG_LINE_WIDTH),m_COGLineWidth);
+	FileConfig->Read(_(KEY_HDT_LINE_WIDTH),m_HDTLineWidth);
 	
 	delete FileConfig;
 
