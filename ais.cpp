@@ -2109,7 +2109,7 @@ wxString PrintHtmlSimple(ais_t *msg)
 	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_LON),ar.Item(7)));
 	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_LAT),ar.Item(8)));
 	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_DRAUGHT),ar.Item(9)));
-	str.Append(GetHtmlFooter());	
+	str.Append(GetHtmlFooter());
 
 	return str;
 }
@@ -2138,7 +2138,7 @@ wxString PrintHtmlMsg(ais_t *msg, int type)
 		str.Append(wxString::Format(_("<tr><td>%s</td><td>%s</td></tr>"),ar.Item(i),ar.Item(i + 1)));
 	}
 	str.Append(wxString::Format(_("<tr><td><a href='#top'>%s</a></td></tr>"),GetMsg(MSG_GO_TOP)));
-	str.Append(GetHtmlFooter());	
+	str.Append(GetHtmlFooter());
 
 	return str;
 }

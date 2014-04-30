@@ -186,6 +186,11 @@ const wchar_t *nvLanguage[2][183] =
 		_("COG Projection Time"),
 		_("COG Line Width"),
 		_("HDT Line Width"),
+		_("COG Line Style"),
+		_("HDT Line Style"),
+		_("Solid"),
+		_("Dash"),
+		_("Ship Border Color"),
 	},
 	
 	/*PL*/

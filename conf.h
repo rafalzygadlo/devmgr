@@ -38,6 +38,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_SHOW_HDT "show_hdt"
 #define KEY_SHOW_GPS "show_gps"
 #define KEY_SHOW_OBJECTS "show_objects"
+#define KEY_SHIP_BORDER_COLOR "ship_border_color"
 #define KEY_SHIP_COLOR_0 "ship_color0"
 #define KEY_SHIP_COLOR_1 "ship_color1"
 #define KEY_SHIP_COLOR_2 "ship_color2"
@@ -52,6 +53,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_HDT_TIME "hdt_time"
 #define KEY_COG_LINE_WIDTH "cog_line_width"
 #define KEY_HDT_LINE_WIDTH "hdt_line_width"
+#define KEY_COG_LINE_STYLE "cog_line_style"
+#define KEY_HDT_LINE_STYLE "hdt_line_style"
 
 #define DIR_WORKDIR "workdir"
 
@@ -254,6 +257,11 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_COG_TIME					162
 #define MSG_COG_LINE_WIDTH				163
 #define MSG_HDT_LINE_WIDTH				164
+#define MSG_COG_LINE_STYLE				165
+#define MSG_HDT_LINE_STYLE				166
+#define MSG_LINE_STYLE_SOLID			167
+#define MSG_LINE_STYLE_DASH				168
+#define MSG_SHIP_BORDER_COLOR			169
 
 #define MAX_DATA_POSITIONS	10
 
@@ -282,7 +290,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
 #define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
 #define DEFAULT_MAX_FREQUENCY	1000	// sekunda			
-#define AIS_BUFFER_INTERVAL		2000	//zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL		1000	//zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
@@ -320,13 +328,14 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define DEFAULT_FONT_SIZE	6.1
 
-#define SHIP_COLOR_0 0
-#define SHIP_COLOR_1 1
-#define SHIP_COLOR_2 2
-#define ATON_COLOR	 3
-#define COG_COLOR	 4
-#define HDT_COLOR	 5
-#define GPS_COLOR	 6
+#define SHIP_COLOR_0		0
+#define SHIP_COLOR_1		1
+#define SHIP_COLOR_2		2
+#define ATON_COLOR			3
+#define COG_COLOR			4
+#define HDT_COLOR			5
+#define GPS_COLOR			6
+#define SHIP_BORDER_COLOR	7
 
 #define TICK_0	0
 #define TICK_1	1
@@ -342,8 +351,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 //sekundy
 #define DEFAULT_COG_TIME 60 
 #define DEFAULT_HDT_TIME 60 
-#define DEFAULT_COG_LINE_WIDTH 2
-#define DEFAULT_HDT_LINE_WIDTH 2
+#define DEFAULT_COG_LINE_WIDTH 1
+#define DEFAULT_HDT_LINE_WIDTH 1
+#define DEFAULT_HDT_LINE_STYLE 0
+#define DEFAULT_COG_LINE_STYLE 1
 
 typedef struct SData
 {

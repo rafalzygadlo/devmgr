@@ -2641,7 +2641,7 @@ void CMapPlugin::RenderSmallShips()
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	// obrys (linie)
-	glColor4f(0.0,0.0,0.0,0.9);
+	glColor4ub(GetColor(SHIP_BORDER_COLOR).R ,GetColor(SHIP_BORDER_COLOR).G,GetColor(SHIP_BORDER_COLOR).B,GetColor(SHIP_BORDER_COLOR).A);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SmallShipLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_SmallShipLineLength , GL_UNSIGNED_INT,0);
 
@@ -2672,7 +2672,7 @@ void CMapPlugin::RenderShips()
 	glDisableClientState(GL_COLOR_ARRAY);
 	
 	// obrys (linie)
-	glColor4f(0.0,0.0,0.0,0.9);
+	glColor4ub(GetColor(SHIP_BORDER_COLOR).R ,GetColor(SHIP_BORDER_COLOR).G,GetColor(SHIP_BORDER_COLOR).B,GetColor(SHIP_BORDER_COLOR).A);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_ShipLineLength, GL_UNSIGNED_INT,0);
 
@@ -2690,6 +2690,7 @@ void  CMapPlugin::RenderSelection()
 	if(m_SelectedPtr == NULL)
 		return;
 	
+	fprintf(stdout,"Selection\n");
 	double to_x,to_y;
 	m_Broker->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
 	to_y = -to_y;
@@ -2775,17 +2776,25 @@ void  CMapPlugin::RenderSelection()
 	
 }
 
-void CMapPlugin::RenderHDG()
+void CMapPlugin::RenderHDT()
 {
 	if(!GetShowHDT())
 		return;
 	
+	if(GetHDTLineStyle() == 1)
+	{
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple( 5, 0xAAAA );
+	}
+
 	glLineWidth(GetHDTLineWidth());
 	glColor4ub(GetColor(HDT_COLOR).R ,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
 			
 	if(m_CurrentHDGVerticesBufferPtr != NULL && m_CurrentHDGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentHDGVerticesBufferPtr->GetRawData(),m_CurrentHDGVerticesBufferPtr->Length());	// HDG linia
 	glLineWidth(1);
+
+	glDisable(GL_LINE_STIPPLE);
 
 }
 
@@ -2794,12 +2803,20 @@ void CMapPlugin::RenderCOG()
 	if(!GetShowCOG())
 		return;
 	
+	if(GetCOGLineStyle() == 1)
+	{
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple( 5, 0xAAAA );
+	}
+	
 	glLineWidth(GetCOGLineWidth());
 	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
 			
 	if(m_CurrentCOGVerticesBufferPtr != NULL && m_CurrentCOGVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentCOGVerticesBufferPtr->GetRawData(),m_CurrentCOGVerticesBufferPtr->Length());	// COG linia
 	glLineWidth(1);
+
+	glDisable(GL_LINE_STIPPLE);
 }
 
 void CMapPlugin::RenderGPS()
@@ -2878,7 +2895,7 @@ void CMapPlugin::RenderNormalScale()
 	_RenderAtons();
 	_RenderBS();
 	RenderCOG();
-	RenderHDG();
+	RenderHDT();
 	RenderGPS();
 
 	RenderShipNames();

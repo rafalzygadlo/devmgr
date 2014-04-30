@@ -36,4 +36,9 @@ void SetCOGLineWidth(int value);
 int GetCOGLineWidth();
 void SetHDTLineWidth(int value);
 int GetHDTLineWidth();
+void SetCOGLineStyle(int value);
+int GetCOGLineStyle();
+void SetHDTLineStyle(int value);
+int GetHDTLineStyle();
+
 #endif

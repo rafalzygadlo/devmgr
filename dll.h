@@ -277,7 +277,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void Generate();
 	void RenderGPS();
 	void RenderCOG();
-	void RenderHDG();
+	void RenderHDT();
 	void RenderBS();
 	void RenderSmallScale();
 	void RenderNormalScale();
