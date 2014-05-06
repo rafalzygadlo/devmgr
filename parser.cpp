@@ -228,7 +228,7 @@ bool CParser::Ais(char *line)
 		if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 			return false;
 		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
-		ais_prepare_buffer(ais);
+		SetAisDataChanged(true);
 		GetMutex()->Unlock();
 		free(m_Bits);
 		m_Bits = NULL;

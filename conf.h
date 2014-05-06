@@ -271,8 +271,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define CONNECTION_TYPE_SOCKET	0
 #define CONNECTION_TYPE_SERIAL	1
 
+#define DEFAULT_SOCKET_NAME "AIS Poland"
 #define DEFAULT_SOCKET_HOST "195.116.95.12"
-#define DEFAULT_SOCKET_PORT	"3557"
+#define DEFAULT_SOCKET_PORT	"3558"
 
 // w bibliotece protocols definicja w tablicach parsera
 #define AIS_MESSAGE				25
@@ -295,6 +296,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
 #define DEFAULT_VIEW_FONT_SCALE 1000
+#define WINDOW_REFRESH_INTERVAL	1000
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
@@ -337,9 +339,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define GPS_COLOR			6
 #define SHIP_BORDER_COLOR	7
 
-#define TICK_0	0
-#define TICK_1	1
-#define TICK_2	2
+#define TICK_FREQUENCY			0		
+#define TICK_AIS_BUFFER			1
+#define TICK_DISPLAY_REFRESH	2
+#define TICK_WINDOW_REFRESH		3
 
 #define CONTROL_OFFSET	2
 #define IS_BIT_SET(k, n)  ((k) & (1 << (n)))
@@ -390,7 +393,6 @@ typedef struct
 	int to_starboard;
 	char name[64 + 1];	// shipname, aton name itp
 	char callsign[AIS_CALLSIGN_MAXLEN];
-	int time;
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		// czy cog

@@ -17,8 +17,12 @@ void SetAlpha(int type, int value);
 int GetAlpha(int type);
 void SetFilter(int val);
 int GetFilter();
+void SetFilterChanged(bool value);
+bool GetFilterChanged();
 void SetSearchText(char *txt);
 char *GetSearchText();
+bool GetSearchTextChanged();
+void SetSearchTextChanged(bool value);
 int GetFrequency();
 void SetControlFrequency(int value);
 int GetControlFrequency();
@@ -40,5 +44,7 @@ void SetCOGLineStyle(int value);
 int GetCOGLineStyle();
 void SetHDTLineStyle(int value);
 int GetHDTLineStyle();
+void SetAisDataChanged(bool value);
+bool GetAisDataChanged();
 
 #endif

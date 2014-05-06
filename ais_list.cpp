@@ -135,11 +135,13 @@ void CAisList::OnSearchButton(wxCommandEvent &event)
 void CAisList::OnSearchEnter(wxCommandEvent &event)
 {
 	SetSearchText(m_SearchText->GetValue().char_str());
+	SetSearchTextChanged(true);
 }
 
 void CAisList::OnSearchText(wxCommandEvent &event)
 {
 	SetSearchText(m_SearchText->GetValue().char_str());
+	SetSearchTextChanged(true);
 }
 
 void CAisList::ThreadBegin()

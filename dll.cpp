@@ -53,7 +53,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	
 	//m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_ShipTick = 0;
-	m_AisBufferTick = 0;
 	m_ShipInterval = 0;
 	m_GlobalTick = m_OldGlobalTick = 0;
 	m_OldPositionTick = m_OldHDTTick = 0;
@@ -87,7 +86,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ShipRender = false;
 	
 	m_TrianglesTriangleLength = m_TrianglesLineLength = 0;
-	m_SelectedPtr = m_OldSelectedPtr = NULL;
+	m_SelectedPtr = m_BufferedSelectedPtr = NULL;
 	m_MyFrame = NULL;
 	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
 	m_COGTime = DEFAULT_COG_TIME;
@@ -116,8 +115,10 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_MMSIFont->SetGlowColor(0.8f, 0.8f, 0.8f );
 	m_MMSIFont->SetGlowCenter( 4.0f );
 	
-	m_Ready = false;
+	m_Ready = true;
 	m_Render = false;
+	m_SearchTextChanged = m_FilterChanged = true;
+
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
@@ -138,9 +139,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	InitSearchMutex();
 	ais_load_file();
 
-	m_Ticker1 = new CTicker(this,TICK_0);	//frequency
-	m_Ticker1->Start(200);
-	m_Ticker2 = new CTicker(this,TICK_2);	//ais buffer
+	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
+	m_Ticker1->Start(100);
+	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 	
 	//m_SearchThread = new CNotifier();
@@ -161,6 +162,7 @@ CMapPlugin::~CMapPlugin()
 	ClearBuffers();
 	FreeMutex();
 	FreeSearchMutex();
+	//FreeSelectedPtr();
 	
 }
 
@@ -621,10 +623,15 @@ void CMapPlugin::OnTicker2Stop(){}
 
 void CMapPlugin::OnTicker2Tick()
 {
-	m_AisBufferTick = 0;
+	
+	if(m_Render)
+		return;
+		
+	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	//m_Broker->Refresh(m_Broker->GetParentPtr());
+	
+	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 void CMapPlugin::OnTicker1Start(){}
@@ -842,6 +849,22 @@ bool CMapPlugin::IsOnScreen(double x, double y)
 	return false;
 
 }
+/*
+void CMapPlugin::FreeSelectedPtr()
+{
+	if(m_SelectedPtr)
+		free(m_SelectedPtr);
+	
+	m_SelectedPtr = NULL;
+}
+
+void CMapPlugin::CopySelectedPtr(SAisData *ptr)
+{
+	if(m_SelectedPtr == NULL)
+		m_SelectedPtr = (SAisData*)malloc(sizeof(SAisData));
+	memcpy(m_SelectedPtr,ptr,sizeof(SAisData));
+}
+*/
 
 void CMapPlugin::SetSelection()
 {	
@@ -860,8 +883,8 @@ void CMapPlugin::SelectTriangle()
 	nvPoint2d *RawPt  = m_CurrentTriangleVerticesBufferPtr->GetRawData();
 	
 	nvPoint2f pt;
-	pt.x = m_MapX;
-	pt.y = m_MapY;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
 	int selected = -1;
 	
 	for (size_t i = 0; i < m_CurrentTriangleVerticesBufferPtr->Length(); i+=3)
@@ -882,6 +905,7 @@ void CMapPlugin::SelectTriangle()
 				if(m_IdToTriangleId.Get(i).id1 == selected)
 				{
 					m_SelectedPtr = ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0);
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0));
 					return;
 				}
 			}
@@ -898,8 +922,8 @@ void CMapPlugin::SelectSmallShip()
 
 	nvPoint2d *RawPt  = m_CurrentSmallShipVerticesBufferPtr->GetRawData();
 	nvPoint2f pt;
-	pt.x = m_MapX;
-	pt.y = m_MapY;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
 	int selected = -1;
 		
 
@@ -930,6 +954,7 @@ void CMapPlugin::SelectSmallShip()
 			{
 				if(m_IdToSmallShipId.Get(i).id1 == selected)
 				{
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToSmallShipId.Get(i).id0));
 					m_SelectedPtr = ais_get_buffer()->Get(m_IdToSmallShipId.Get(i).id0);
 					return;
 				}
@@ -947,8 +972,8 @@ void CMapPlugin::SelectShip()
 
 	nvPoint2d *RawPt  = m_CurrentShipVerticesBufferPtr->GetRawData();
 	nvPoint2f pt;
-	pt.x = m_MapX;
-	pt.y = m_MapY;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
 	int selected = -1;
 		
 
@@ -979,6 +1004,7 @@ void CMapPlugin::SelectShip()
 			{
 				if(m_IdToShipId.Get(i).id1 == selected)
 				{
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToShipId.Get(i).id0));
 					m_SelectedPtr = ais_get_buffer()->Get(m_IdToShipId.Get(i).id0);
 					return;
 				}
@@ -996,8 +1022,8 @@ void CMapPlugin::SelectAton()
 	nvPoint2d *RawPt  = m_CurrentAtonVerticesBufferPtr->GetRawData();
 	
 	nvPoint2f pt;
-	pt.x = m_MapX;
-	pt.y = m_MapY;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
 	int selected = -1;
 	
 	for (size_t i = 0; i < m_CurrentAtonVerticesBufferPtr->Length(); i+=ATON_VERTICES_LENGTH)
@@ -1024,6 +1050,7 @@ void CMapPlugin::SelectAton()
 			{
 				if(m_IdToAtonId.Get(i).id1 == selected)
 				{
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0));
 					m_SelectedPtr = ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0);
 					return;
 				}
@@ -1042,8 +1069,8 @@ void CMapPlugin::SelectBS()
 	nvPoint2d *RawPt  = m_CurrentBSVerticesBufferPtr->GetRawData();
 	
 	nvPoint2f pt;
-	pt.x = m_MapX;
-	pt.y = m_MapY;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
 	int selected = -1;
 	
 	for (size_t i = 0; i < m_CurrentBSVerticesBufferPtr->Length(); i+=BS_VERTICES_LENGTH)
@@ -1070,6 +1097,7 @@ void CMapPlugin::SelectBS()
 			{
 				if(m_IdToBSId.Get(i).id1 == selected)
 				{
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToBSId.Get(i).id0));
 					m_SelectedPtr = ais_get_buffer()->Get(m_IdToBSId.Get(i).id0);
 					return;
 				}
@@ -1312,6 +1340,7 @@ void CMapPlugin::SetBuffers()
 			PrepareCOGVerticesBuffer(ptr);				// linia cog
 			PrepareHDGVerticesBuffer(ptr);
 			PrepareShipNamesBuffer(ptr);
+		
 		}
 	}
 
@@ -1380,13 +1409,23 @@ void CMapPlugin::PrepareListBuffer()
 }
 */
 
+void CMapPlugin::PrepareAisBuffer()
+{
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+	ais_prepare_buffer();
+
+	GetMutex()->Unlock();
+}
+
 void CMapPlugin::PrepareSearchBuffer()
 {
 	int counter = 0;
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-
+		
 	ais_set_search_buffer(GetSearchText());
+		
 	GetMutex()->Unlock();
 	
 	SendSignal(SIGNAL_UPDATE_LIST,0);
@@ -1394,12 +1433,9 @@ void CMapPlugin::PrepareSearchBuffer()
 
 void CMapPlugin::PrepareBuffer()
 {
-	if(m_Render)
-		return;
-	
-	m_Ready = false;
+		
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
-		return;	
+		return;
 	
 	SetPtr0();
 	ClearBuffers();
@@ -1408,9 +1444,9 @@ void CMapPlugin::PrepareBuffer()
 	SetPtr1();
 		
 	GetMutex()->Unlock();
-	m_Ready = true;
 		
 }
+
 
 void CMapPlugin::CopyNvRGBA(CNaviArray <nvRGBA> *src, CNaviArray <nvRGBA> *dst)
 {
@@ -1840,8 +1876,8 @@ void CMapPlugin::PrepareTriangleLineIndicesBuffer(SAisData *ptr)
 void CMapPlugin::PrepareTriangleColorBuffer(SAisData *ptr)
 {
 
-	
-	int timeout = GetTickCount() - ptr->time;
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
+	int timeout = GetTickCount() - ais->timeout;
 
 	if(timeout >= AIS_TIMEOUT)
 	{
@@ -1974,8 +2010,9 @@ void CMapPlugin::PrepareSmallShipLineIndicesBuffer(SAisData *ptr)
 void CMapPlugin::PrepareSmallShipColorBuffer(SAisData *ptr)
 {
 		
-	int timeout = GetTickCount() - ptr->time;
-
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
+	int timeout = GetTickCount() - ais->timeout;
+	
 	if(timeout >= AIS_TIMEOUT)
 	{
 		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
@@ -2146,8 +2183,9 @@ void CMapPlugin::PrepareShipLineIndicesBuffer(SAisData *ptr)
 void CMapPlugin::PrepareShipColorBuffer(SAisData *ptr)
 {
 	
-	int timeout = GetTickCount() - ptr->time;
-
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
+	int timeout = GetTickCount() - ais->timeout;
+	
 	if(timeout >= AIS_TIMEOUT)
 	{
 		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
@@ -2689,8 +2727,7 @@ void  CMapPlugin::RenderSelection()
 
 	if(m_SelectedPtr == NULL)
 		return;
-	
-	fprintf(stdout,"Selection\n");
+		
 	double to_x,to_y;
 	m_Broker->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
 	to_y = -to_y;
@@ -2888,7 +2925,7 @@ void CMapPlugin::_RenderShips()
 
 void CMapPlugin::RenderNormalScale()
 {
-
+	
 	_RenderShips();
 	_RenderSmallShips();
 	_RenderTriangles();
@@ -2897,13 +2934,12 @@ void CMapPlugin::RenderNormalScale()
 	RenderCOG();
 	RenderHDT();
 	RenderGPS();
-
 	RenderShipNames();
 	RenderSelection();
 	
 	if(m_MapScale > GetViewFontScale())
 	{
-		m_NameFont->ClearBuffers(); 
+		m_NameFont->ClearBuffers();
 		m_NameFont->CreateBuffers();
 		m_NameFont->Render();
 		
@@ -2928,12 +2964,12 @@ void CMapPlugin::Render()
 
 	m_Render = true;
 	Generate();
-	SetValues();
+	SetValues(false);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());	
+	wxMutexLocker lock(*GetMutex());	
 	
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
@@ -2982,7 +3018,7 @@ void CMapPlugin::Generate()
 	}
 	
 }
-void CMapPlugin::SetValues()
+void CMapPlugin::SetValues(bool lmb)
 {
 	double mom[2];
 	double _x,_y;
@@ -3005,6 +3041,13 @@ void CMapPlugin::SetValues()
 	
 	m_MapX = _x;
 	m_MapY = _y;
+
+	if(lmb)
+	{
+		m_MouseLmbX = _x;
+		m_MouseLmbY = _y;
+		
+	}
 
 }
 
@@ -3030,7 +3073,7 @@ void CMapPlugin::Config()
 void CMapPlugin::OnZoom(double Scale)
 {
 	//m_MouseUp = false;
-	SetValues();
+	SetValues(false);
 	RunThread();
 	//fprintf(stdout
 }
@@ -3040,9 +3083,9 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	if(!lmb && m_MouseLmb)
 	{
 		m_SelectedPtr = NULL;
-		SetValues();
+		SetValues(false);
 		RunThread();
-		m_MouseUp = true;	
+		m_MouseUp = true;
 	}
 	
 	if(rmb)
@@ -3050,6 +3093,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 
 	if(lmb)
 	{
+		SetValues(true);
 		m_MouseLmb = true;
 		
 	}else{
@@ -3060,7 +3104,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 	if(!lmb)
 		return;
 		
-	ShowFrameWindow(false);	
+	ShowFrameWindow(false);
 	
 		
 }
@@ -3078,11 +3122,9 @@ void CMapPlugin::ShowMenu()
 
 void CMapPlugin::RunThread()
 {
-	//m_AisBufferInterval
 	CThread *Thread = new CThread(this);
 	Thread->SetWorkId(WORK_RENDER_BUFFER);
 	Thread->Start();
-
 }
 
 void CMapPlugin::ThreadBegin()
@@ -3092,6 +3134,7 @@ void CMapPlugin::ThreadBegin()
 		
 	if(m_MouseUp)
 	{
+		//FreeSelectedPtr();
 		m_SelectedPtr = NULL;
 		SetSelection();
 	}
@@ -3200,7 +3243,9 @@ void *CMapPlugin::OnSynchro(void *NaviMapIOApiPtr, void *Params)
 
 void CMapPlugin::Synchro()
 { 
-	m_ShipInterval = GetFrequency();
+	m_Ticker1->Stop();
+	m_Ticker1->Start(1000/GetFrequency());
+	
 	SendSynchroSignal();
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }

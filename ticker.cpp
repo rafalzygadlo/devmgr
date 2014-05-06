@@ -62,9 +62,10 @@ void CTicker::Notify()
 {
 	switch(Id)
 	{
-		case TICK_0:	((CMapPlugin*)Parent)->OnTicker1Tick();		break;
-		case TICK_2:	((CMapPlugin*)Parent)->OnTicker2Tick();		break;
-		case TICK_1:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
+		case TICK_FREQUENCY:		((CMapPlugin*)Parent)->OnTicker1Tick();		break;
+		case TICK_AIS_BUFFER:		((CMapPlugin*)Parent)->OnTicker2Tick();		break;
+		case TICK_DISPLAY_REFRESH:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
+		case TICK_WINDOW_REFRESH:	((CMyFrame*)Parent)->OnTickerTick();		break;
 	}
 }
 

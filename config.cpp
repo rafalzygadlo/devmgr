@@ -147,7 +147,7 @@ wxPanel *CConfig::GetSocketPanel()
 	
 	wxStaticText *NameLabel = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_NAME));
 	FlexGrid1Sizer->Add(NameLabel,0,wxALL,5);
-	SocketNameText = new wxTextCtrl(Panel,wxID_ANY,wxEmptyString);
+	SocketNameText = new wxTextCtrl(Panel,wxID_ANY,_(DEFAULT_SOCKET_NAME));
 	FlexGrid1Sizer->Add(SocketNameText,0,wxALL|wxEXPAND,5);
 	
 	wxStaticText *HostLabel = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_HOST));

@@ -14,14 +14,16 @@ class CMyIcon;
 class CMapPlugin;
 class CMyFrame: public wxDialog
 {
-	SAisData *SelectedPtr;
+	SAisData *m_SelectedPtr;
 	CMapPlugin *m_DLL;	
-	wxPanel *Page0,*Page1;
-	wxButton *ButtonClose;
-	int ParentX, ParentY;
-	wxWindow *_ParentPtr;
+	wxPanel *m_Page0,*m_Page1;
+	wxStaticText *m_Time;
+	int m_ParentX, m_ParentY;
+	wxWindow *m_ParentPtr;
 	wxHtmlWindow *m_Html0, *m_Html1;
-	bool AfterInit;
+	bool m_AfterInit;
+	CTicker *m_Ticker;
+	int m_Seconds,m_Minutes;
 	
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
@@ -29,12 +31,15 @@ class CMyFrame: public wxDialog
 	void ShowHtmlPanel();
 	void ClearHtml(int page);
 	bool IsOnScreen(int x, int y);
-					
+	void SetReportTime();
+	void SetValues();
+
 public:
 		
 	void ShowWindow(bool show);		
 	CMyFrame(void *Parent, wxWindow *ParentPtr);
 	~CMyFrame();
+	void OnTickerTick();
 		
 	DECLARE_EVENT_TABLE();
 

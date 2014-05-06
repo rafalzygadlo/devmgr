@@ -61,7 +61,7 @@ class CMapPlugin :public CNaviMapIOApi
 	nvFastFont *m_NameFont, *m_MMSIFont;
 	bool m_Prepare;
 	int m_MaxFrequency;
-	int m_ShipTick,m_AisBufferTick;
+	int m_ShipTick;
 	int m_ShipInterval,m_AisBufferInterval;
 	bool m_PositionExists;
 	bool m_Interpolation;
@@ -69,19 +69,21 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_GlobalTick, m_OldGlobalTick;
 	double m_SmoothScaleFactor, m_Factor;
 	float m_MapScale,m_OldMapScale;
-	double m_MapX,m_MapY;
+	double m_MapX,m_MapY,m_MouseLmbX,m_MouseLmbY;
 	int m_SelectedVertexId;
 	nvPoint2f ptt0,ptt1;
 	bool m_FirstTime;
 	double m_ScreenX1,m_ScreenY1,m_ScreenX2,m_ScreenY2;
 	int m_CurrentId;
-	SAisData *m_SelectedPtr,*m_OldSelectedPtr;
+	SAisData *m_SelectedPtr,*m_BufferedSelectedPtr;
 	bool m_MouseLmb, m_MouseDLmb,m_MouseUp;
 	CMyFrame *m_MyFrame;
 	nvCircle m_MapCircle;
 	bool m_Render;
 	int m_COGTime,m_HDTTime;
-	
+	bool m_SearchTextChanged,m_FilterChanged;
+
+
 	TTexture *m_TextureTGA_0;
 	GLuint m_TextureID_0;
 	GLuint m_SmallShipArrayBuffer, m_SmallShipTriangleIndicesBuffer, m_SmallShipLineIndicesBuffer, m_SmallShipColorBuffer;
@@ -174,7 +176,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSocketConfig(int index);
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
+	void PrepareAisBuffer();
 	void PrepareSearchBuffer();
+	void PrepareTimeoutBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareShipNamesBuffer(SAisData *ptr);
 	
@@ -233,6 +237,8 @@ class CMapPlugin :public CNaviMapIOApi
 	bool CreateSmallShipsVBO();
 	bool CreateAtonsVBO();
 	bool CreateBSVBO();
+	//void CopySelectedPtr(SAisData *ptr);
+	//void FreeSelectedPtr();
 
 	void DeleteShipsVBO();
 	void DeleteTrianglesVBO();
@@ -242,7 +248,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetFrequency(int id);
 	void SetShip(SFunctionData *data);
 	void SetSmoothScaleFactor(double _Scale);
-	void SetValues();
+	void SetValues(bool lmb);
 	bool IsTriangleBuffer();
 	bool IsShipBuffer();
 	bool IsSmallShipBuffer();

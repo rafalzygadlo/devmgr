@@ -20,6 +20,9 @@ int m_COGLineWidth = DEFAULT_COG_LINE_WIDTH;
 int m_HDTLineWidth = DEFAULT_HDT_LINE_WIDTH;
 int m_COGLineStyle = DEFAULT_COG_LINE_STYLE;
 int m_HDTLineStyle = DEFAULT_HDT_LINE_STYLE;
+bool m_SearchTextChanged = true;
+bool m_FilterChanged = true;
+bool m_AisDataChanged = true;
 
 
 nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton, ColorHDT, ColorCOG, ColorGPS, ColorShipBorder;
@@ -223,6 +226,26 @@ void SetFilter(int val)
 	m_Filter = val;
 }
 
+void SetFilterChanged(bool value)
+{
+	m_FilterChanged = value;
+}
+
+bool GetFilterChanged()
+{
+	return m_FilterChanged;
+}
+
+void SetSearchTextChanged(bool value)
+{
+	m_SearchTextChanged = value;
+}
+
+bool GetSearchTextChanged()
+{
+	return m_SearchTextChanged;
+}
+
 void SetSearchText(char *txt)
 {
 	memcpy(m_SearchText,txt,64);
@@ -235,7 +258,7 @@ char *GetSearchText()
 
 int GetFrequency()
 {
-	return  DEFAULT_MAX_FREQUENCY / m_Frequency * 10;
+	return  m_Frequency;
 }
 
 void SetControlFrequency(int value)
@@ -266,6 +289,16 @@ void SetShowOBJECTS(bool value)
 void SetViewFontScale(int value) 
 {
 	m_ViewFontScale = value;
+}
+
+void SetAisDataChanged(bool value)
+{
+	m_AisDataChanged = value;
+}
+
+bool GetAisDataChanged()
+{
+	return m_AisDataChanged;
 }
 
 void ReadOptionsConfig()

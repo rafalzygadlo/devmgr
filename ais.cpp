@@ -355,6 +355,7 @@ void ais_load_file()
 		if(rec == 1)
 		{
 			ais->valid[AIS_MSG_5] = true;
+			ais->timeout = GetTickCount();
 			vAisData.Append(ais);
 		}else{
 			free(ais);
@@ -391,6 +392,7 @@ bool ais_get_filter(ais_t *ais)
 	return false;
 
 }
+
 bool ais_get_search_ready()
 {
 	return m_SearchReady;
@@ -412,15 +414,16 @@ void ais_set_search_buffer(char *str)
 			toupper(str);
 			toupper(data.name);
 
-			if( (strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) && ais_get_filter(ais)) 
+			if( (strstr(data.name, str) != NULL || strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL) && ais_get_filter(ais))
 				vAisSearch.Append(ais);
 		}else{
 			
-			if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL && ais_get_filter(ais)) 
+			if( strstr(itoa(ais->mmsi,mmsi,10) , str) != NULL && ais_get_filter(ais))
 				vAisSearch.Append(ais);
 		}
 	
 	}
+	
 	m_SearchReady = true;
 	
 }
@@ -542,6 +545,7 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 	if(type <= AIS_MESSAGES_LENGTH)
 		ais->valid[type] = true;
 
+	ais->timeout = GetTickCount();
 	if(ais_decode(bits,bitlen,ais,type))
 	{
 		if(add)
@@ -601,6 +605,41 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 	return result;
 }
 
+void ais_prepare_buffer()
+{
+
+	for(size_t  i = 0; i < vAisData.Length(); i++)
+	{
+		ais_t *ptr = vAisData.Get(i);
+		if((GetTickCount() - ptr->timeout) > 1000*60*6)
+		{
+			ais_buffer_remove(ptr);
+			vAisData.Remove(i);
+			free(ptr);
+			i = 0;
+		
+		}else{
+			
+			ais_prepare_buffer(ptr);
+		}
+	}
+	
+}
+
+void ais_buffer_remove(ais_t *ptr)
+{
+	for(size_t  i = 0; i < vAisBuffer.Length(); i++)
+	{
+		SAisData *_ptr = vAisBuffer.Get(i);
+		if(_ptr->ais_ptr == ptr)
+		{
+			vAisBuffer.Remove(i);
+			free(_ptr);
+			return;
+		}
+	}
+}
+
 void ais_prepare_buffer(ais_t *ais)
 {
 	if(ais == NULL)
@@ -624,7 +663,7 @@ void ais_prepare_buffer(ais_t *ais)
 	}
 		
 	AisData->mmsi = ais->mmsi;
-	AisData->time = GetTickCount();
+	//AisData->time = ais->timeout;
 	bool exists = false;
 	
 	if(ais_set_lon_lat(ais,AisData))

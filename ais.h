@@ -97,6 +97,7 @@ struct ais_t
     unsigned int    repeat;		/* Repeat indicator */
     unsigned int	mmsi;		/* MMSI */
 	bool			valid[28];  //zaczynamy od 1
+	long int		timeout;
     //union {
 	/* Types 1-3 Common navigation info */
 	struct msg1{
@@ -1062,6 +1063,7 @@ void ais_free_buffer();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
 void ais_prepare_buffer(ais_t *ais);
+void ais_prepare_buffer();
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
 bool ais_set_mmsi(ais_t *ais, SAisData *ptr);
 bool ais_set_name(ais_t *ais, SAisData *ptr);
@@ -1077,6 +1079,7 @@ void ais_load_file();
 void ais_set_option(int val);
 bool ais_get_search_ready();
 ais_mid *ais_get_mid(unsigned int mmsi);
+void ais_buffer_remove(ais_t *ptr);
 
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();

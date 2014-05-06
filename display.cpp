@@ -41,7 +41,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
 	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets"));
 		
-	m_Ticker = new CTicker(this,TICK_1);
+	m_Ticker = new CTicker(this,TICK_DISPLAY_REFRESH);
 	m_Ticker->Start(DISPLAY_REFRESH);
 
 	m_RefreshTick = 0;

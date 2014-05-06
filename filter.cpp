@@ -53,4 +53,5 @@ void CFilter::OnCheck(wxCommandEvent &event)
 		a ^= GetFilter();
 
 	SetFilter(a);
+	SetFilterChanged(true);
 }
