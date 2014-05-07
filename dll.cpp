@@ -72,6 +72,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSmallShipColorBufferPtr = NULL;
 	m_CurrentBSVerticesBufferPtr = NULL;
 	m_CurrentShipNamesBufferPtr = NULL;
+	m_CurrentShipLightsVerticesBufferPtr = NULL;
+	m_CurrentShipLightsTriangleIndicesBufferPtr = NULL;
 	
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -118,7 +120,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ready = true;
 	m_Render = false;
 	m_SearchTextChanged = m_FilterChanged = true;
-
+	
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	memset(m_ShipTimes,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
@@ -630,7 +632,8 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	
+		
+
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
@@ -1151,6 +1154,11 @@ void CMapPlugin::SetPtr0()
 	m_CurrentCOGVerticesBufferPtr = &m_COGVerticesBuffer1;
 	//HDG
 	m_CurrentHDGVerticesBufferPtr = &m_HDGVerticesBuffer1;
+	
+	//statek swiatla
+	m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer1;
+	m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer1;
+
 
 }
 
@@ -1197,6 +1205,10 @@ void CMapPlugin::SetPtr1()
 	//HDG
 	m_CurrentHDGVerticesBufferPtr = &m_HDGVerticesBuffer0;
 
+	//statek swiatla
+	m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer0;
+	m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer0;
+
 }
 
 void CMapPlugin::ClearBuffers()
@@ -1222,6 +1234,10 @@ void CMapPlugin::ClearBuffers()
 	m_ShipLineIndicesBuffer0.Clear();
 	m_ShipColorBuffer0.Clear();
 	
+	// statki swiatla
+	m_ShipLightsVerticesBuffer0.Clear();
+	m_ShipLightsTriangleIndicesBuffer0.Clear();
+
 	//ATON
 	m_AtonVerticesBuffer0.Clear();
 	m_AtonLineIndicesBuffer0.Clear();
@@ -1303,6 +1319,9 @@ void CMapPlugin::CopyBuffers()
 	//nazwy
 	CopySAisNames(&m_ShipNamesBuffer0,&m_ShipNamesBuffer1);
 
+	//statek swiatla
+	CopyNvPoint2d(&m_ShipLightsVerticesBuffer0,&m_ShipLightsVerticesBuffer1);
+
 }
 
 void CMapPlugin::SetBuffers()
@@ -1329,11 +1348,12 @@ void CMapPlugin::SetBuffers()
 				ship = true;
 			
 			if(ship)
-				PrepareShipBuffer(ptr);				
+				PrepareShipBuffer(ptr);
 			else
 				PrepareTriangleBuffer(ptr);
 			
-									
+			
+			PrepareShipLightsBuffer(ptr);
 			PrepareAtonBuffer(ptr);
 			PrepareBSBuffer(ptr);
 
@@ -1433,6 +1453,10 @@ void CMapPlugin::PrepareSearchBuffer()
 
 void CMapPlugin::PrepareBuffer()
 {
+	if(m_Render)
+		return;
+	
+	m_Ready = false;
 		
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
@@ -1444,6 +1468,8 @@ void CMapPlugin::PrepareBuffer()
 	SetPtr1();
 		
 	GetMutex()->Unlock();
+
+	m_Ready = true;
 		
 }
 
@@ -1513,6 +1539,73 @@ void CMapPlugin::PrepareBSBuffer(SAisData *ptr)
 		id.id1 = m_BSVerticesBuffer0.Length() - BS_VERTICES_LENGTH;
 		m_IdToBSId.Append(id);
 	}
+
+}
+
+void CMapPlugin::PrepareShipLightsBuffer(SAisData *ptr)
+{
+	if(!ptr->valid_pos)
+		return;
+
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
+	switch(ais->type1.status)
+	{
+		case SHIP_STATUS_RESTRICTED_MANOEUVER:		PrepareShipLightsBuffer0(ptr);	break;
+		case SHIP_STATUS_CONSTRAINED_BY_DRAUGHT:	PrepareShipLightsBuffer0(ptr);	break;
+		case SHIP_STATUS_FISHING:					PrepareShipLightsBuffer0(ptr);	break;
+		
+	}
+}
+
+void CMapPlugin::PrepareShipLightsBuffer0(SAisData *ptr)
+{	
+	PrepareShipLightsVerticesBuffer(ptr);
+	PrepareShipLightsTriangleIndicesBuffer(ptr);
+
+}
+
+void CMapPlugin::PrepareShipLightsVerticesBuffer(SAisData *ptr)
+{
+	double to_x, to_y;
+	nvPoint2d pt;
+	pt.x = ptr->lon;
+	pt.y = -ptr->lat;
+	nvPoint2d p1, p2, p3, p4;
+		
+	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+		
+	double width = LIGHT_WIDTH/m_SmoothScaleFactor;
+	double height = LIGHT_HEIGHT/m_SmoothScaleFactor;
+			
+	p1.x = (-1.0 + 2.0) * width;	p1.y = ( 1.0 + 1.0) * height;
+	p2.x = ( 1.0 + 2.0) * width;	p2.y = ( 1.0 + 1.0) * height;
+	p3.x = ( 1.0 + 2.0) * width;	p3.y = (-1.0 + 1.0) * height;
+	p4.x = (-1.0 + 2.0) * width;	p4.y = (-1.0 + 1.0) * height;
+	
+	p1.x += pt.x; p1.y += pt.y;
+	p2.x += pt.x; p2.y += pt.y;
+	p3.x += pt.x; p3.y += pt.y;
+	p4.x += pt.x; p4.y += pt.y;
+		
+	m_ShipLightsVerticesBuffer0.Append(p1);
+	m_ShipLightsVerticesBuffer0.Append(p2);
+	m_ShipLightsVerticesBuffer0.Append(p3);
+	m_ShipLightsVerticesBuffer0.Append(p4);
+
+}
+
+void CMapPlugin::PrepareShipLightsTriangleIndicesBuffer(SAisData *ptr)
+{
+	int id = m_ShipLightsVerticesBuffer0.Length();
+		
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 3);	//1
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 2);	//2
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 2);	//2
+	m_ShipLightsTriangleIndicesBuffer0.Append(id - 1);	//3
 
 }
 
@@ -2434,6 +2527,17 @@ bool CMapPlugin::IsSmallShipBuffer()
 	return true;
 }
 
+bool CMapPlugin::IsShipLightsBuffer()
+{
+	if(m_CurrentShipLightsVerticesBufferPtr == NULL)
+		return false;
+	
+	if(m_CurrentShipLightsVerticesBufferPtr->Length() == 0)
+		return false;
+		
+	return true;
+}
+
 bool CMapPlugin::CreateBSVBO()
 {
 	if(!m_Ready)
@@ -2579,6 +2683,47 @@ bool CMapPlugin::CreateShipsVBO()
 		return false;
 				
 }
+
+bool CMapPlugin::CreateShipLightsVBO()
+{
+	if(!m_Ready)
+		return false;
+	
+	//trójkaty
+	glBindBuffer(GL_ARRAY_BUFFER, m_ShipLightsArrayBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentShipLightsVerticesBufferPtr->Length(), m_CurrentShipLightsVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+			
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipLightsTriangleIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentShipLightsTriangleIndicesBufferPtr->Length(), m_CurrentShipLightsTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+		
+	//glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBA) * m_CurrentBSColorBufferPtr->Length(), m_CurrentBSColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
+	
+	m_ShipLightsTriangleLength = m_CurrentShipLightsTriangleIndicesBufferPtr->Length();
+	//m_BSLineLength = m_CurrentBSLineIndicesBufferPtr->Length();
+
+	return true;
+}
+
+void CMapPlugin::RenderShipLights()
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, m_ShipLightsArrayBuffer);
+	glVertexPointer(2, GL_DOUBLE,  0, 0);
+		
+	//glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
+	//glColorPointer(4, GL_UNSIGNED_BYTE,  0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipLightsTriangleIndicesBuffer);
+	glDrawElements(GL_TRIANGLES, m_ShipLightsTriangleLength, GL_UNSIGNED_INT,0);
+			
+	glDisableClientState(GL_VERTEX_ARRAY);
+	
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+}
+
 
 void CMapPlugin::RenderBS()
 {
@@ -2873,6 +3018,16 @@ void CMapPlugin::RenderGPS()
 
 }
 
+void CMapPlugin::_RenderShipLights()
+{
+	if(!IsShipLightsBuffer())
+		return;
+	
+	CreateShipLightsVBO();
+	RenderShipLights();
+	
+}
+
 void CMapPlugin::_RenderBS()
 {
 	if(!IsBSBuffer())
@@ -2887,7 +3042,7 @@ void CMapPlugin::_RenderAtons()
 {
 	if(!IsAtonBuffer())
 		return;
-		
+	
 	CreateAtonsVBO();
 	RenderAtons();
 
@@ -2931,6 +3086,7 @@ void CMapPlugin::RenderNormalScale()
 	_RenderTriangles();
 	_RenderAtons();
 	_RenderBS();
+	_RenderShipLights();
 	RenderCOG();
 	RenderHDT();
 	RenderGPS();
@@ -2969,7 +3125,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	wxMutexLocker lock(*GetMutex());	
+	//wxMutexLocker lock(*GetMutex());
 	
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
@@ -3014,6 +3170,9 @@ void CMapPlugin::Generate()
 		glGenBuffers(1, &m_BSTriangleIndicesBuffer);
 		glGenBuffers(1, &m_BSLineIndicesBuffer);
 		glGenBuffers(1, &m_BSColorBuffer);
+
+		glGenBuffers(1, &m_ShipLightsArrayBuffer);
+		glGenBuffers(1, &m_ShipLightsTriangleIndicesBuffer);
 	
 	}
 	
@@ -3150,6 +3309,7 @@ void CMapPlugin::ThreadEnd()
 			ShowFrameWindow(true);
 		//else
 		//	ShowFrameWindow(false);
+			//m_ShowFrameWindow = false;
 		m_Broker->Refresh(m_Broker->GetParentPtr());
 	}
 	
@@ -3161,7 +3321,8 @@ void CMapPlugin::ThreadEnd()
 
 void CMapPlugin::ShowFrameWindow(bool show)
 {
-	m_MyFrame->ShowWindow(show);
+	m_MyFrame->ShowWindow(show);			
+		
 }
 
 SAisData *CMapPlugin::GetSelectedPtr()

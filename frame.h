@@ -33,19 +33,23 @@ class CMyFrame: public wxDialog
 	bool IsOnScreen(int x, int y);
 	void SetReportTime();
 	void SetValues();
-
+	void ShowWindowEvent(bool show);
+	
 public:
 		
-	void ShowWindow(bool show);		
+	void ShowWindow(bool show);
 	CMyFrame(void *Parent, wxWindow *ParentPtr);
 	~CMyFrame();
 	void OnTickerTick();
+	void OnShowWindow(wxCommandEvent &event);
+
 		
 	DECLARE_EVENT_TABLE();
 
 	enum
 	{
 		ID_CLOSE = 5312,
+		ID_SHOW,
 	
 	};
 

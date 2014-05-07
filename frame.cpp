@@ -8,11 +8,14 @@
 #include "ais.h"
 #include "GeometryTools.h"
 
+DEFINE_EVENT_TYPE(EVT_SHOW_WINDOW)
 
 BEGIN_EVENT_TABLE(CMyFrame,wxDialog)
 	EVT_BUTTON(ID_CLOSE,CMyFrame::OnCloseButton)
 //	EVT_BUTTON(ID_SAVE,CMyFrame::OnSaveButton)
+	EVT_COMMAND(ID_SHOW,EVT_SHOW_WINDOW,CMyFrame::OnShowWindow)
 END_EVENT_TABLE()
+
 
 extern CNaviMapIOApi *ThisPtr;
 extern CNaviBroker *BrokerPtr;
@@ -86,6 +89,19 @@ void CMyFrame::OnCloseButton(wxCommandEvent &event)
 void CMyFrame::OnClose(wxCloseEvent &event)
 {
 	Hide();
+}
+
+void CMyFrame::ShowWindowEvent(bool show)
+{
+	wxCommandEvent evt(EVT_SHOW_WINDOW,ID_SHOW);
+	evt.SetInt(show);
+	wxPostEvent(this,evt);
+
+}
+
+void CMyFrame::OnShowWindow(wxCommandEvent &event)
+{
+	ShowWindowEvent(event.GetInt());
 }
 
 void CMyFrame::SetHtml(wxString html,int page)

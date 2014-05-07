@@ -310,6 +310,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define BS_WIDTH				10.0
 #define BS_HEIGHT				10.0
 
+#define LIGHT_WIDTH				8.0
+#define LIGHT_HEIGHT			15.0
+
 #define ROTATE //czy obracać obiekty
 #define MIN_SHIP_SPEED				0.5 // 0.5 kn
 #define TRIANGLE_VERTICES_LENGTH	3
@@ -352,18 +355,22 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define PAGE_1 1
 
 //sekundy
-#define DEFAULT_COG_TIME 60 
-#define DEFAULT_HDT_TIME 60 
+#define DEFAULT_COG_TIME 60
+#define DEFAULT_HDT_TIME 60
 #define DEFAULT_COG_LINE_WIDTH 1
 #define DEFAULT_HDT_LINE_WIDTH 1
 #define DEFAULT_HDT_LINE_STYLE 0
 #define DEFAULT_COG_LINE_STYLE 1
 
+#define SHIP_STATUS_RESTRICTED_MANOEUVER	3
+#define SHIP_STATUS_CONSTRAINED_BY_DRAUGHT	4
+#define SHIP_STATUS_FISHING					7
+
 typedef struct SData
 {
 	int		id;
-	char	marker[MARKER_LENGTH + 1];	// id definicji danych
-	char	value[MAX_VALUE_LENGTH + 1];  //NMEA 0183’s 82
+	char	marker[MARKER_LENGTH + 1];		// id definicji danych
+	char	value[MAX_VALUE_LENGTH + 1];	//NMEA 0183’s 82
 	float	interval;
 
 }SData;

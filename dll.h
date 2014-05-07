@@ -91,53 +91,60 @@ class CMapPlugin :public CNaviMapIOApi
 	GLuint m_TrianglesArrayBuffer, m_TrianglesTriangleIndicesBuffer,m_TrianglesLineIndicesBuffer, m_TrianglesColorBuffer;
 	GLuint m_AtonArrayBuffer, m_AtonTriangleIndicesBuffer, m_AtonLineIndicesBuffer, m_AtonColorBuffer;
 	GLuint m_BSArrayBuffer, m_BSTriangleIndicesBuffer, m_BSLineIndicesBuffer, m_BSColorBuffer;
+	GLuint m_ShipLightsArrayBuffer,m_ShipLightsTriangleIndicesBuffer;
 
 	int m_SmallShipTriangleLength, m_SmallShipLineLength;
 	int m_TrianglesTriangleLength, m_TrianglesLineLength ;
 	int m_ShipTriangleLength, m_ShipLineLength;
 	int m_AtonTriangleLength, m_AtonLineLength;
 	int m_BSTriangleLength, m_BSLineLength;
+	int m_ShipLightsTriangleLength;
 
 	bool m_Ready;
 	int m_ThreadCounter;
 	bool m_ShipRender;
-	
+	bool m_ShowFrameWindow;
+
+
 	// bufory punktów
 	// SHIP
-	CNaviArray <nvPoint2d> m_PointsBuffer0;				CNaviArray <nvPoint2d> m_PointsBuffer1;					CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;				// bufor punktów trójk¹tów SHIP
-	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;			// bufor indexów trójk¹tów SHIP
-	CNaviArray <int> m_ShipTriangleIndicesBuffer0;		CNaviArray <int>  m_ShipTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
-	CNaviArray <int> m_ShipLineIndicesBuffer0;			CNaviArray <int>  m_ShipLineIndicesBuffer1;				CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;			// bufor indexów lini SHIP
-	CNaviArray <nvRGBA> m_ShipColorBuffer0;				CNaviArray <nvRGBA> m_ShipColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentShipColorBufferPtr;
+	CNaviArray <nvPoint2d> m_PointsBuffer0;					CNaviArray <nvPoint2d> m_PointsBuffer1;					CNaviArray <nvPoint2d> *m_CurrentPointsBufferPtr;				// bufor punktów trójk¹tów SHIP
+	CNaviArray <nvPoint2d> m_ShipVerticesBuffer0;			CNaviArray <nvPoint2d> m_ShipVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipVerticesBufferPtr;			// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_ShipTriangleIndicesBuffer0;			CNaviArray <int>  m_ShipTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentShipTriangleIndicesBufferPtr;
+	CNaviArray <int> m_ShipLineIndicesBuffer0;				CNaviArray <int>  m_ShipLineIndicesBuffer1;				CNaviArray <int> *m_CurrentShipLineIndicesBufferPtr;			// bufor indexów lini SHIP
+	CNaviArray <nvRGBA> m_ShipColorBuffer0;					CNaviArray <nvRGBA> m_ShipColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentShipColorBufferPtr;
 	
 	// SHIP trójkat
-	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer0;	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentTriangleVerticesBufferPtr;
-	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;	CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;	// bufor indexów trójk¹tów SHIP
-	CNaviArray <int> m_TrianglesLineIndicesBuffer0;		CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;		// bufor indexów lini SHIP
-	CNaviArray <nvRGBA> m_TrianglesColorBuffer0;		CNaviArray <nvRGBA> m_TrianglesColorBuffer1;			CNaviArray <nvRGBA> *m_CurrentTrianglesColorBufferPtr;
+	CNaviArray <nvPoint2d> m_TriangleVerticesBuffer0;		CNaviArray <nvPoint2d> m_TriangleVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentTriangleVerticesBufferPtr;
+	CNaviArray <int> m_TrianglesTriangleIndicesBuffer0;		CNaviArray <int>  m_TrianglesTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentTrianglesTriangleIndicesBufferPtr;	// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_TrianglesLineIndicesBuffer0;			CNaviArray <int>  m_TrianglesLineIndicesBuffer1;		CNaviArray <int> *m_CurrentTrianglesLineIndicesBufferPtr;		// bufor indexów lini SHIP
+	CNaviArray <nvRGBA> m_TrianglesColorBuffer0;			CNaviArray <nvRGBA> m_TrianglesColorBuffer1;			CNaviArray <nvRGBA> *m_CurrentTrianglesColorBufferPtr;
 	
 	// SHIP small ship
-	CNaviArray <nvPoint2d> m_SmallShipVerticesBuffer0;	CNaviArray <nvPoint2d> m_SmallShipVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentSmallShipVerticesBufferPtr;
-	CNaviArray <int> m_SmallShipTriangleIndicesBuffer0;	CNaviArray <int>  m_SmallShipTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentSmallShipTriangleIndicesBufferPtr;	// bufor indexów trójk¹tów SHIP
-	CNaviArray <int> m_SmallShipLineIndicesBuffer0;		CNaviArray <int>  m_SmallShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentSmallShipLineIndicesBufferPtr;		// bufor indexów lini SHIP
-	CNaviArray <nvRGBA> m_SmallShipColorBuffer0;		CNaviArray <nvRGBA> m_SmallShipColorBuffer1;			CNaviArray <nvRGBA> *m_CurrentSmallShipColorBufferPtr;
+	CNaviArray <nvPoint2d> m_SmallShipVerticesBuffer0;		CNaviArray <nvPoint2d> m_SmallShipVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentSmallShipVerticesBufferPtr;
+	CNaviArray <int> m_SmallShipTriangleIndicesBuffer0;		CNaviArray <int>  m_SmallShipTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentSmallShipTriangleIndicesBufferPtr;	// bufor indexów trójk¹tów SHIP
+	CNaviArray <int> m_SmallShipLineIndicesBuffer0;			CNaviArray <int>  m_SmallShipLineIndicesBuffer1;		CNaviArray <int> *m_CurrentSmallShipLineIndicesBufferPtr;		// bufor indexów lini SHIP
+	CNaviArray <nvRGBA> m_SmallShipColorBuffer0;			CNaviArray <nvRGBA> m_SmallShipColorBuffer1;			CNaviArray <nvRGBA> *m_CurrentSmallShipColorBufferPtr;
 
 	//SHIP linie HDG,COG
-	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;		CNaviArray <nvPoint2d> m_COGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;			// SHIP linie COG
-	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;		CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;			// SHIP linie HDG
+	CNaviArray <nvPoint2d> m_COGVerticesBuffer0;			CNaviArray <nvPoint2d> m_COGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCOGVerticesBufferPtr;			// SHIP linie COG
+	CNaviArray <nvPoint2d> m_HDGVerticesBuffer0;			CNaviArray <nvPoint2d> m_HDGVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentHDGVerticesBufferPtr;			// SHIP linie HDG
 	
 	// bufor punktów trójk¹tów ATON
-	CNaviArray <nvPoint2d> m_AtonVerticesBuffer0;		CNaviArray <nvPoint2d> m_AtonVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentAtonVerticesBufferPtr;
-	CNaviArray <int> m_AtonTriangleIndicesBuffer0;		CNaviArray <int> m_AtonTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentAtonTriangleIndicesBufferPtr;
-	CNaviArray <int> m_AtonLineIndicesBuffer0;			CNaviArray <int> m_AtonLineIndicesBuffer1;				CNaviArray <int> *m_CurrentAtonLineIndicesBufferPtr;
-	CNaviArray <nvRGBA> m_AtonColorBuffer0;				CNaviArray <nvRGBA> m_AtonColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentAtonColorBufferPtr;
+	CNaviArray <nvPoint2d> m_AtonVerticesBuffer0;			CNaviArray <nvPoint2d> m_AtonVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentAtonVerticesBufferPtr;
+	CNaviArray <int> m_AtonTriangleIndicesBuffer0;			CNaviArray <int> m_AtonTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentAtonTriangleIndicesBufferPtr;
+	CNaviArray <int> m_AtonLineIndicesBuffer0;				CNaviArray <int> m_AtonLineIndicesBuffer1;				CNaviArray <int> *m_CurrentAtonLineIndicesBufferPtr;
+	CNaviArray <nvRGBA> m_AtonColorBuffer0;					CNaviArray <nvRGBA> m_AtonColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentAtonColorBufferPtr;
 
 	// bufor punktów trójk¹tów BS
-	CNaviArray <nvPoint2d> m_BSVerticesBuffer0;			CNaviArray <nvPoint2d> m_BSVerticesBuffer1;				CNaviArray <nvPoint2d> *m_CurrentBSVerticesBufferPtr;
-	CNaviArray <int> m_BSTriangleIndicesBuffer0;		CNaviArray <int> m_BSTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentBSTriangleIndicesBufferPtr;
-	CNaviArray <int> m_BSLineIndicesBuffer0;			CNaviArray <int> m_BSLineIndicesBuffer1;				CNaviArray <int> *m_CurrentBSLineIndicesBufferPtr;
-	CNaviArray <nvRGBA> m_BSColorBuffer0;				CNaviArray <nvRGBA> m_BSColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentBSColorBufferPtr;
+	CNaviArray <nvPoint2d> m_BSVerticesBuffer0;				CNaviArray <nvPoint2d> m_BSVerticesBuffer1;				CNaviArray <nvPoint2d> *m_CurrentBSVerticesBufferPtr;
+	CNaviArray <int> m_BSTriangleIndicesBuffer0;			CNaviArray <int> m_BSTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentBSTriangleIndicesBufferPtr;
+	CNaviArray <int> m_BSLineIndicesBuffer0;				CNaviArray <int> m_BSLineIndicesBuffer1;				CNaviArray <int> *m_CurrentBSLineIndicesBufferPtr;
+	CNaviArray <nvRGBA> m_BSColorBuffer0;					CNaviArray <nvRGBA> m_BSColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentBSColorBufferPtr;
 
+	// bufor œwiate³
+	CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentShipLightsVerticesBufferPtr;
+	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer0;	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLightsTriangleIndicesBufferPtr;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
@@ -181,6 +188,12 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareTimeoutBuffer();
 	void PreparePointsBuffer(SAisData *ptr);
 	void PrepareShipNamesBuffer(SAisData *ptr);
+	void PrepareShipLightsBuffer(SAisData *ptr);
+	void PrepareShipLightsBuffer0(SAisData *ptr);
+	//void PrepareShipLightsBuffer1(SAisData *ptr);
+	//void PrepareShipLightsBuffer2(SAisData *ptr);
+	void PrepareShipLightsVerticesBuffer(SAisData *ptr);
+	void PrepareShipLightsTriangleIndicesBuffer(SAisData *ptr);
 	
 	// bufor trójkatów
 	void PrepareTriangleVerticesBuffer(SAisData *ptr);			//vertexy
@@ -237,6 +250,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool CreateSmallShipsVBO();
 	bool CreateAtonsVBO();
 	bool CreateBSVBO();
+	bool CreateShipLightsVBO();
 	//void CopySelectedPtr(SAisData *ptr);
 	//void FreeSelectedPtr();
 
@@ -252,6 +266,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool IsTriangleBuffer();
 	bool IsShipBuffer();
 	bool IsSmallShipBuffer();
+	bool IsShipLightsBuffer();
 	bool IsAtonBuffer();
 	bool IsBSBuffer();
 	void SetSelection();
@@ -292,6 +307,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void _RenderTriangles();
 	void _RenderAtons();
 	void _RenderBS();
+	void _RenderShipLights();
 
 	void RenderSmallShips();
 	void RenderPosition();
@@ -299,6 +315,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderTriangles();
 	void RenderPoints();
 	void RenderAtons();
+	void RenderShipLights();
 	
 
 public:

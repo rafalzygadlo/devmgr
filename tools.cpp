@@ -691,13 +691,13 @@ wxString GetAisFile()
 	return wxString::Format(wxT("%s%s%s"),GetWorkDir().wc_str(),wxT(DIR_SEPARATOR),wxT(AIS_FILE));
 }
 
-wxString RGBAToStr(nvRGBA *RGB) 
+wxString RGBAToStr(nvRGBA *RGB)
 {
 	return wxString::Format(_("%03d%03d%03d%03d"), RGB->R, RGB->G, RGB->B,RGB->A);
 }
 
-nvRGBA StrToRGBA(wxString str) {
-
+nvRGBA StrToRGBA(wxString str)
+{
 	nvRGBA RGB;
 	
 	wxString str1; 
@@ -708,4 +708,4 @@ nvRGBA StrToRGBA(wxString str) {
 	str1 = str.substr(9,3);	RGB.A = atoi(str1.char_str());
 
 	return RGB;
-};
+}
