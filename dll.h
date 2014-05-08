@@ -1,6 +1,7 @@
 #ifndef __DLL_H
 #define __DLL_H
 
+#include "light.h"
 #include "NaviMapIOApi.h"
 #include <wx/fileconf.h>
 #include <vector>
@@ -18,6 +19,7 @@
 #include "conf.h"
 #include "ticker.h"
 #include "frame.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -143,8 +145,10 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <nvRGBA> m_BSColorBuffer0;					CNaviArray <nvRGBA> m_BSColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentBSColorBufferPtr;
 
 	// bufor œwiate³
-	CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentShipLightsVerticesBufferPtr;
-	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer0;	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLightsTriangleIndicesBufferPtr;
+	//CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentShipLightsVerticesBufferPtr;
+	//CNaviArray <int> m_ShipLightsTriangleIndicesBuffer0;	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLightsTriangleIndicesBufferPtr;
+		
+	CLight *m_Light0, *m_Light1, *m_Light2;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
@@ -190,8 +194,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareShipNamesBuffer(SAisData *ptr);
 	void PrepareShipLightsBuffer(SAisData *ptr);
 	void PrepareShipLightsBuffer0(SAisData *ptr);
-	//void PrepareShipLightsBuffer1(SAisData *ptr);
-	//void PrepareShipLightsBuffer2(SAisData *ptr);
+	void PrepareShipLightsBuffer1(SAisData *ptr);
+	void PrepareShipLightsBuffer2(SAisData *ptr);
 	void PrepareShipLightsVerticesBuffer(SAisData *ptr);
 	void PrepareShipLightsTriangleIndicesBuffer(SAisData *ptr);
 	

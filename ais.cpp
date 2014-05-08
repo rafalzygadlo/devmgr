@@ -814,7 +814,9 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type5.to_stern;
 		ptr->to_port		= ais->type5.to_port;	
 		ptr->to_starboard	= ais->type5.to_starboard;
-		return true;
+
+		if(( ToBow(ptr) + ToStern(ptr)  > 0) && ( ToPort(ptr) + ToStarboard(ptr) > 0))
+			return true;
 	}
 
 	if(ais->valid[AIS_MSG_19])
@@ -823,7 +825,9 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type19.to_stern;
 		ptr->to_port		= ais->type19.to_port;	
 		ptr->to_starboard	= ais->type19.to_starboard;
-		return true;
+		if(( ToBow(ptr) + ToStern(ptr)  > 0) && ( ToPort(ptr) + ToStarboard(ptr) > 0))
+			return true;
+		
 	}
 
 	/*
@@ -844,7 +848,9 @@ bool ais_set_dim(ais_t *ais, SAisData *ptr)
 		ptr->to_stern		= ais->type24.dim.to_stern;
 		ptr->to_port		= ais->type24.dim.to_port;	
 		ptr->to_starboard	= ais->type24.dim.to_starboard;
-		return true;
+		if(( ToBow(ptr) + ToStern(ptr)  > 0) && ( ToPort(ptr) + ToStarboard(ptr) > 0))
+			return true;
+		
 	}
 
 	return false;
@@ -2118,8 +2124,10 @@ wxString PrintHtmlSimple(ais_t *msg)
 	else
 		ar.Add(_("N/A"));
 	
-	ais_set_callsign(msg,&ptr);
-	ar.Add(get_value_as_string(ptr.callsign));
+	if(ais_set_callsign(msg,&ptr))
+		ar.Add(get_value_as_string(ptr.callsign));
+	else
+		ar.Add(_("N/A"));
 	
 	ais_set_cog(msg,&ptr);
 	ar.Add(get_value_as_string(ptr.cog,true,AIS_COURSE_NOT_AVAILABLE));
@@ -2137,17 +2145,17 @@ wxString PrintHtmlSimple(ais_t *msg)
 	ais_set_draught(msg, &ptr);
 	ar.Add(get_value_as_string(get_draught_msg5(ptr.draught),true,AIS_DRAUGHT_NOT_AVAILABLE));
 
-	str.Append(_("<table border=0 cellpadding=4 cellspacing=2>"));
+	str.Append(_("<table border=0 cellpadding=2 cellspacing=2>"));
 	str.Append(wxString::Format(_("<tr><td colspan=2><font size=5><b>%s</b></font></td></tr>"),ar.Item(0)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_MMSI),ar.Item(1)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_FLAG),ar.Item(2)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_CALLSIGN),ar.Item(3)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_COG),ar.Item(4)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_HEADING),ar.Item(5)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_SPEED),ar.Item(6)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_LON),ar.Item(7)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_LAT),ar.Item(8)));
-	str.Append(wxString::Format(_("<tr><td><b>%s</b></td><td>%s</td></tr>"),GetMsg(MSG_DRAUGHT),ar.Item(9)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_MMSI),ar.Item(1)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_FLAG),ar.Item(2)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_CALLSIGN),ar.Item(3)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_COG),ar.Item(4)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_HEADING),ar.Item(5)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_SPEED),ar.Item(6)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_LON),ar.Item(7)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_LAT),ar.Item(8)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_DRAUGHT),ar.Item(9)));
 	str.Append(GetHtmlFooter());
 
 	return str;

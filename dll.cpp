@@ -72,8 +72,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSmallShipColorBufferPtr = NULL;
 	m_CurrentBSVerticesBufferPtr = NULL;
 	m_CurrentShipNamesBufferPtr = NULL;
-	m_CurrentShipLightsVerticesBufferPtr = NULL;
-	m_CurrentShipLightsTriangleIndicesBufferPtr = NULL;
 	
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -135,7 +133,25 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	AddExecuteFunction("devmgr_OnSynchro",OnSynchro);
+
+	nvRGBA color;	
+	m_Light0 = new CLight();
+	m_Light0->SetSize(LIGHT0_WIDTH,LIGHT0_HEIGHT);
+	color.R = 255;color.G = 0;color.B = 0;color.A = 200;
+	m_Light0->SetColor(color);
+	m_Light0->SetOffset(-1.0,-1.0);
 	
+	color.R = 0;color.G = 255;color.B = 0;color.A = 200;
+	m_Light1 = new CLight();
+	m_Light1->SetSize(LIGHT1_WIDTH,LIGHT1_HEIGHT);
+	m_Light1->SetColor(color);
+	m_Light1->SetOffset(1.0,1.0);
+	
+	color.R = 0;color.G = 0;color.B = 255;color.A = 200;
+	m_Light2 = new CLight();
+	m_Light2->SetSize(LIGHT2_WIDTH,LIGHT2_HEIGHT);
+	m_Light2->SetColor(color);
+	m_Light2->SetOffset(1.0,2.0);
 	
 	InitMutex();
 	InitSearchMutex();
@@ -158,13 +174,19 @@ CMapPlugin::~CMapPlugin()
 	delete m_Devices;
 	delete m_DisplaySignal;
 	delete m_NameFont;
+	m_NameFont = NULL;
 	delete m_MMSIFont;
+	m_MMSIFont = NULL;
 	delete m_MyFrame;
-	
+		
 	ClearBuffers();
 	FreeMutex();
 	FreeSearchMutex();
 	//FreeSelectedPtr();
+
+	delete m_Light0;
+	delete m_Light1;
+	delete m_Light2;
 	
 }
 
@@ -322,8 +344,10 @@ void CMapPlugin::CreateTextures(void)
 
 void CMapPlugin::OnInitGL()
 {
-	m_NameFont->InitGL();
-	m_MMSIFont->InitGL();
+	if(m_NameFont)
+		m_NameFont->InitGL();
+	if(m_MMSIFont)
+		m_MMSIFont->InitGL();
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -1156,8 +1180,10 @@ void CMapPlugin::SetPtr0()
 	m_CurrentHDGVerticesBufferPtr = &m_HDGVerticesBuffer1;
 	
 	//statek swiatla
-	m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer1;
-	m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer1;
+	m_Light0->SetCurrentPtr(true);
+	m_Light1->SetCurrentPtr(true);
+	//m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer1;
+	//m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer1;
 
 
 }
@@ -1206,8 +1232,9 @@ void CMapPlugin::SetPtr1()
 	m_CurrentHDGVerticesBufferPtr = &m_HDGVerticesBuffer0;
 
 	//statek swiatla
-	m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer0;
-	m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer0;
+	m_Light0->SetCurrentPtr(false);
+	m_Light1->SetCurrentPtr(false);
+	
 
 }
 
@@ -1235,8 +1262,10 @@ void CMapPlugin::ClearBuffers()
 	m_ShipColorBuffer0.Clear();
 	
 	// statki swiatla
-	m_ShipLightsVerticesBuffer0.Clear();
-	m_ShipLightsTriangleIndicesBuffer0.Clear();
+	m_Light0->ClearBuffers();
+	m_Light1->ClearBuffers();
+	//m_ShipLightsVerticesBuffer0.Clear();
+	//m_ShipLightsTriangleIndicesBuffer0.Clear();
 
 	//ATON
 	m_AtonVerticesBuffer0.Clear();
@@ -1320,7 +1349,8 @@ void CMapPlugin::CopyBuffers()
 	CopySAisNames(&m_ShipNamesBuffer0,&m_ShipNamesBuffer1);
 
 	//statek swiatla
-	CopyNvPoint2d(&m_ShipLightsVerticesBuffer0,&m_ShipLightsVerticesBuffer1);
+	m_Light0->CopyBuffers();
+	m_Light1->CopyBuffers();
 
 }
 
@@ -1352,7 +1382,6 @@ void CMapPlugin::SetBuffers()
 			else
 				PrepareTriangleBuffer(ptr);
 			
-			
 			PrepareShipLightsBuffer(ptr);
 			PrepareAtonBuffer(ptr);
 			PrepareBSBuffer(ptr);
@@ -1360,6 +1389,7 @@ void CMapPlugin::SetBuffers()
 			PrepareCOGVerticesBuffer(ptr);				// linia cog
 			PrepareHDGVerticesBuffer(ptr);
 			PrepareShipNamesBuffer(ptr);
+
 		
 		}
 	}
@@ -1551,64 +1581,50 @@ void CMapPlugin::PrepareShipLightsBuffer(SAisData *ptr)
 	switch(ais->type1.status)
 	{
 		case SHIP_STATUS_RESTRICTED_MANOEUVER:		PrepareShipLightsBuffer0(ptr);	break;
-		case SHIP_STATUS_CONSTRAINED_BY_DRAUGHT:	PrepareShipLightsBuffer0(ptr);	break;
-		case SHIP_STATUS_FISHING:					PrepareShipLightsBuffer0(ptr);	break;
+		case SHIP_STATUS_CONSTRAINED_BY_DRAUGHT:	PrepareShipLightsBuffer1(ptr);	break;
+		case SHIP_STATUS_FISHING:					PrepareShipLightsBuffer2(ptr);	break;
 		
 	}
 }
 
 void CMapPlugin::PrepareShipLightsBuffer0(SAisData *ptr)
 {	
-	PrepareShipLightsVerticesBuffer(ptr);
-	PrepareShipLightsTriangleIndicesBuffer(ptr);
-
-}
-
-void CMapPlugin::PrepareShipLightsVerticesBuffer(SAisData *ptr)
-{
 	double to_x, to_y;
 	nvPoint2d pt;
-	pt.x = ptr->lon;
-	pt.y = -ptr->lat;
-	nvPoint2d p1, p2, p3, p4;
-		
-	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+				
+	m_Broker->Unproject(ptr->lon, -ptr->lat,&to_x,&to_y);
 	pt.x = to_x;
 	pt.y = to_y;
-		
-	double width = LIGHT_WIDTH/m_SmoothScaleFactor;
-	double height = LIGHT_HEIGHT/m_SmoothScaleFactor;
 			
-	p1.x = (-1.0 + 2.0) * width;	p1.y = ( 1.0 + 1.0) * height;
-	p2.x = ( 1.0 + 2.0) * width;	p2.y = ( 1.0 + 1.0) * height;
-	p3.x = ( 1.0 + 2.0) * width;	p3.y = (-1.0 + 1.0) * height;
-	p4.x = (-1.0 + 2.0) * width;	p4.y = (-1.0 + 1.0) * height;
-	
-	p1.x += pt.x; p1.y += pt.y;
-	p2.x += pt.x; p2.y += pt.y;
-	p3.x += pt.x; p3.y += pt.y;
-	p4.x += pt.x; p4.y += pt.y;
-		
-	m_ShipLightsVerticesBuffer0.Append(p1);
-	m_ShipLightsVerticesBuffer0.Append(p2);
-	m_ShipLightsVerticesBuffer0.Append(p3);
-	m_ShipLightsVerticesBuffer0.Append(p4);
+	m_Light0->Add(pt,m_SmoothScaleFactor);
 
 }
 
-void CMapPlugin::PrepareShipLightsTriangleIndicesBuffer(SAisData *ptr)
-{
-	int id = m_ShipLightsVerticesBuffer0.Length();
-		
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 4);	//0
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 3);	//1
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 2);	//2
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 4);	//0
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 2);	//2
-	m_ShipLightsTriangleIndicesBuffer0.Append(id - 1);	//3
+void CMapPlugin::PrepareShipLightsBuffer1(SAisData *ptr)
+{	
+	double to_x, to_y;
+	nvPoint2d pt;
+				
+	m_Broker->Unproject(ptr->lon, -ptr->lat,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+			
+	m_Light1->Add(pt,m_SmoothScaleFactor);
 
 }
 
+void CMapPlugin::PrepareShipLightsBuffer2(SAisData *ptr)
+{	
+	double to_x, to_y;
+	nvPoint2d pt;
+				
+	m_Broker->Unproject(ptr->lon, -ptr->lat,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+			
+	m_Light2->Add(pt,m_SmoothScaleFactor);
+
+}
 
 void CMapPlugin::PrepareAtonBuffer(SAisData *ptr)
 {
@@ -2527,16 +2543,6 @@ bool CMapPlugin::IsSmallShipBuffer()
 	return true;
 }
 
-bool CMapPlugin::IsShipLightsBuffer()
-{
-	if(m_CurrentShipLightsVerticesBufferPtr == NULL)
-		return false;
-	
-	if(m_CurrentShipLightsVerticesBufferPtr->Length() == 0)
-		return false;
-		
-	return true;
-}
 
 bool CMapPlugin::CreateBSVBO()
 {
@@ -2683,47 +2689,6 @@ bool CMapPlugin::CreateShipsVBO()
 		return false;
 				
 }
-
-bool CMapPlugin::CreateShipLightsVBO()
-{
-	if(!m_Ready)
-		return false;
-	
-	//trójkaty
-	glBindBuffer(GL_ARRAY_BUFFER, m_ShipLightsArrayBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentShipLightsVerticesBufferPtr->Length(), m_CurrentShipLightsVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
-			
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipLightsTriangleIndicesBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentShipLightsTriangleIndicesBufferPtr->Length(), m_CurrentShipLightsTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
-		
-	//glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBA) * m_CurrentBSColorBufferPtr->Length(), m_CurrentBSColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
-	
-	m_ShipLightsTriangleLength = m_CurrentShipLightsTriangleIndicesBufferPtr->Length();
-	//m_BSLineLength = m_CurrentBSLineIndicesBufferPtr->Length();
-
-	return true;
-}
-
-void CMapPlugin::RenderShipLights()
-{
-	glEnableClientState(GL_VERTEX_ARRAY);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, m_ShipLightsArrayBuffer);
-	glVertexPointer(2, GL_DOUBLE,  0, 0);
-		
-	//glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
-	//glColorPointer(4, GL_UNSIGNED_BYTE,  0, 0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipLightsTriangleIndicesBuffer);
-	glDrawElements(GL_TRIANGLES, m_ShipLightsTriangleLength, GL_UNSIGNED_INT,0);
-			
-	glDisableClientState(GL_VERTEX_ARRAY);
-	
-	glBindBuffer(GL_ARRAY_BUFFER,0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-}
-
 
 void CMapPlugin::RenderBS()
 {
@@ -3020,11 +2985,9 @@ void CMapPlugin::RenderGPS()
 
 void CMapPlugin::_RenderShipLights()
 {
-	if(!IsShipLightsBuffer())
-		return;
-	
-	CreateShipLightsVBO();
-	RenderShipLights();
+	m_Light0->Render();
+	m_Light1->Render();
+	m_Light2->Render();
 	
 }
 
@@ -3170,9 +3133,7 @@ void CMapPlugin::Generate()
 		glGenBuffers(1, &m_BSTriangleIndicesBuffer);
 		glGenBuffers(1, &m_BSLineIndicesBuffer);
 		glGenBuffers(1, &m_BSColorBuffer);
-
-		glGenBuffers(1, &m_ShipLightsArrayBuffer);
-		glGenBuffers(1, &m_ShipLightsTriangleIndicesBuffer);
+		
 	
 	}
 	

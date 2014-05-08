@@ -310,8 +310,14 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define BS_WIDTH				10.0
 #define BS_HEIGHT				10.0
 
-#define LIGHT_WIDTH				8.0
-#define LIGHT_HEIGHT			15.0
+#define LIGHT0_WIDTH			8.0
+#define LIGHT0_HEIGHT			15.0
+
+#define LIGHT1_WIDTH			8.0
+#define LIGHT1_HEIGHT			20.0
+
+#define LIGHT2_WIDTH			10.0
+#define LIGHT2_HEIGHT			10.0
 
 #define ROTATE //czy obracać obiekty
 #define MIN_SHIP_SPEED				0.5 // 0.5 kn
