@@ -26,11 +26,18 @@ class CAisList : public wxPanel
 	wxSearchCtrl *m_SearchText;
 	wxSlider *m_FontSize;
 	wxCheckBox *m_ShipNames,*m_COGLine,*m_HDTLine,*m_GPSPoint,*m_ShowObjects;
-	wxColourPickerCtrl *m_ShipColor0, *m_ShipColor1 , *m_ShipColor2, *m_AtonColor,*m_ShipBorderColor;
+	wxColourPickerCtrl *m_ShipColor0A, *m_ShipColor1A , *m_ShipColor2A, *m_ShipBorderColorA;
+	wxColourPickerCtrl *m_ShipColor0B, *m_ShipColor1B , *m_ShipColor2B, *m_ShipBorderColorB;
+	wxColourPickerCtrl *m_AtonColor, *m_BaseStationColor;
+	wxSlider *m_ShipBorderAlphaA,*m_ShipAlpha0A,*m_ShipAlpha1A,*m_ShipAlpha2A;
+	wxSlider *m_ShipBorderAlphaB,*m_ShipAlpha0B,*m_ShipAlpha1B,*m_ShipAlpha2B;
+	wxSlider *m_AtonAlpha,*m_BaseStationAlpha;
+	
 	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
 	wxSlider *m_ViewNameScale;
 	wxSpinCtrl *m_HDTTime,*m_COGTime,*m_COGLineWidth,*m_HDTLineWidth;
 	CPenStyleComboBox *m_HDTLineStyle, *m_COGLineStyle;
+	 
 	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
@@ -57,7 +64,8 @@ class CAisList : public wxPanel
 	void OnHDTLineWidth(wxSpinEvent &event);
 	void OnCOGLineStyle(wxCommandEvent &event);
 	void OnHDTLineStyle(wxCommandEvent &event);
-
+	void OnAlpha(wxCommandEvent &event);
+	
 public:
 	
 	CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display);
@@ -78,16 +86,34 @@ public:
 		ID_FONT_SIZE,
 		ID_SHOW_HDT,
 		ID_SHOW_COG,
-		ID_SHIP_BORDER_COLOR,
-		ID_SHIP_COLOR_0,
-		ID_SHIP_COLOR_1,
-		ID_SHIP_COLOR_2,
+		ID_SHIP_BORDER_COLORA,
+		ID_SHIP_COLOR_0A,
+		ID_SHIP_COLOR_1A,
+		ID_SHIP_COLOR_2A,
+		
+		ID_SHIP_BORDER_ALPHA,
+		
+		ID_SHIP_ALPHA_0A,
+		ID_SHIP_ALPHA_1A,
+		ID_SHIP_ALPHA_2A,
+
+		ID_SHIP_COLOR_0B,
+		ID_SHIP_COLOR_1B,
+		ID_SHIP_COLOR_2B,
+
+		ID_SHIP_BORDER_ALPHAB,
+		ID_SHIP_ALPHA_0B,
+		ID_SHIP_ALPHA_1B,
+		ID_SHIP_ALPHA_2B,
+
+		ID_BASE_STATION_ALPHA,
 		ID_ATON_COLOR,
 		ID_FILTER,
 		ID_VIEW_NAME_SCALE,
 		ID_COG_COLOR,
 		ID_HDT_COLOR,
 		ID_GPS_COLOR,
+		ID_BASE_STATION_COLOR,
 		ID_SHOW_GPS,
 		ID_SHOW_OBJECTS,
 		ID_COG_TIME,
@@ -96,6 +122,7 @@ public:
 		ID_HDT_LINE_WIDTH,
 		ID_COG_LINE_STYLE,
 		ID_HDT_LINE_STYLE,
+		ID_ATON_ALPHA,
 	};
 
 	DECLARE_EVENT_TABLE();

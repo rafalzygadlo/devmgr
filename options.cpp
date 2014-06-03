@@ -23,9 +23,33 @@ int m_HDTLineStyle = DEFAULT_HDT_LINE_STYLE;
 bool m_SearchTextChanged = true;
 bool m_FilterChanged = true;
 bool m_AisDataChanged = true;
+bool m_StartAnimation = false;
+SAisData *m_SelectedPtr = NULL;
+SAisData *m_SelectedAnimPtr = NULL;
 
+nvRGBA ColorShip0A, ColorShip1A, ColorShip2A, ColorShipBorderA;
+nvRGBA ColorShip0B, ColorShip1B, ColorShip2B, ColorShipBorderB;
+nvRGBA ColorAton, ColorHDT, ColorCOG, ColorGPS, ColorBS;
 
-nvRGBA ColorShip0, ColorShip1, ColorShip2, ColorAton, ColorHDT, ColorCOG, ColorGPS, ColorShipBorder;
+void SetSelectedPtr(SAisData *ptr)
+{
+	m_SelectedPtr = ptr;
+}
+
+SAisData *GetSelectedPtr()
+{
+	return m_SelectedPtr;
+}
+
+void SetSelectedAnimPtr(SAisData *ptr)
+{
+	m_SelectedAnimPtr = ptr;
+}
+
+SAisData *GetSelectedAnimPtr()
+{
+	return m_SelectedAnimPtr;
+}
 
 void SetHDTLineStyle(int value)
 {
@@ -142,14 +166,21 @@ nvRGBA GetDefaultColor(int type)
 	nvRGBA rgba;
 	switch(type)
 	{
-		case SHIP_BORDER_COLOR:	rgba.R = 0;		rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
-		case SHIP_COLOR_0:		rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
-		case SHIP_COLOR_1:		rgba.R = 255;	rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
-		case SHIP_COLOR_2:		rgba.R = 255;	rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
-		case ATON_COLOR:		rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
-		case COG_COLOR:			rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
-		case HDT_COLOR:			rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
-		case GPS_COLOR:			rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
+		case SHIP_BORDER_COLORA:	rgba.R = 0;		rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_0A:			rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_1A:			rgba.R = 255;	rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_2A:			rgba.R = 255;	rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
+		
+		case SHIP_BORDER_COLORB:	rgba.R = 0;		rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_0B:			rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_1B:			rgba.R = 255;	rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case SHIP_COLOR_2B:			rgba.R = 255;	rgba.G = 0;		rgba.B = 0;		rgba.A = 200;	break;
+		
+		case ATON_COLOR:			rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case COG_COLOR:				rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
+		case HDT_COLOR:				rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
+		case GPS_COLOR:				rgba.R = 0;		rgba.G = 0;		rgba.B = 255;	rgba.A = 200;	break;
+		case BASE_STATION_COLOR:	rgba.R = 0;		rgba.G = 255;	rgba.B = 0;		rgba.A = 200;	break;
 	
 	}
 		
@@ -161,14 +192,19 @@ nvRGBA GetColor(int type)
 	nvRGBA rgba;
 	switch(type)
 	{
-		case SHIP_BORDER_COLOR:	rgba.R = ColorShipBorder.R;	rgba.G = ColorShipBorder.G;	rgba.B = ColorShipBorder.B;	rgba.A = ColorShipBorder.A;	break;
-		case SHIP_COLOR_0:		rgba.R = ColorShip0.R;		rgba.G = ColorShip0.G;		rgba.B = ColorShip0.B;		rgba.A = ColorShip0.A;		break;
-		case SHIP_COLOR_1:		rgba.R = ColorShip1.R;		rgba.G = ColorShip1.G;		rgba.B = ColorShip1.B;		rgba.A = ColorShip1.A;		break;
-		case SHIP_COLOR_2:		rgba.R = ColorShip2.R;		rgba.G = ColorShip2.G;		rgba.B = ColorShip2.B;		rgba.A = ColorShip2.A;		break;
-		case ATON_COLOR:		rgba.R = ColorAton.R;		rgba.G = ColorAton.G;		rgba.B = ColorAton.B;		rgba.A = ColorAton.A;		break;
-		case COG_COLOR:			rgba.R = ColorCOG.R;		rgba.G = ColorCOG.G;		rgba.B = ColorCOG.B;		rgba.A = ColorCOG.A;		break;
-		case HDT_COLOR:			rgba.R = ColorHDT.R;		rgba.G = ColorHDT.G;		rgba.B = ColorHDT.B;		rgba.A = ColorHDT.A;		break;
-		case GPS_COLOR:			rgba.R = ColorGPS.R;		rgba.G = ColorGPS.G;		rgba.B = ColorGPS.B;		rgba.A = ColorGPS.A;		break;
+		case SHIP_BORDER_COLORA:	rgba.R = ColorShipBorderA.R;	rgba.G = ColorShipBorderA.G;	rgba.B = ColorShipBorderA.B;	rgba.A = ColorShipBorderA.A;	break;
+		case SHIP_COLOR_0A:			rgba.R = ColorShip0A.R;			rgba.G = ColorShip0A.G;			rgba.B = ColorShip0A.B;			rgba.A = ColorShip0A.A;			break;
+		case SHIP_COLOR_1A:			rgba.R = ColorShip1A.R;			rgba.G = ColorShip1A.G;			rgba.B = ColorShip1A.B;			rgba.A = ColorShip1A.A;			break;
+		case SHIP_COLOR_2A:			rgba.R = ColorShip2A.R;			rgba.G = ColorShip2A.G;			rgba.B = ColorShip2A.B;			rgba.A = ColorShip2A.A;			break;
+		case SHIP_BORDER_COLORB:	rgba.R = ColorShipBorderB.R;	rgba.G = ColorShipBorderB.G;	rgba.B = ColorShipBorderB.B;	rgba.A = ColorShipBorderB.A;	break;
+		case SHIP_COLOR_0B:			rgba.R = ColorShip0B.R;			rgba.G = ColorShip0B.G;			rgba.B = ColorShip0B.B;			rgba.A = ColorShip0B.A;			break;
+		case SHIP_COLOR_1B:			rgba.R = ColorShip1B.R;			rgba.G = ColorShip1B.G;			rgba.B = ColorShip1B.B;			rgba.A = ColorShip1B.A;			break;
+		case SHIP_COLOR_2B:			rgba.R = ColorShip2B.R;			rgba.G = ColorShip2B.G;			rgba.B = ColorShip2B.B;			rgba.A = ColorShip2B.A;			break;
+		case ATON_COLOR:			rgba.R = ColorAton.R;			rgba.G = ColorAton.G;			rgba.B = ColorAton.B;			rgba.A = ColorAton.A;			break;
+		case COG_COLOR:				rgba.R = ColorCOG.R;			rgba.G = ColorCOG.G;			rgba.B = ColorCOG.B;			rgba.A = ColorCOG.A;			break;
+		case HDT_COLOR:				rgba.R = ColorHDT.R;			rgba.G = ColorHDT.G;			rgba.B = ColorHDT.B;			rgba.A = ColorHDT.A;			break;
+		case GPS_COLOR:				rgba.R = ColorGPS.R;			rgba.G = ColorGPS.G;			rgba.B = ColorGPS.B;			rgba.A = ColorGPS.A;			break;
+		case BASE_STATION_COLOR:	rgba.R = ColorBS.R;				rgba.G = ColorBS.G;				rgba.B = ColorBS.B;				rgba.A = ColorBS.A;				break;
 	}
 		
 	return rgba;
@@ -178,14 +214,21 @@ void SetColor(int type, nvRGBA color)
 {
 	switch(type)
 	{
-		case SHIP_BORDER_COLOR:	ColorShipBorder.R = color.R;	ColorShipBorder.G = color.G;	ColorShipBorder.B = color.B;	ColorShipBorder.A = color.A;	break;	
-		case SHIP_COLOR_0:		ColorShip0.R = color.R;			ColorShip0.G = color.G;			ColorShip0.B = color.B;			ColorShip0.A = color.A;			break;
-		case SHIP_COLOR_1:		ColorShip1.R = color.R;			ColorShip1.G = color.G;			ColorShip1.B = color.B;			ColorShip1.A = color.A;			break;
-		case SHIP_COLOR_2:		ColorShip2.R = color.R;			ColorShip2.G = color.G;			ColorShip2.B = color.B;			ColorShip2.A = color.A;			break;
-		case ATON_COLOR:		ColorAton.R = color.R;			ColorAton.G = color.G;			ColorAton.B = color.B;			ColorAton.A = color.A;			break;
-		case COG_COLOR:			ColorCOG.R = color.R;			ColorCOG.G = color.G;			ColorCOG.B = color.B;			ColorCOG.A = color.A;			break;
-		case HDT_COLOR:			ColorHDT.R = color.R;			ColorHDT.G = color.G;			ColorHDT.B = color.B;			ColorHDT.A = color.A;			break;
-		case GPS_COLOR:			ColorGPS.R = color.R;			ColorGPS.G = color.G;			ColorGPS.B = color.B;			ColorGPS.A = color.A;			break;
+		case SHIP_BORDER_COLORA:	ColorShipBorderA.R = color.R;	ColorShipBorderA.G = color.G;	ColorShipBorderA.B = color.B;	ColorShipBorderA.A = color.A;	break;	
+		case SHIP_COLOR_0A:			ColorShip0A.R = color.R;		ColorShip0A.G = color.G;		ColorShip0A.B = color.B;		ColorShip0A.A = color.A;		break;
+		case SHIP_COLOR_1A:			ColorShip1A.R = color.R;		ColorShip1A.G = color.G;		ColorShip1A.B = color.B;		ColorShip1A.A = color.A;		break;
+		case SHIP_COLOR_2A:			ColorShip2A.R = color.R;		ColorShip2A.G = color.G;		ColorShip2A.B = color.B;		ColorShip2A.A = color.A;		break;
+
+		case SHIP_BORDER_COLORB:	ColorShipBorderB.R = color.R;	ColorShipBorderB.G = color.G;	ColorShipBorderB.B = color.B;	ColorShipBorderB.A = color.A;	break;	
+		case SHIP_COLOR_0B:			ColorShip0B.R = color.R;		ColorShip0B.G = color.G;		ColorShip0B.B = color.B;		ColorShip0B.A = color.A;		break;
+		case SHIP_COLOR_1B:			ColorShip1B.R = color.R;		ColorShip1B.G = color.G;		ColorShip1B.B = color.B;		ColorShip1B.A = color.A;		break;
+		case SHIP_COLOR_2B:			ColorShip2B.R = color.R;		ColorShip2B.G = color.G;		ColorShip2B.B = color.B;		ColorShip2B.A = color.A;		break;
+
+		case ATON_COLOR:			ColorAton.R = color.R;			ColorAton.G = color.G;			ColorAton.B = color.B;			ColorAton.A = color.A;			break;
+		case COG_COLOR:				ColorCOG.R = color.R;			ColorCOG.G = color.G;			ColorCOG.B = color.B;			ColorCOG.A = color.A;			break;
+		case HDT_COLOR:				ColorHDT.R = color.R;			ColorHDT.G = color.G;			ColorHDT.B = color.B;			ColorHDT.A = color.A;			break;
+		case GPS_COLOR:				ColorGPS.R = color.R;			ColorGPS.G = color.G;			ColorGPS.B = color.B;			ColorGPS.A = color.A;			break;
+		case BASE_STATION_COLOR:	ColorBS.R = color.R;			ColorBS.G = color.G;			ColorBS.B = color.B;			ColorBS.A = color.A;			break;
 	}
 
 }
@@ -194,10 +237,16 @@ void SetAlpha(int type, int value)
 {
 	switch(type)
 	{
-		case SHIP_COLOR_0:	ColorShip0.A = value;	break;
-		case SHIP_COLOR_1:	ColorShip1.A = value;	break;
-		case SHIP_COLOR_2:	ColorShip2.A = value;	break;
-		case ATON_COLOR:	ColorAton.A = value;	break;	
+		case SHIP_COLOR_0A:			ColorShip0A.A = value;	break;
+		case SHIP_COLOR_1A:			ColorShip1A.A = value;	break;
+		case SHIP_COLOR_2A:			ColorShip2A.A = value;	break;
+
+		case SHIP_COLOR_0B:			ColorShip0B.A = value;	break;
+		case SHIP_COLOR_1B:			ColorShip1B.A = value;	break;
+		case SHIP_COLOR_2B:			ColorShip2B.A = value;	break;
+
+		case ATON_COLOR:			ColorAton.A = value;	break;	
+		case BASE_STATION_COLOR:	ColorBS.A = value;		break; 
 	}
 
 }
@@ -207,10 +256,16 @@ int GetAlpha(int type)
 	int alpha = 0;
 	switch(type)
 	{
-		case SHIP_COLOR_0:	alpha = ColorShip0.A;	break;
-		case SHIP_COLOR_1:	alpha = ColorShip1.A;	break;
-		case SHIP_COLOR_2:	alpha = ColorShip2.A;	break;
-		case ATON_COLOR:	alpha = ColorAton.A;	break;
+		case SHIP_COLOR_0A:			alpha = ColorShip0A.A;	break;
+		case SHIP_COLOR_1A:			alpha = ColorShip1A.A;	break;
+		case SHIP_COLOR_2A:			alpha = ColorShip2A.A;	break;
+
+		case SHIP_COLOR_0B:			alpha = ColorShip0B.A;	break;
+		case SHIP_COLOR_1B:			alpha = ColorShip1B.A;	break;
+		case SHIP_COLOR_2B:			alpha = ColorShip2B.A;	break;
+
+		case ATON_COLOR:			alpha = ColorAton.A;	break;
+		case BASE_STATION_COLOR:	alpha = ColorBS.A;		break;
 	}
 
 	return alpha;
@@ -301,6 +356,16 @@ bool GetAisDataChanged()
 	return m_AisDataChanged;
 }
 
+bool GetStartAnimation()
+{
+	return m_StartAnimation;
+}
+
+void SetStartAnimation(bool value)
+{
+	m_StartAnimation = value;
+}
+
 void ReadOptionsConfig()
 {
 
@@ -322,19 +387,32 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_HDT_LINE_STYLE),&m_HDTLineStyle, DEFAULT_HDT_LINE_STYLE);
 	wxString _color;
 	
+	//Class A
+	FileConfig->Read(_(KEY_SHIP_BORDER_COLORA),&_color,RGBAToStr(&GetDefaultColor(SHIP_BORDER_COLORA)));
+	SetColor(SHIP_BORDER_COLORA,StrToRGBA(_color));
 	
-	FileConfig->Read(_(KEY_SHIP_BORDER_COLOR),&_color,RGBAToStr(&GetDefaultColor(SHIP_BORDER_COLOR)));
-	SetColor(SHIP_BORDER_COLOR,StrToRGBA(_color));
-	
-	FileConfig->Read(_(KEY_SHIP_COLOR_0),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_0)));
-	SetColor(SHIP_COLOR_0,StrToRGBA(_color));
+	FileConfig->Read(_(KEY_SHIP_COLOR_0A),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_0A)));
+	SetColor(SHIP_COLOR_0A,StrToRGBA(_color));
 		
-	FileConfig->Read(_(KEY_SHIP_COLOR_1),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_1)));
-	SetColor(SHIP_COLOR_1,StrToRGBA(_color));
+	FileConfig->Read(_(KEY_SHIP_COLOR_1A),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_1A)));
+	SetColor(SHIP_COLOR_1A,StrToRGBA(_color));
 		
-	FileConfig->Read(_(KEY_SHIP_COLOR_2),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_2)));
-	SetColor(SHIP_COLOR_2,StrToRGBA(_color));
+	FileConfig->Read(_(KEY_SHIP_COLOR_2A),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_2A)));
+	SetColor(SHIP_COLOR_2A,StrToRGBA(_color));
 
+	//Class B
+	FileConfig->Read(_(KEY_SHIP_BORDER_COLORB),&_color,RGBAToStr(&GetDefaultColor(SHIP_BORDER_COLORB)));
+	SetColor(SHIP_BORDER_COLORB,StrToRGBA(_color));
+	
+	FileConfig->Read(_(KEY_SHIP_COLOR_0B),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_0B)));
+	SetColor(SHIP_COLOR_0B,StrToRGBA(_color));
+		
+	FileConfig->Read(_(KEY_SHIP_COLOR_1B),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_1B)));
+	SetColor(SHIP_COLOR_1B,StrToRGBA(_color));
+		
+	FileConfig->Read(_(KEY_SHIP_COLOR_2B),&_color,RGBAToStr(&GetDefaultColor(SHIP_COLOR_2B)));
+	SetColor(SHIP_COLOR_2B,StrToRGBA(_color));
+		
 	FileConfig->Read(_(KEY_ATON_COLOR),&_color,RGBAToStr(&GetDefaultColor(ATON_COLOR)));
 	SetColor(ATON_COLOR,StrToRGBA(_color));
 	
@@ -346,6 +424,10 @@ void ReadOptionsConfig()
 	
 	FileConfig->Read(_(KEY_GPS_COLOR),&_color,RGBAToStr(&GetDefaultColor(GPS_COLOR)));
 	SetColor(GPS_COLOR,StrToRGBA(_color));
+
+	FileConfig->Read(_(KEY_BS_COLOR),&_color,RGBAToStr(&GetDefaultColor(BASE_STATION_COLOR)));
+	SetColor(BASE_STATION_COLOR,StrToRGBA(_color));
+	
 	delete FileConfig;
 
 }
@@ -364,13 +446,20 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_FILTER),m_Filter);
 	FileConfig->Write(_(KEY_FREQUENCY),m_Frequency);
 	FileConfig->Write(_(KEY_VIEW_FONT_SCALE),m_ViewFontScale);
-	FileConfig->Write(_(KEY_SHIP_BORDER_COLOR),RGBAToStr(&GetColor(SHIP_BORDER_COLOR)));
-	FileConfig->Write(_(KEY_SHIP_COLOR_0),RGBAToStr(&GetColor(SHIP_COLOR_0)));
-	FileConfig->Write(_(KEY_SHIP_COLOR_1),RGBAToStr(&GetColor(SHIP_COLOR_1)));
-	FileConfig->Write(_(KEY_SHIP_COLOR_2),RGBAToStr(&GetColor(SHIP_COLOR_2)));
+	FileConfig->Write(_(KEY_SHIP_BORDER_COLORA),RGBAToStr(&GetColor(SHIP_BORDER_COLORA)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_0A),RGBAToStr(&GetColor(SHIP_COLOR_0A)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_1A),RGBAToStr(&GetColor(SHIP_COLOR_1A)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_2A),RGBAToStr(&GetColor(SHIP_COLOR_2A)));
+	FileConfig->Write(_(KEY_SHIP_BORDER_COLORB),RGBAToStr(&GetColor(SHIP_BORDER_COLORB)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_0B),RGBAToStr(&GetColor(SHIP_COLOR_0B)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_1B),RGBAToStr(&GetColor(SHIP_COLOR_1B)));
+	FileConfig->Write(_(KEY_SHIP_COLOR_2B),RGBAToStr(&GetColor(SHIP_COLOR_2B)));
 	FileConfig->Write(_(KEY_COG_COLOR),RGBAToStr(&GetColor(COG_COLOR)));
 	FileConfig->Write(_(KEY_HDT_COLOR),RGBAToStr(&GetColor(HDT_COLOR)));
 	FileConfig->Write(_(KEY_GPS_COLOR),RGBAToStr(&GetColor(GPS_COLOR)));
+	FileConfig->Write(_(KEY_BS_COLOR),RGBAToStr(&GetColor(BASE_STATION_COLOR)));
+	FileConfig->Write(_(KEY_ATON_COLOR),RGBAToStr(&GetColor(ATON_COLOR)));
+
 	FileConfig->Write(_(KEY_COG_TIME),m_COGTime);
 	FileConfig->Write(_(KEY_HDT_TIME),m_HDTTime);
 	FileConfig->Write(_(KEY_COG_LINE_WIDTH),m_COGLineWidth);

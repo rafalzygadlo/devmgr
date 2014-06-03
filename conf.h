@@ -38,10 +38,14 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_SHOW_HDT "show_hdt"
 #define KEY_SHOW_GPS "show_gps"
 #define KEY_SHOW_OBJECTS "show_objects"
-#define KEY_SHIP_BORDER_COLOR "ship_border_color"
-#define KEY_SHIP_COLOR_0 "ship_color0"
-#define KEY_SHIP_COLOR_1 "ship_color1"
-#define KEY_SHIP_COLOR_2 "ship_color2"
+#define KEY_SHIP_BORDER_COLORA "ship_border_colorA"
+#define KEY_SHIP_COLOR_0A "ship_color0A"
+#define KEY_SHIP_COLOR_1A "ship_color1A"
+#define KEY_SHIP_COLOR_2A "ship_color2A"
+#define KEY_SHIP_BORDER_COLORB "ship_border_colorB"
+#define KEY_SHIP_COLOR_0B "ship_color0B"
+#define KEY_SHIP_COLOR_1B "ship_color1B"
+#define KEY_SHIP_COLOR_2B "ship_color2B"
 #define KEY_ATON_COLOR "aton_color"
 #define KEY_HDT_COLOR "hdt_color"
 #define KEY_COG_COLOR "cog_color"
@@ -55,6 +59,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_HDT_LINE_WIDTH "hdt_line_width"
 #define KEY_COG_LINE_STYLE "cog_line_style"
 #define KEY_HDT_LINE_STYLE "hdt_line_style"
+#define KEY_BS_COLOR "bs_color"
 
 #define DIR_WORKDIR "workdir"
 
@@ -262,6 +267,17 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_LINE_STYLE_SOLID			167
 #define MSG_LINE_STYLE_DASH				168
 #define MSG_SHIP_BORDER_COLOR			169
+#define MSG_ALT							170
+#define MSG_ASSIGNED					171
+#define MSG_REGIONAL					172
+#define MSG_SELECT_ALL					173
+#define MSG_DESELECT_ALL				174
+#define MSG_BASE_STATION_COLOR			175
+#define MSG_CLASS_A						176
+#define MSG_CLASS_B						177
+#define MSG_WATER_TMP					178
+#define MSG_VISIBILITY					179
+
 
 #define MAX_DATA_POSITIONS	10
 
@@ -309,6 +325,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SMALL_SHIP_HEIGHT		35.0
 #define BS_WIDTH				10.0
 #define BS_HEIGHT				10.0
+#define ROT_WIDTH				100.0
+
+#define SAR_WIDTH				20.0
+#define SAR_HEIGHT				20.0
 
 #define LIGHT0_WIDTH			8.0
 #define LIGHT0_HEIGHT			15.0
@@ -330,8 +350,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SMALL_SHIP_INDICES_LENGTH	15
 #define BS_VERTICES_LENGTH			4
 #define BS_INDICES_LENGTH			6
+#define SAR_VERTICES_LENGTH			4
+#define SAR_INDICES_LENGTH			6
 
-#define AIS_TIMEOUT				1*60*1000 // timeout 1 minut w milisekundach
+#define AIS_TIMEOUT				10*60*1000 // timeout 1 minut w milisekundach
 #define AIS_FILE				"ais.data"
 
 #define TRIANGLE_WIDTH_FACTOR	1.6
@@ -339,19 +361,25 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define DEFAULT_FONT_SIZE	6.1
 
-#define SHIP_COLOR_0		0
-#define SHIP_COLOR_1		1
-#define SHIP_COLOR_2		2
-#define ATON_COLOR			3
-#define COG_COLOR			4
-#define HDT_COLOR			5
-#define GPS_COLOR			6
-#define SHIP_BORDER_COLOR	7
+#define SHIP_COLOR_0A		0
+#define SHIP_COLOR_1A		1
+#define SHIP_COLOR_2A		2
+#define SHIP_BORDER_COLORA	3
+#define SHIP_COLOR_0B		4
+#define SHIP_COLOR_1B		5
+#define SHIP_COLOR_2B		6
+#define SHIP_BORDER_COLORB	7
+#define ATON_COLOR			8
+#define COG_COLOR			9
+#define HDT_COLOR			10
+#define GPS_COLOR			11
+#define BASE_STATION_COLOR	12
 
 #define TICK_FREQUENCY			0		
 #define TICK_AIS_BUFFER			1
 #define TICK_DISPLAY_REFRESH	2
 #define TICK_WINDOW_REFRESH		3
+#define TICK_ANIM				4
 
 #define CONTROL_OFFSET	2
 #define IS_BIT_SET(k, n)  ((k) & (1 << (n)))
@@ -371,6 +399,11 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_STATUS_RESTRICTED_MANOEUVER	3
 #define SHIP_STATUS_CONSTRAINED_BY_DRAUGHT	4
 #define SHIP_STATUS_FISHING					7
+
+#define AIS_CLASS_A 0
+#define AIS_CLASS_B 1
+
+#define AIS_TRACK_LAST_ITEMS	20
 
 typedef struct SData
 {
@@ -406,6 +439,8 @@ typedef struct
 	int to_starboard;
 	char name[64 + 1];	// shipname, aton name itp
 	char callsign[AIS_CALLSIGN_MAXLEN];
+	unsigned int imo;
+	int _class;			// klasa komunikatu
 	bool valid_dim;		// czy wystapil wymiar
 	bool valid_pos;		// czy wystapila pozycja
 	bool valid_cog;		// czy cog
@@ -413,6 +448,7 @@ typedef struct
 	bool valid_sog;
 	bool valid_name;
 	bool valid_draught;
+	bool valid_turn;
 	void *ais_ptr;
 
 }SAisData;

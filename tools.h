@@ -56,5 +56,5 @@ double GetTriangleHeight(double smooth_scale);
 wxString GetAisFile();
 wxString RGBAToStr(nvRGBA *RGB);
 nvRGBA StrToRGBA(wxString str);
-
+double GetMilesPerDegree(double x, double y);
 #endif

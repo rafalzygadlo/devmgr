@@ -64,8 +64,10 @@ void CTicker::Notify()
 	{
 		case TICK_FREQUENCY:		((CMapPlugin*)Parent)->OnTicker1Tick();		break;
 		case TICK_AIS_BUFFER:		((CMapPlugin*)Parent)->OnTicker2Tick();		break;
+		case TICK_ANIM:				((CMapPlugin*)Parent)->OnTickerAnimTick();	break;
 		case TICK_DISPLAY_REFRESH:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
 		case TICK_WINDOW_REFRESH:	((CMyFrame*)Parent)->OnTickerTick();		break;
+		
 	}
 }
 

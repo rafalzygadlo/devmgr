@@ -1,8 +1,8 @@
 #include "Glee.h"
-#include "light.h"
+#include "object.h"
 
 
-CLight::CLight()
+CObject::CObject()
 {
 	m_IndicesLength = 0;
 	m_CurrentVerticesBufferPtr = NULL;
@@ -17,23 +17,23 @@ CLight::CLight()
 	m_OffsetY = 0;
 }	
 
-CLight::~CLight(void)
+CObject::~CObject(void)
 {
 
 }
 
-void CLight::SetOffset(float vx, float vy)
+void CObject::SetOffset(float vx, float vy)
 {
 	m_OffsetX = vx;
 	m_OffsetY = vy;
 }
 
-void CLight::SetColor(nvRGBA color)
+void CObject::SetColor(nvRGBA color)
 {
 	m_Color = color;
 }
 
-void CLight::Add(nvPoint2d pt, double factor)
+void CObject::Add(nvPoint2d pt, double factor)
 {
 	nvPoint2d p1, p2, p3, p4;
 	double width = m_Width/factor;
@@ -66,44 +66,44 @@ void CLight::Add(nvPoint2d pt, double factor)
 }
 
 
-void CLight::AddIndice(int id)
+void CObject::AddIndice(int id)
 {
 	m_IndicesBuffer0.Append(id);
 }
 
-size_t CLight::GetIndiceLength()
+size_t CObject::GetIndiceLength()
 {
 	return	m_IndicesBuffer0.Length();
 }
 
-int *CLight::GetIndiceArray()
+int *CObject::GetIndiceArray()
 {
 	return m_IndicesBuffer0.GetRawData();
 }
 
 
-void CLight::AddVertex(nvPoint2d pt)
+void CObject::AddVertex(nvPoint2d pt)
 {
 	m_VerticesBuffer0.Append(pt);
 }
 
-size_t CLight::GetVertexLength()
+size_t CObject::GetVertexLength()
 {
 	return	m_VerticesBuffer0.Length();
 }
 
-nvPoint2d *CLight::GetVertexArray()
+nvPoint2d *CObject::GetVertexArray()
 {
 	return m_VerticesBuffer0.GetRawData();
 }
 
-void CLight::ClearBuffers()
+void CObject::ClearBuffers()
 {
 	m_VerticesBuffer0.Clear();
 	m_IndicesBuffer0.Clear();
 }
 
-void CLight::CopyBuffers()
+void CObject::CopyBuffers()
 {
 	m_VerticesBuffer1.Clear();
 	m_VerticesBuffer1.SetSize(m_VerticesBuffer0.Length());
@@ -119,13 +119,13 @@ void CLight::CopyBuffers()
 
 }
 
-void CLight::SetSize(int width, int height)
+void CObject::SetSize(int width, int height)
 {
 	m_Width = width;
 	m_Height = height;
 }
 
-bool CLight::IsBuffer()
+bool CObject::IsBuffer()
 {
 	if(m_CurrentVerticesBufferPtr == NULL)
 		return false;
@@ -136,7 +136,7 @@ bool CLight::IsBuffer()
 	return true;
 }
 
-void CLight::Generate()
+void CObject::Generate()
 {
 	if(m_FirstTime)
 	{
@@ -146,7 +146,7 @@ void CLight::Generate()
 	}
 }
 
-void CLight::SetCurrentPtr(bool buffer)
+void CObject::SetCurrentPtr(bool buffer)
 {
 	if(buffer)
 	{
@@ -163,7 +163,7 @@ void CLight::SetCurrentPtr(bool buffer)
 
 
 
-void CLight::CreateVBO()
+void CObject::CreateVBO()
 {
 	//trójkaty
 	glBindBuffer(GL_ARRAY_BUFFER, m_ArrayBuffer);
@@ -179,7 +179,7 @@ void CLight::CreateVBO()
 
 }
 
-void CLight::RenderData()
+void CObject::RenderData()
 {
 
 	glColor4ub(m_Color.R,m_Color.G,m_Color.B,m_Color.A);
@@ -201,7 +201,7 @@ void CLight::RenderData()
 
 }
 
-void CLight::Render()
+void CObject::Render()
 {
 	if(!IsBuffer())
 		return;

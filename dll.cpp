@@ -15,6 +15,7 @@
 #include "options.h"
 #include "signals.h"
 #include "NaviDrawer.h"
+#include "animpos.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -50,6 +51,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
+	m_AnimMarkerSize = 5.0f;
 	
 	//m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_ShipTick = 0;
@@ -72,7 +74,13 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSmallShipColorBufferPtr = NULL;
 	m_CurrentBSVerticesBufferPtr = NULL;
 	m_CurrentShipNamesBufferPtr = NULL;
-	
+	m_CurrentTrackVerticesBufferPtr = NULL;
+	m_CurrentROTVerticesBufferPtr = NULL;
+
+	m_CurrentSARVerticesBufferPtr = NULL;
+	m_CurrentSARTriangleIndicesBufferPtr = NULL;
+	m_CurrentSARLineIndicesBufferPtr = NULL;
+			
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
 	m_SignalID = -1;
@@ -84,9 +92,11 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ThreadCounter = 0;
 	m_MouseLmb = m_MouseDLmb = m_MouseUp = false;
 	m_ShipRender = false;
-	
+	m_AnimStarted = false;
+	m_AnimTick = 0;
+
 	m_TrianglesTriangleLength = m_TrianglesLineLength = 0;
-	m_SelectedPtr = m_BufferedSelectedPtr = NULL;
+	
 	m_MyFrame = NULL;
 	m_MyFrame = new CMyFrame(this,(wxWindow*)m_Broker->GetParentPtr());
 	m_COGTime = DEFAULT_COG_TIME;
@@ -94,30 +104,33 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 
 	m_NameFont = new nvFastFont();
-	m_NameFont->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali 
-	m_NameFont->SetEffect( nvEFFECT_SMOOTH );
+	m_NameFont->Assign( (nvFastFont*)NaviBroker->GetFont( 0 ) );	// 1 = nvAriali
+	//m_NameFont->SetEffect(0);
+	//m_NameFont->SetEffect( nvEFFECT_SMOOTH );
 	m_NameFont->SetEffect( nvEFFECT_GLOW );
     
 	m_NameFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
-	//Font->SetGlyphCenter(0.0001f);
-    //Font->SetGlyphOffset( 0.5f );
+	//m_NameFont->SetGlyphCenter(0.0001f);
+    m_NameFont->SetGlyphOffset( 4.0f );
 	m_NameFont->SetGlowColor(0.8f, 0.8f, 0.8f );
-	m_NameFont->SetGlowCenter( 4.0f );
-		
+	//m_NameFont->SetGlowCenter( 4.0f );
+	//m_NameFont->s
+	
 	m_MMSIFont = new nvFastFont();
-	m_MMSIFont->Assign( (nvFastFont*)NaviBroker->GetFont( 2 ) );	// 1 = nvAriali
-	m_MMSIFont->SetEffect( nvEFFECT_SMOOTH );
+	m_MMSIFont->Assign( (nvFastFont*)NaviBroker->GetFont( 0 ) );	// 1 = nvAriali
+	//m_MMSIFont->SetEffect( nvEFFECT_SMOOTH );
 	m_MMSIFont->SetEffect( nvEFFECT_GLOW );
     
 	m_MMSIFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
-	//Font->SetGlyphCenter(0.0001f);
-    //Font->SetGlyphOffset( 0.5f );
+	//m_MMSIFont->SetGlyphCenter(1.0001f);
+    m_MMSIFont->SetGlyphOffset( 4.0f );
 	m_MMSIFont->SetGlowColor(0.8f, 0.8f, 0.8f );
-	m_MMSIFont->SetGlowCenter( 4.0f );
+	//m_MMSIFont->SetGlowCenter( 4.0f );
 	
 	m_Ready = true;
 	m_Render = false;
 	m_SearchTextChanged = m_FilterChanged = true;
+	CreateSymbol(animpos, animpos_size);
 	
 
 	memset(m_ShipTicks,0,sizeof(int) * MAX_SHIP_VALUES_LEN);
@@ -135,20 +148,20 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_OnSynchro",OnSynchro);
 
 	nvRGBA color;	
-	m_Light0 = new CLight();
+	m_Light0 = new CObject();
 	m_Light0->SetSize(LIGHT0_WIDTH,LIGHT0_HEIGHT);
 	color.R = 255;color.G = 0;color.B = 0;color.A = 200;
 	m_Light0->SetColor(color);
 	m_Light0->SetOffset(-1.0,-1.0);
 	
 	color.R = 0;color.G = 255;color.B = 0;color.A = 200;
-	m_Light1 = new CLight();
+	m_Light1 = new CObject();
 	m_Light1->SetSize(LIGHT1_WIDTH,LIGHT1_HEIGHT);
 	m_Light1->SetColor(color);
 	m_Light1->SetOffset(1.0,1.0);
 	
 	color.R = 0;color.G = 0;color.B = 255;color.A = 200;
-	m_Light2 = new CLight();
+	m_Light2 = new CObject();
 	m_Light2->SetSize(LIGHT2_WIDTH,LIGHT2_HEIGHT);
 	m_Light2->SetColor(color);
 	m_Light2->SetOffset(1.0,2.0);
@@ -158,10 +171,12 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	m_Ticker1->Start(100);
+	//m_Ticker1->Start(100);
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
-	
+
+	m_TickerAnim = new CTicker(this,TICK_ANIM);
+	//m_TickerAnim->Start(1);	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -338,7 +353,6 @@ void CMapPlugin::CreateTexture(TTexture *Texture, GLuint *TextureID)
 
 void CMapPlugin::CreateTextures(void) 
 {
-	CreateSymbol(ship, ship_size);
 	CreateTexture( m_TextureTGA_0,  &m_TextureID_0 );
 }
 
@@ -644,6 +658,11 @@ void CMapPlugin::SendShipData()
 	m_Broker->SetShip(m_Broker->GetParentPtr(),m_ShipState);
 }
 
+void CMapPlugin::OnTickerAnimTick()
+{
+	m_Broker->Refresh(m_Broker->GetParentPtr());
+}
+
 void CMapPlugin::OnTicker2Start(){}
 void CMapPlugin::OnTicker2Stop(){}
 
@@ -656,8 +675,26 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-		
-
+	if(GetStartAnimation() && !m_AnimStarted)
+	{
+		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
+		m_AnimTick = 0;
+		m_AnimStarted = true;
+		m_TickerAnim->Start(50);
+	}
+	
+	if(m_AnimTick > 10)
+	{
+		m_AnimStarted = false;
+		//m_Broker->StartAnimation(false,m_Broker->GetParentPtr());
+		m_AnimTick = 0;
+		SetStartAnimation(false);
+		m_TickerAnim->Stop();
+	}
+	
+	if(m_AnimStarted)
+		m_AnimTick++;
+	
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
@@ -832,7 +869,10 @@ void CMapPlugin::Kill(void)
 	m_Ticker2->Stop();
 	delete m_Ticker2;
 	m_EnableControls = false;
-		
+	
+	m_TickerAnim->Stop();
+	delete m_TickerAnim;
+
 	m_NeedExit = true;
 	WriteConfig();
 	WriteOptionsConfig();
@@ -852,6 +892,7 @@ void CMapPlugin::Kill(void)
 	ais_save_file();
 	ais_free_list();
 	ais_free_buffer();
+	ais_free_track();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
@@ -931,7 +972,7 @@ void CMapPlugin::SelectTriangle()
 			{
 				if(m_IdToTriangleId.Get(i).id1 == selected)
 				{
-					m_SelectedPtr = ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0);
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0));
 					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToTriangleId.Get(i).id0));
 					return;
 				}
@@ -982,7 +1023,7 @@ void CMapPlugin::SelectSmallShip()
 				if(m_IdToSmallShipId.Get(i).id1 == selected)
 				{
 					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToSmallShipId.Get(i).id0));
-					m_SelectedPtr = ais_get_buffer()->Get(m_IdToSmallShipId.Get(i).id0);
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToSmallShipId.Get(i).id0));
 					return;
 				}
 			}	
@@ -1032,7 +1073,7 @@ void CMapPlugin::SelectShip()
 				if(m_IdToShipId.Get(i).id1 == selected)
 				{
 					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToShipId.Get(i).id0));
-					m_SelectedPtr = ais_get_buffer()->Get(m_IdToShipId.Get(i).id0);
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToShipId.Get(i).id0));
 					return;
 				}
 			}	
@@ -1078,7 +1119,7 @@ void CMapPlugin::SelectAton()
 				if(m_IdToAtonId.Get(i).id1 == selected)
 				{
 					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0));
-					m_SelectedPtr = ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0);
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToAtonId.Get(i).id0));
 					return;
 				}
 			}
@@ -1125,7 +1166,54 @@ void CMapPlugin::SelectBS()
 				if(m_IdToBSId.Get(i).id1 == selected)
 				{
 					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToBSId.Get(i).id0));
-					m_SelectedPtr = ais_get_buffer()->Get(m_IdToBSId.Get(i).id0);
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToBSId.Get(i).id0));
+					return;
+				}
+			}
+			
+		}
+		
+	}
+}
+
+void CMapPlugin::SelectSAR()
+{
+	if(m_CurrentSARVerticesBufferPtr == NULL)
+		return;
+
+	nvPoint2d *RawPt  = m_CurrentSARVerticesBufferPtr->GetRawData();
+	
+	nvPoint2f pt;
+	pt.x = m_MouseLmbX;
+	pt.y = m_MouseLmbY;
+	int selected = -1;
+	
+	for (size_t i = 0; i < m_CurrentSARVerticesBufferPtr->Length(); i+=SAR_VERTICES_LENGTH)
+	{
+			
+		//nvPoint2f pt0, pt1, pt2 , pt4;
+				
+		nvPoint2d v[SAR_VERTICES_LENGTH];
+
+		v[0].x = RawPt[i + 0].x; v[0].y = RawPt[i + 0].y;
+		v[1].x = RawPt[i + 1].x; v[1].y = RawPt[i + 1].y;
+		v[2].x = RawPt[i + 2].x; v[2].y = RawPt[i + 2].y;
+		v[3].x = RawPt[i + 3].x; v[3].y = RawPt[i + 3].y;
+		
+		int in[SAR_INDICES_LENGTH];
+		in[0] = 0;	in[1] = 1;	in[2] = 2;
+		in[3] = 0;	in[4] = 2;	in[5] = 3;
+		
+		if(IsPointInsideMesh(&pt,v,SAR_VERTICES_LENGTH,in,SAR_INDICES_LENGTH))
+		{
+			
+			selected = i;
+			for(size_t i = 0; i < m_IdToSARId.Length(); i++)
+			{
+				if(m_IdToSARId.Get(i).id1 == selected)
+				{
+					//CopySelectedPtr(ais_get_buffer()->Get(m_IdToBSId.Get(i).id0));
+					SetSelectedPtr( ais_get_buffer()->Get(m_IdToSARId.Get(i).id0));
 					return;
 				}
 			}
@@ -1184,8 +1272,17 @@ void CMapPlugin::SetPtr0()
 	m_Light1->SetCurrentPtr(true);
 	//m_CurrentShipLightsVerticesBufferPtr = &m_ShipLightsVerticesBuffer1;
 	//m_CurrentShipLightsTriangleIndicesBufferPtr = &m_ShipLightsTriangleIndicesBuffer1;
+	
+	//track
+	m_CurrentTrackVerticesBufferPtr = &m_TrackVerticesBuffer1;
 
+	//SAR
+	m_CurrentSARVerticesBufferPtr = &m_SARVerticesBuffer1;
+	m_CurrentSARTriangleIndicesBufferPtr = &m_SARTriangleIndicesBuffer1;
+	m_CurrentSARLineIndicesBufferPtr = &m_SARLineIndicesBuffer1;
 
+	//ROT
+	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer1; 
 }
 
 void CMapPlugin::SetPtr1()
@@ -1234,9 +1331,19 @@ void CMapPlugin::SetPtr1()
 	//statek swiatla
 	m_Light0->SetCurrentPtr(false);
 	m_Light1->SetCurrentPtr(false);
-	
 
+	//track
+	m_CurrentTrackVerticesBufferPtr = &m_TrackVerticesBuffer0;
+
+	//SAR
+	m_CurrentSARVerticesBufferPtr = &m_SARVerticesBuffer0;
+	m_CurrentSARTriangleIndicesBufferPtr = &m_SARTriangleIndicesBuffer0;
+	m_CurrentSARLineIndicesBufferPtr = &m_SARLineIndicesBuffer0;
+
+	//ROT
+	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer0; 
 }
+
 
 void CMapPlugin::ClearBuffers()
 {
@@ -1293,13 +1400,24 @@ void CMapPlugin::ClearBuffers()
 	//HDG
 	m_HDGVerticesBuffer0.Clear();
 
+	//track
+	m_TrackVerticesBuffer0.Clear();
+	
+	//SAR
+	m_SARVerticesBuffer0.Clear();
+	m_SARTriangleIndicesBuffer0.Clear();
+	m_SARLineIndicesBuffer0.Clear();
+
+	//ROT
+	m_ROTVerticesBuffer0.Clear();
+
 	//indeksy
 	m_IdToTriangleId.Clear();
 	m_IdToShipId.Clear();
 	m_IdToAtonId.Clear();
 	m_IdToSmallShipId.Clear();
 	m_IdToBSId.Clear();
-	
+	m_IdToSARId.Clear();
 }
 
 void CMapPlugin::CopyBuffers()
@@ -1348,6 +1466,15 @@ void CMapPlugin::CopyBuffers()
 	//nazwy
 	CopySAisNames(&m_ShipNamesBuffer0,&m_ShipNamesBuffer1);
 
+	//track
+	CopyNvPoint2d(&m_TrackVerticesBuffer0,&m_TrackVerticesBuffer1);
+
+	//SAR
+	CopyNvPoint2d(&m_SARVerticesBuffer0,&m_SARVerticesBuffer1);
+
+	//ROT
+	CopyNvPoint2d(&m_ROTVerticesBuffer0,&m_ROTVerticesBuffer1);
+	
 	//statek swiatla
 	m_Light0->CopyBuffers();
 	m_Light1->CopyBuffers();
@@ -1357,6 +1484,7 @@ void CMapPlugin::CopyBuffers()
 void CMapPlugin::SetBuffers()
 {
 	CNaviArray <SAisData*> *buffer = ais_get_buffer();
+	//CNaviArray <SAisData*> *buffer = ais_get_se
 	//SetValues();
 
 	for(size_t i = 0; i < buffer->Length(); i++)
@@ -1368,6 +1496,7 @@ void CMapPlugin::SetBuffers()
 		
 		if(IsOnScreen(to_x,to_y))
 		{
+			SetAngle(ptr);
 			PreparePointsBuffer(ptr);
 			
 			bool ship = false;
@@ -1389,7 +1518,9 @@ void CMapPlugin::SetBuffers()
 			PrepareCOGVerticesBuffer(ptr);				// linia cog
 			PrepareHDGVerticesBuffer(ptr);
 			PrepareShipNamesBuffer(ptr);
-
+			PrepareTrackVerticesBuffer(ptr);
+			PrepareSARBuffer(ptr);
+			PrepareROTBuffer(ptr);
 		
 		}
 	}
@@ -1458,12 +1589,22 @@ void CMapPlugin::PrepareListBuffer()
 
 }
 */
+void CMapPlugin::SetAngle(SAisData *ptr)
+{
+	double angle = 0;
+	if(ptr->valid_cog)
+		angle = ptr->cog;
+	if(ptr->valid_hdg)
+		angle = ptr->hdg;
+	
+	m_Angle = angle;
+}
 
 void CMapPlugin::PrepareAisBuffer()
 {
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-	ais_prepare_buffer();
+	ais_prepare_buffer(true);
 
 	GetMutex()->Unlock();
 }
@@ -1706,6 +1847,96 @@ void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 	}
 }
 
+void CMapPlugin::PrepareSARBuffer(SAisData *ptr)
+{
+	if(!ptr->valid_pos)
+		return;
+
+	if(ptr->valid[AIS_MSG_9])
+	{
+		PrepareSARVerticesBuffer(ptr);
+		PrepareSARTriangleIndicesBuffer(ptr);
+		PrepareSARLineIndicesBuffer(ptr);
+		//PrepareAtonColorBuffer(ptr);
+
+		SIdToId id;
+		id.id0 = m_CurrentId;
+		id.id1 = m_SARVerticesBuffer0.Length() - SAR_VERTICES_LENGTH;
+		m_IdToSARId.Append(id);
+	}
+
+}
+
+//ROT
+void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
+{
+	int a = 0;
+	if(!ptr->valid_pos)
+		return;
+
+	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
+	{
+		if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
+		{
+			PrepareROTVerticesBuffer(ptr,true);	
+			//PrepareROTLineIndicesBuffer(ptr,true);
+		}	
+
+		if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
+		{
+			PrepareROTVerticesBuffer(ptr,false);
+			//PrepareROTLineIndicesBuffer(ptr,false);
+		}
+	}
+
+}
+
+//rot
+void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
+{
+	nvPoint2d p1,p2;	
+	double width = ROT_WIDTH/m_SmoothScaleFactor;
+	double out_x,out_y;
+	double to_x,to_y;
+	
+	if(right)
+	{
+		m_ROTVerticesBuffer0.Append(m_HdtPoint);
+		p1 = m_ShipPoint;
+		//m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
+		//p1.x = to_x;
+		//p1.y = to_y;
+	
+		p1.x +=  width;	
+		RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(90));	
+		//p1.x = out_x; p1.y = out_y;
+		
+		m_Broker->Unproject(ptr->lon, -ptr->lat,&to_x,&to_y);
+
+		p1.x += to_x; p1.y += to_y; 
+
+		//m_Broker->Unproject(p1.x, p1.y,&to_x,&to_y);
+		//p1.x = to_x;	p1.y = to_y;
+
+		m_ROTVerticesBuffer0.Append(p1);
+	}
+	
+	
+	
+	
+	
+	
+
+	//p2 = m_HdtLastPoint;
+
+	//m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
+	//p2.x = to_x; p2.y = to_y;
+	
+	
+	
+}
+
+
 //base station
 void CMapPlugin::PrepareBSVerticesBuffer(SAisData *ptr)
 {
@@ -1779,10 +2010,10 @@ void CMapPlugin::PrepareBSLineIndicesBuffer(SAisData *ptr)
 void CMapPlugin::PrepareBSColorBuffer(SAisData *ptr)
 {
 		
-	m_BSColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-	m_BSColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-	m_BSColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-	m_BSColorBuffer0.Append(GetColor(SHIP_COLOR_0));
+	m_BSColorBuffer0.Append(GetColor(BASE_STATION_COLOR));
+	m_BSColorBuffer0.Append(GetColor(BASE_STATION_COLOR));
+	m_BSColorBuffer0.Append(GetColor(BASE_STATION_COLOR));
+	m_BSColorBuffer0.Append(GetColor(BASE_STATION_COLOR));
 	
 }
 
@@ -1928,26 +2159,22 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	p1.x = -0.5 * width;	p1.y =  0.8 * height;
 	p2.x =  0.0 * width;	p2.y = -0.8 * height;
 	p3.x =  0.5 * width;	p3.y =  0.8 * height;
-				
-	//obrót
-	double angle = 0;
-	if(ptr->valid_cog)
-		angle = ptr->cog;
-	if(ptr->valid_hdg)
-		angle = ptr->hdg;
-		
+	m_ShipPoint = p2;			
+	
 	double out_x,out_y;
 
 #ifdef ROTATE
-	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(angle));	p1.x = out_x;	p1.y = out_y;
-	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(angle));	p2.x = out_x;	p2.y = out_y;
-	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(angle));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(m_Angle));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(m_Angle));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(m_Angle));	p3.x = out_x;	p3.y = out_y;
 #endif	
 	
 	p1.x += pt.x; p1.y += pt.y;
 	p2.x += pt.x; p2.y += pt.y;
 	p3.x += pt.x; p3.y += pt.y;
 
+	m_HdtPoint = p2;
+	
 	m_TriangleVerticesBuffer0.Append(p1);
 	m_TriangleVerticesBuffer0.Append(p2);
 	m_TriangleVerticesBuffer0.Append(p3);
@@ -1988,26 +2215,56 @@ void CMapPlugin::PrepareTriangleColorBuffer(SAisData *ptr)
 	ais_t *ais = (ais_t*)ptr->ais_ptr;
 	int timeout = GetTickCount() - ais->timeout;
 
-	if(timeout >= AIS_TIMEOUT)
+	if(ptr->_class == AIS_CLASS_A)
 	{
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		return;
-	}
+
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			return;
+		}
 	
-	if(ptr->sog > MIN_SHIP_SPEED)
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+	
+		}else{
+	
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+		}
+	}
+
+	if(ptr->_class == AIS_CLASS_B)
 	{
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0));
+
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			return;
+		}
 	
-	}else{
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
 	
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1));
+		}else{
+	
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_TrianglesColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+		}
 	}
+
 
 }
 
@@ -2035,24 +2292,19 @@ void CMapPlugin::PrepareSmallShipVerticesBuffer(SAisData *ptr)
 	p5.x =  0.0;			p5.y = -0.5    * height;
 	p6.x = -0.3 * width;	p6.y = -0.425  * height;
 	p7.x = -0.5 * width;	p7.y = -0.3    * height;
-					
-	//obrót
-	double angle = 0;
-	if(ptr->valid_cog)
-		angle = ptr->cog;
-	if(ptr->valid_hdg)
-		angle = ptr->hdg;
+	
+	m_ShipPoint = p5;		
 		
 	double out_x,out_y;
 
 #ifdef ROTATE
-	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(angle));	p1.x = out_x;	p1.y = out_y;
-	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(angle));	p2.x = out_x;	p2.y = out_y;
-	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(angle));	p3.x = out_x;	p3.y = out_y;
-	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(angle));	p4.x = out_x;	p4.y = out_y;
-	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(angle));	p5.x = out_x;	p5.y = out_y;
-	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(angle));	p6.x = out_x;	p6.y = out_y;
-	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(angle));	p7.x = out_x;	p7.y = out_y;
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(m_Angle));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(m_Angle));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(m_Angle));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(m_Angle));	p4.x = out_x;	p4.y = out_y;
+	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(m_Angle));	p5.x = out_x;	p5.y = out_y;
+	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(m_Angle));	p6.x = out_x;	p6.y = out_y;
+	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(m_Angle));	p7.x = out_x;	p7.y = out_y;
 #endif	
 	
 	p1.x += pt.x; p1.y += pt.y;
@@ -2062,6 +2314,8 @@ void CMapPlugin::PrepareSmallShipVerticesBuffer(SAisData *ptr)
 	p5.x += pt.x; p5.y += pt.y;
 	p6.x += pt.x; p6.y += pt.y;
 	p7.x += pt.x; p7.y += pt.y;
+
+	m_HdtPoint = p5;
 
 	m_SmallShipVerticesBuffer0.Append(p1);
 	m_SmallShipVerticesBuffer0.Append(p2);
@@ -2122,37 +2376,78 @@ void CMapPlugin::PrepareSmallShipColorBuffer(SAisData *ptr)
 	ais_t *ais = (ais_t*)ptr->ais_ptr;
 	int timeout = GetTickCount() - ais->timeout;
 	
-	if(timeout >= AIS_TIMEOUT)
+	if(ptr->_class == AIS_CLASS_A)
 	{
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		return;
+
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			return;
+		}
+	
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+	
+		}else{
+	
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+		}
 	}
-	
-	if(ptr->sog > MIN_SHIP_SPEED)
+
+	if(ptr->_class == AIS_CLASS_B)
 	{
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
+
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			return;
+		}
 	
-	}else{
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
 	
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
+		}else{
+	
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_SmallShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+		}
 	}
 
 }
@@ -2176,7 +2471,7 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	p6.x = -0.3 * width;	p6.y = -0.425  * height;
 	p7.x = -0.5 * width;	p7.y = -0.3    * height;
 	
-
+	
 	//pozycja GPSa
 	double vx = (ToPort(ptr) - ToStarboard(ptr))/2;
 	double vy = (ToBow(ptr) - ToStern(ptr))/2;
@@ -2188,23 +2483,18 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	p5.x -= vx; p5.y -= vy;
 	p6.x -= vx; p6.y -= vy;
 	p7.x -= vx; p7.y -= vy;
+	m_ShipPoint = p5;
 
-	//obrót
-	double angle = 0;
-	if(ptr->valid_cog)
-		angle = ptr->cog;
-	if(ptr->valid_hdg)
-		angle = ptr->hdg;
-
+	
 #ifdef ROTATE
 	double out_x,out_y;
-	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(angle));	p1.x = out_x;	p1.y = out_y;
-	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(angle));	p2.x = out_x;	p2.y = out_y;
-	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(angle));	p3.x = out_x;	p3.y = out_y;
-	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(angle));	p4.x = out_x;	p4.y = out_y;
-	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(angle));	p5.x = out_x;	p5.y = out_y;
-	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(angle));	p6.x = out_x;	p6.y = out_y;
-	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(angle));	p7.x = out_x;	p7.y = out_y;
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(m_Angle));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(m_Angle));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(m_Angle));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(m_Angle));	p4.x = out_x;	p4.y = out_y;
+	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(m_Angle));	p5.x = out_x;	p5.y = out_y;
+	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(m_Angle));	p6.x = out_x;	p6.y = out_y;
+	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(m_Angle));	p7.x = out_x;	p7.y = out_y;
 #endif
 
 	double to_x, to_y;
@@ -2220,7 +2510,9 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	p5.x += pt.x; p5.y += pt.y;
 	p6.x += pt.x; p6.y += pt.y;
 	p7.x += pt.x; p7.y += pt.y;
-		
+	
+	m_HdtPoint = p5;
+
 	m_ShipVerticesBuffer0.Append(p1);
 	m_ShipVerticesBuffer0.Append(p2);
 	m_ShipVerticesBuffer0.Append(p3);
@@ -2295,37 +2587,77 @@ void CMapPlugin::PrepareShipColorBuffer(SAisData *ptr)
 	ais_t *ais = (ais_t*)ptr->ais_ptr;
 	int timeout = GetTickCount() - ais->timeout;
 	
-	if(timeout >= AIS_TIMEOUT)
-	{
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2));
-		return;
+	if(ptr->_class == AIS_CLASS_A)
+	{	
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2A));
+			return;
+		}
+	
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0A));
+	
+		}else{
+	
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1A));
+		}
 	}
 	
-	if(ptr->sog > MIN_SHIP_SPEED)
+	if(ptr->_class == AIS_CLASS_B)
 	{
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0));
+
+		if(timeout >= AIS_TIMEOUT)
+		{
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_2B));
+			return;
+		}
 	
-	}else{
+		if(ptr->sog > MIN_SHIP_SPEED)
+		{
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_0B));
 	
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
-		m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1));
+		}else{
+	
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+			m_ShipColorBuffer0.Append(GetColor(SHIP_COLOR_1B));
+		}
 	}
 
 }
@@ -2341,8 +2673,11 @@ void CMapPlugin::PrepareShipNamesBuffer(SAisData *ptr)
 		SAisNames *a = (SAisNames*)malloc(sizeof(SAisNames));
 		
 		mbstowcs(wc, ptr->name, 64);
-		swprintf(str,L"%ls",wc);
-		
+		if(ptr->_class == AIS_CLASS_B)
+			swprintf(str,L"%ls (B)",wc);
+		else
+			swprintf(str,L"%ls",wc);
+
 		a->lat = ptr->lat;
 		a->lon = ptr->lon;
 		memcpy(a->name,str,64);
@@ -2390,7 +2725,7 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	pt.x = ptr->lon;
 	pt.y = -ptr->lat;
 	
-	nvPoint2d p1, p2;
+	nvPoint2d p1, p2, pn;
 		
 	//obrót
 	double hdg = ptr->hdg;
@@ -2400,17 +2735,131 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
 	p1.x = to_x;p1.y = to_y;
 	
+	p1 = m_HdtPoint;
+	m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
+	
+	pn.x = to_x;
+	pn.y = to_y;
+	
 	double new_lon, new_lat;
-	NewLonLat(GetHDTTime(),pt.x,pt.y,sog,hdg,&new_lon,&new_lat);
+	NewLonLat(GetHDTTime(),pn.x,pn.y,sog,hdg,&new_lon,&new_lat);
 	p2.x = new_lon; p2.y = new_lat;
+	
+	
+	
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
 	p2.x = to_x; p2.y = to_y;
-		
+	//m_HdtLastPoint = p2;
+	
+	//nvPoint2d npt;
+
+	//npt.x = p1.x - p2.x;
+	//npt.y = p1.y - p2.y;
+	
+	
+	//p2.x = p2.x + npt.x;
+	//p2.y = p2.y + npt.x;
+
 	m_HDGVerticesBuffer0.Append(p1);
 	m_HDGVerticesBuffer0.Append(p2);
 	
+	
 }
 
+void CMapPlugin::PrepareTrackVerticesBuffer(SAisData *ptr)
+{
+		
+	CNaviArray <SAisData> *ar =  ais_track_exists(ptr->mmsi);
+
+	for(size_t i = 0; i < ar->Length(); i++)
+	{
+		SAisData data = ar->Get(i);
+		nvPoint2d pt;
+		double to_x,to_y;
+		m_Broker->Unproject(data.lon,data.lat,&to_x,&to_y);
+		to_y = -to_y;
+
+		pt.x = to_x;
+		pt.y = to_y;
+		m_TrackVerticesBuffer0.Append(pt);
+	}
+}
+
+void CMapPlugin::PrepareSARVerticesBuffer(SAisData *ptr)
+{
+	double to_x, to_y;
+	nvPoint2d pt;
+	pt.x = ptr->lon;
+	pt.y = -ptr->lat;
+	nvPoint2d p1, p2, p3, p4;
+		
+	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+		
+	double width =  SAR_WIDTH/m_SmoothScaleFactor;
+	double height = SAR_HEIGHT/m_SmoothScaleFactor;
+			
+	p1.x = -1.0 * width;	p1.y =  1.0 * height;
+	p2.x =  1.0 * width;	p2.y =	1.0 * height;
+	p3.x =  1.0 * width;	p3.y = -1.0 * height;
+	p4.x = -1.0 * width;	p4.y = -1.0 * height;
+		
+	//obrót
+	double out_x,out_y;
+
+#ifdef ROTATE
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(m_Angle));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(m_Angle));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(m_Angle));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(m_Angle));	p4.x = out_x;	p4.y = out_y;
+#endif	
+	
+	p1.x += pt.x; p1.y += pt.y;
+	p2.x += pt.x; p2.y += pt.y;
+	p3.x += pt.x; p3.y += pt.y;
+	p4.x += pt.x; p4.y += pt.y;
+	
+	m_HdtPoint = p2;
+	
+	m_SARVerticesBuffer0.Append(p1);
+	m_SARVerticesBuffer0.Append(p2);
+	m_SARVerticesBuffer0.Append(p3);
+	m_SARVerticesBuffer0.Append(p4);
+	
+
+}
+
+void CMapPlugin::PrepareSARTriangleIndicesBuffer(SAisData *ptr)
+{
+	
+	int id = m_SARVerticesBuffer0.Length();
+	
+	m_SARTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_SARTriangleIndicesBuffer0.Append(id - 3);	//1
+	m_SARTriangleIndicesBuffer0.Append(id - 2);	//2
+
+	m_SARTriangleIndicesBuffer0.Append(id - 4);	//0
+	m_SARTriangleIndicesBuffer0.Append(id - 2);	//2
+	m_SARTriangleIndicesBuffer0.Append(id - 1);	//3
+
+}
+
+
+void CMapPlugin::PrepareSARLineIndicesBuffer(SAisData *ptr)
+{
+	int id = m_SARVerticesBuffer0.Length();
+
+	m_SARLineIndicesBuffer0.Append(id - 4);	//0
+	m_SARLineIndicesBuffer0.Append(id - 3);	//1
+	m_SARLineIndicesBuffer0.Append(id - 3);	//1
+	m_SARLineIndicesBuffer0.Append(id - 2);	//2
+	m_SARLineIndicesBuffer0.Append(id - 2);	//2
+	m_SARLineIndicesBuffer0.Append(id - 1);	//3
+	m_SARLineIndicesBuffer0.Append(id - 1);	//3
+	m_SARLineIndicesBuffer0.Append(id - 4);	//0
+	
+}
 
 void CMapPlugin::DeleteShipsVBO()
 {
@@ -2449,7 +2898,10 @@ void CMapPlugin::RenderShipNames()
 
 	size_t size = m_CurrentShipNamesBufferPtr->Length();
 	if(size == 0)
+	{
+		m_NameFont->Clear();
 		return;
+	}
 
 	if(!m_Ready)
 		return;
@@ -2516,6 +2968,17 @@ bool CMapPlugin::IsShipBuffer()
 		return false;
 	
 	if(m_CurrentShipVerticesBufferPtr->Length() == 0)
+		return false;
+		
+	return true;
+}
+
+bool CMapPlugin::IsSARBuffer()
+{
+	if(m_CurrentSARVerticesBufferPtr == NULL)
+		return false;
+	
+	if(m_CurrentSARVerticesBufferPtr->Length() == 0)
 		return false;
 		
 	return true;
@@ -2690,6 +3153,38 @@ bool CMapPlugin::CreateShipsVBO()
 				
 }
 
+bool CMapPlugin::CreateSARVBO()
+{
+	if(!m_Ready)
+		return false;
+
+	//SAR
+	glBindBuffer(GL_ARRAY_BUFFER, m_SARArrayBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentSARVerticesBufferPtr->Length(), m_CurrentSARVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+			
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SARTriangleIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentSARTriangleIndicesBufferPtr->Length(), m_CurrentSARTriangleIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SARLineIndicesBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentSARLineIndicesBufferPtr->Length(), m_CurrentSARLineIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
+	
+	//glBindBuffer(GL_ARRAY_BUFFER, m_ShipsColorBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBA) * m_CurrentShipColorBufferPtr->Length(), m_CurrentShipColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
+
+	m_SARTriangleLength = m_CurrentSARTriangleIndicesBufferPtr->Length();
+	m_SARLineLength = m_CurrentSARLineIndicesBufferPtr->Length();
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+	if(glGetError() == GL_NO_ERROR)
+		return true;
+	else
+		return false;
+				
+}
+
 void CMapPlugin::RenderBS()
 {
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -2706,7 +3201,7 @@ void CMapPlugin::RenderBS()
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	
-	glColor4f(0.0,0.0,0.0,0.9);
+	glColor4f(0.0,0.0,0.0,0.8);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BSLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_BSLineLength, GL_UNSIGNED_INT,0);
 		
@@ -2732,7 +3227,7 @@ void CMapPlugin::RenderAtons()
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	
-	glColor4f(0.0,0.0,0.0,0.9);
+	glColor4f(0.0,0.0,0.0,0.8);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_AtonLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_AtonLineLength, GL_UNSIGNED_INT,0);
 		
@@ -2760,7 +3255,7 @@ void CMapPlugin::RenderTriangles()
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	// obrys (linie)
-	glColor4f(0.0,0.0,0.0,0.9);
+	glColor4ub(GetColor(SHIP_BORDER_COLORA).R ,GetColor(SHIP_BORDER_COLORA).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_TrianglesLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_TrianglesLineLength , GL_UNSIGNED_INT,0);
 
@@ -2789,7 +3284,7 @@ void CMapPlugin::RenderSmallShips()
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	// obrys (linie)
-	glColor4ub(GetColor(SHIP_BORDER_COLOR).R ,GetColor(SHIP_BORDER_COLOR).G,GetColor(SHIP_BORDER_COLOR).B,GetColor(SHIP_BORDER_COLOR).A);
+	glColor4ub(GetColor(SHIP_BORDER_COLORA).R ,GetColor(SHIP_BORDER_COLORA).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SmallShipLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_SmallShipLineLength , GL_UNSIGNED_INT,0);
 
@@ -2820,7 +3315,7 @@ void CMapPlugin::RenderShips()
 	glDisableClientState(GL_COLOR_ARRAY);
 	
 	// obrys (linie)
-	glColor4ub(GetColor(SHIP_BORDER_COLOR).R ,GetColor(SHIP_BORDER_COLOR).G,GetColor(SHIP_BORDER_COLOR).B,GetColor(SHIP_BORDER_COLOR).A);
+	glColor4ub(GetColor(SHIP_BORDER_COLORA).R ,GetColor(SHIP_BORDER_COLORA).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ShipsLineIndicesBuffer);
 	glDrawElements(GL_LINES, m_ShipLineLength, GL_UNSIGNED_INT,0);
 
@@ -2831,24 +3326,55 @@ void CMapPlugin::RenderShips()
 
 }
 
+void CMapPlugin::RenderSAR()
+{
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_SARArrayBuffer);
+	glVertexPointer(2, GL_DOUBLE,  0, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_SARColorBuffer);
+	glColorPointer(4, GL_UNSIGNED_BYTE,  0, 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SARTriangleIndicesBuffer);
+	glDrawElements(GL_TRIANGLES, m_SARTriangleLength, GL_UNSIGNED_INT,0);
+
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	// obrys (linie)
+	glColor4ub(GetColor(SHIP_BORDER_COLORA).R ,GetColor(SHIP_BORDER_COLORA).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_SARLineIndicesBuffer);
+	glDrawElements(GL_LINES, m_SARLineLength , GL_UNSIGNED_INT,0);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	
+	
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+}
+
+
 void  CMapPlugin::RenderSelection()
 {
 	m_MMSIFont->Clear();
 
-	if(m_SelectedPtr == NULL)
+	SAisData *ptr = GetSelectedPtr();
+	if(ptr == NULL)
 		return;
 		
 	double to_x,to_y;
-	m_Broker->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
+	m_Broker->Unproject(ptr->lon,ptr->lat,&to_x,&to_y);
 	to_y = -to_y;
 
 	wchar_t str[64];
 	wchar_t mmsi[16];
 	wchar_t wc[64];
 	
-	if(m_SelectedPtr->valid_pos)
+	if(ptr->valid_pos)
 	{
-		swprintf(mmsi,L"%d",m_SelectedPtr->mmsi);	
+		swprintf(mmsi,L"%d",ptr->mmsi);	
 		m_MMSIFont->Print(to_x,to_y,GetFontSize()/m_SmoothScaleFactor/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
 	}	
 	
@@ -2945,6 +3471,28 @@ void CMapPlugin::RenderHDT()
 
 }
 
+void CMapPlugin::RenderROT()
+{
+	//if(!GetShowROT())
+		//return;
+	
+	//if(GetROTLineStyle() == 1)
+	//{
+		//glEnable(GL_LINE_STIPPLE);
+		//glLineStipple( 5, 0xAAAA );
+	//}
+	
+	glLineWidth(GetCOGLineWidth());
+	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+			
+	if(m_CurrentROTVerticesBufferPtr != NULL && m_CurrentROTVerticesBufferPtr->Length() > 0)
+		RenderGeometry(GL_LINES,m_CurrentROTVerticesBufferPtr->GetRawData(),m_CurrentROTVerticesBufferPtr->Length());
+	glLineWidth(1);
+
+	//glDisable(GL_LINE_STIPPLE);
+}
+
+
 void CMapPlugin::RenderCOG()
 {
 	if(!GetShowCOG())
@@ -2974,7 +3522,7 @@ void CMapPlugin::RenderGPS()
 	
 	glColor4ub(GetColor(GPS_COLOR).R ,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
 
-	glPointSize(4);
+	glPointSize(6);
 	
 	if(m_CurrentPointsBufferPtr != NULL && m_CurrentPointsBufferPtr->Length() > 0)
 		RenderGeometry(GL_POINTS,m_CurrentPointsBufferPtr->GetRawData(),m_CurrentPointsBufferPtr->Length());			//miejsce przyczepienia GPS
@@ -2982,6 +3530,62 @@ void CMapPlugin::RenderGPS()
 	glPointSize(1);
 
 }
+void CMapPlugin::RenderTracks()
+{
+	glPointSize(3);	
+	if(m_CurrentTrackVerticesBufferPtr != NULL && m_CurrentTrackVerticesBufferPtr->Length() > 0)
+	{
+		RenderGeometry(GL_POINTS,m_CurrentTrackVerticesBufferPtr->GetRawData(),m_CurrentTrackVerticesBufferPtr->Length());
+		
+	}
+	glLineWidth(1);
+
+}
+
+void CMapPlugin::RenderAnimation()
+{
+	if(!m_AnimStarted)
+		return;
+
+	SAisData * ptr = GetSelectedAnimPtr();
+
+	if(ptr == NULL)
+		return;
+	
+	double to_x,to_y;	
+	m_Broker->Unproject(ptr->lon,-ptr->lat,&to_x,&to_y);
+	double Factor = 10.0;
+		
+	float MarkerSize = m_AnimMarkerSize / GetBroker()->GetMapScale();;
+	
+	// animation
+	//if(NmeaInfo.sig == 0)         
+		//glColor4ub( 255, 0, 0, 255 - ((AnimMarkerSize / 1000.0f) * 255) );
+	//else
+		//glColor4ub( 0, 0, 255, 255 - ((AnimMarkerSize / 1000.0f) * 255) );
+	
+	//glPushMatrix();
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+		glBindTexture( GL_TEXTURE_2D, m_TextureID_0 );		
+		//glTranslated(to_x,to_y,0.0);
+		glBegin(GL_QUADS);
+			glTexCoord2f(1.0f, 0.0f); glVertex2f( -(MarkerSize)+to_x, -(MarkerSize)+to_y );
+			glTexCoord2f(0.0f, 0.0f); glVertex2f( MarkerSize+to_x, -(MarkerSize)+to_y);
+			glTexCoord2f(0.0f, 1.0f); glVertex2f( MarkerSize+to_x, MarkerSize+to_y );
+			glTexCoord2f(1.0f, 1.0f); glVertex2f( -(MarkerSize)+to_x, MarkerSize+to_y );
+		glEnd();
+		
+	glDisable(GL_TEXTURE_2D);	
+	glDisable(GL_BLEND);	
+	//glPopMatrix();
+
+	m_AnimMarkerSize += 2.0f;
+	if( m_AnimMarkerSize > 30.0f)
+		m_AnimMarkerSize = 1.0f;
+
+}
+
 
 void CMapPlugin::_RenderShipLights()
 {
@@ -3041,21 +3645,36 @@ void CMapPlugin::_RenderShips()
 	
 }
 
+void CMapPlugin::_RenderSAR()
+{
+	if(!IsSARBuffer())
+		return;
+	
+	CreateSARVBO();
+	RenderSAR();
+	
+}
+
 void CMapPlugin::RenderNormalScale()
 {
+	//return;
 	
 	_RenderShips();
 	_RenderSmallShips();
 	_RenderTriangles();
 	_RenderAtons();
 	_RenderBS();
+	_RenderSAR();				//moze niestabilne
 	_RenderShipLights();
+	RenderROT();
 	RenderCOG();
 	RenderHDT();
 	RenderGPS();
 	RenderShipNames();
 	RenderSelection();
+	RenderTracks();
 	
+
 	if(m_MapScale > GetViewFontScale())
 	{
 		m_NameFont->ClearBuffers();
@@ -3088,13 +3707,14 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());
-	
+	wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
 		RenderNormalScale();
 		
+	RenderAnimation();
+	
 	glLineWidth(1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
@@ -3133,7 +3753,11 @@ void CMapPlugin::Generate()
 		glGenBuffers(1, &m_BSTriangleIndicesBuffer);
 		glGenBuffers(1, &m_BSLineIndicesBuffer);
 		glGenBuffers(1, &m_BSColorBuffer);
-		
+
+		glGenBuffers(1, &m_SARArrayBuffer);
+		glGenBuffers(1, &m_SARTriangleIndicesBuffer);
+		glGenBuffers(1, &m_SARLineIndicesBuffer);
+		glGenBuffers(1, &m_SARColorBuffer);
 	
 	}
 	
@@ -3202,7 +3826,7 @@ void CMapPlugin::Mouse(int x, int y, bool lmb, bool mmb, bool rmb)
 {
 	if(!lmb && m_MouseLmb)
 	{
-		m_SelectedPtr = NULL;
+		SetSelectedPtr(NULL);
 		SetValues(false);
 		RunThread();
 		m_MouseUp = true;
@@ -3255,7 +3879,7 @@ void CMapPlugin::ThreadBegin()
 	if(m_MouseUp)
 	{
 		//FreeSelectedPtr();
-		m_SelectedPtr = NULL;
+		//SetSelectedPtr( NULL);
 		SetSelection();
 	}
 }
@@ -3266,10 +3890,10 @@ void CMapPlugin::ThreadEnd()
 
 	if(m_ThreadCounter == 0)
 	{
-		if(m_SelectedPtr != NULL && m_MouseDLmb)
+		if(GetSelectedPtr() != NULL && m_MouseDLmb)
 			ShowFrameWindow(true);
 		//else
-		//	ShowFrameWindow(false);
+			//ShowFrameWindow(false);
 			//m_ShowFrameWindow = false;
 		m_Broker->Refresh(m_Broker->GetParentPtr());
 	}
@@ -3282,13 +3906,9 @@ void CMapPlugin::ThreadEnd()
 
 void CMapPlugin::ShowFrameWindow(bool show)
 {
-	m_MyFrame->ShowWindow(show);			
+	
+	m_MyFrame->ShowWindowEvent(show);			
 		
-}
-
-SAisData *CMapPlugin::GetSelectedPtr()
-{
-	return m_SelectedPtr;
 }
 
 //bool CMapPlugin::VisibleStateChanged()

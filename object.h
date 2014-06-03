@@ -1,10 +1,10 @@
-#ifndef __LIGHT_H
-#define __LIGHT_H
+#ifndef __OBJECT_H
+#define __OBJECT_H
 
 #include "conf.h"
 #include "GeometryTools.h"
 
-class CLight
+class CObject
 {
 	CNaviArray <nvPoint2d> m_VerticesBuffer0;	CNaviArray <nvPoint2d> m_VerticesBuffer1;	CNaviArray <nvPoint2d> *m_CurrentVerticesBufferPtr;
 	CNaviArray <int> m_IndicesBuffer0;			CNaviArray <int> m_IndicesBuffer1;			CNaviArray <int> *m_CurrentIndicesBufferPtr;
@@ -22,8 +22,8 @@ class CLight
 
 public:
 
-	CLight();
-	~CLight();
+	CObject();
+	~CObject();
 	
 	void AddIndice(int id);
 	size_t GetIndiceLength();

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <wx/mstream.h>
 #include "ais.h"
+#include "options.h"
 
 
 DEFINE_EVENT_TYPE(EVT_SET_ITEM)
@@ -143,9 +144,18 @@ void CListCtrl::OnSelected(wxListEvent &event)
 			if(ais->valid[i])
 			{
 				_AisList->SetHtml(PrintHtmlMsg(ais,i));
+				
 			}
 		}
+		
+		fprintf(stdout,"%d\n",ais->buffer_id);
+		SAisData *data = ais_buffer_exists(ais->mmsi);
+		
+		SetSelectedAnimPtr(data); // inna funkcja musi byæ wp³ywa to na timer w frame
+		SetStartAnimation(true);
+	
 	}
+
 
 }
 
@@ -266,6 +276,8 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	wxString str;
 	wxString name;
+	wxString callsign(_("N/A"));
+	wxString imo(_("N/A"));
 
 	ais_t *ais = NULL;
 	ais = ais_get_search_item(item);
@@ -281,6 +293,9 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	{
 		wxString name5(ais->type5.shipname,wxConvUTF8);
 		name = name5;
+		wxString _callsign(ais->type5.callsign,wxConvUTF8);
+		callsign = _callsign;
+		imo = wxString::Format(_("%d"),ais->type5.imo);
 	}
 	
 	if(ais->valid[AIS_MSG_19])
@@ -299,6 +314,8 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	{
 		wxString name24(ais->type24.shipname,wxConvUTF8);
 		name = name24;
+		wxString _callsign(ais->type24.callsign,wxConvUTF8);
+		callsign = _callsign;
 	}
 	
 	wxString lon(_("N/A"));
@@ -306,11 +323,18 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	double _lon,_lat;
 	
+	//int seconds = (GetTickCount() - ais->timeout)/1000;
+		
+	//int minutes = seconds/60;
+	//div_t _div = div(seconds,60);
+
 	switch (column)
 	{
-		case 0:	str = mes;										break;
-		case 1:	str = wxString::Format(_("%d"),ais->mmsi);		break;
-		case 2:	str = wxString::Format(_("%s"),name.wc_str());	break;
+		case 0:	str = mes;											break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);			break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());		break;
+		case 3: str = wxString::Format(_("%s"),callsign.wc_str());	break;
+		case 4: str = wxString::Format(_("%s"),imo.wc_str());		break;
 	}
 
 	return str;

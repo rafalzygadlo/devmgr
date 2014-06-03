@@ -30,6 +30,9 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_SPINCTRL(ID_COG_LINE_WIDTH, OnCOGLineWidth)
 	EVT_COMBOBOX(ID_COG_LINE_STYLE,OnCOGLineStyle)
 	EVT_COMBOBOX(ID_HDT_LINE_STYLE,OnHDTLineStyle)
+	EVT_SLIDER(wxID_ANY,OnAlpha)
+	
+
 END_EVENT_TABLE()
 
 
@@ -49,6 +52,11 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 CAisList::~CAisList()
 {
 }
+
+//void CAisList::SetSelectedPtr()
+//{
+
+//}
 
 void CAisList::SetSignal(int signal)
 {
@@ -77,14 +85,24 @@ void CAisList::Synchro()
 	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
 	m_GPSColor->SetColour(color);
 
-	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
-	m_ShipColor0->SetColour(color);
+	color.Set(GetColor(SHIP_COLOR_0A).R,GetColor(SHIP_COLOR_0A).G,GetColor(SHIP_COLOR_0A).B,GetColor(SHIP_COLOR_0A).A);
+	m_ShipColor0A->SetColour(color);
 		
-	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
-	m_ShipColor1->SetColour(color);
+	color.Set(GetColor(SHIP_COLOR_1A).R,GetColor(SHIP_COLOR_1A).G,GetColor(SHIP_COLOR_1A).B,GetColor(SHIP_COLOR_1A).A);
+	m_ShipColor1A->SetColour(color);
 		
-	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
-	m_ShipColor2->SetColour(color);
+	//color.Set(GetColor(SHIP_COLOR_2A).R,GetColor(SHIP_COLOR_2A).G,GetColor(SHIP_COLOR_2A).B,GetColor(SHIP_COLOR_2A).A);
+	//m_ShipColor2A->SetColour(color);
+
+	color.Set(GetColor(SHIP_COLOR_0B).R,GetColor(SHIP_COLOR_0B).G,GetColor(SHIP_COLOR_0B).B,GetColor(SHIP_COLOR_0B).A);
+	m_ShipColor0B->SetColour(color);
+		
+	color.Set(GetColor(SHIP_COLOR_1B).R,GetColor(SHIP_COLOR_1B).G,GetColor(SHIP_COLOR_1B).B,GetColor(SHIP_COLOR_1B).A);
+	m_ShipColor1B->SetColour(color);
+		
+	//color.Set(GetColor(SHIP_COLOR_2B).R,GetColor(SHIP_COLOR_2B).G,GetColor(SHIP_COLOR_2B).B,GetColor(SHIP_COLOR_2B).A);
+	//m_ShipColor2B->SetColour(color);
+
 
 }
 
@@ -243,18 +261,25 @@ void CAisList::OnColorPicker(wxColourPickerEvent &event)
 
 	switch(event.GetId())
 	{
-		case ID_SHIP_BORDER_COLOR:	color.A = GetColor(SHIP_BORDER_COLOR).A;	SetColor(SHIP_BORDER_COLOR,color);	break;	
-		case ID_SHIP_COLOR_0:		color.A = GetColor(SHIP_COLOR_0).A;			SetColor(SHIP_COLOR_0,color);		break;
-		case ID_SHIP_COLOR_1:		color.A = GetColor(SHIP_COLOR_1).A;			SetColor(SHIP_COLOR_1,color);		break;
-		case ID_SHIP_COLOR_2:		color.A = GetColor(SHIP_COLOR_2).A;			SetColor(SHIP_COLOR_2,color);		break;
-		case ID_ATON_COLOR:			color.A = GetColor(ATON_COLOR).A;			SetColor(ATON_COLOR,color);			break;
-		case ID_COG_COLOR:			color.A = GetColor(COG_COLOR).A;			SetColor(COG_COLOR,color);			break;
-		case ID_HDT_COLOR:			color.A = GetColor(HDT_COLOR).A;			SetColor(HDT_COLOR,color);			break;
-		case ID_GPS_COLOR:			color.A = GetColor(GPS_COLOR).A;			SetColor(GPS_COLOR,color);			break;
+		case ID_SHIP_BORDER_COLORA:	color.A = GetColor(SHIP_BORDER_COLORA).A;	SetColor(SHIP_BORDER_COLORA,color);		break;	
+		case ID_SHIP_COLOR_0A:		color.A = GetColor(SHIP_COLOR_0A).A;		SetColor(SHIP_COLOR_0A,color);			break;
+		case ID_SHIP_COLOR_1A:		color.A = GetColor(SHIP_COLOR_1A).A;		SetColor(SHIP_COLOR_1A,color);			break;
+		case ID_SHIP_COLOR_2A:		color.A = GetColor(SHIP_COLOR_2A).A;		SetColor(SHIP_COLOR_2A,color);			break;
+
+		//case ID_SHIP_BORDER_COLORB:	color.A = GetColor(SHIP_BORDER_COLORB).A;	SetColor(SHIP_BORDER_COLORB,color);		break;	
+		case ID_SHIP_COLOR_0B:		color.A = GetColor(SHIP_COLOR_0B).A;		SetColor(SHIP_COLOR_0B,color);			break;
+		case ID_SHIP_COLOR_1B:		color.A = GetColor(SHIP_COLOR_1B).A;		SetColor(SHIP_COLOR_1B,color);			break;
+		case ID_SHIP_COLOR_2B:		color.A = GetColor(SHIP_COLOR_2B).A;		SetColor(SHIP_COLOR_2B,color);			break;
+
+		case ID_ATON_COLOR:			color.A = GetColor(ATON_COLOR).A;			SetColor(ATON_COLOR,color);				break;
+		case ID_COG_COLOR:			color.A = GetColor(COG_COLOR).A;			SetColor(COG_COLOR,color);				break;
+		case ID_HDT_COLOR:			color.A = GetColor(HDT_COLOR).A;			SetColor(HDT_COLOR,color);				break;
+		case ID_GPS_COLOR:			color.A = GetColor(GPS_COLOR).A;			SetColor(GPS_COLOR,color);				break;
+		case ID_BASE_STATION_COLOR: color.A = GetColor(BASE_STATION_COLOR).A;	SetColor(BASE_STATION_COLOR,color);		break;
 	}
 
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+	Signal();
+
 		
 }
 
@@ -269,9 +294,28 @@ void CAisList::OnFilter(wxCommandEvent &event)
 void CAisList::OnNameScale(wxCommandEvent &event)
 {
 	SetViewFontScale(event.GetInt());
+	Signal();
+	
+}
 
-	if(m_Broker != NULL)
-		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnSynchro",NULL);
+void CAisList::OnAlpha(wxCommandEvent &event)
+{
+	switch(event.GetId())
+	{
+		case ID_SHIP_BORDER_ALPHA:	SetAlpha(SHIP_BORDER_COLORA,event.GetInt());		break;
+		case ID_ATON_ALPHA:			SetAlpha(ATON_COLOR,event.GetInt());			break;
+		case ID_BASE_STATION_ALPHA: SetAlpha(BASE_STATION_COLOR,event.GetInt());	break;
+		case ID_SHIP_ALPHA_0A:		SetAlpha(SHIP_COLOR_0A,event.GetInt());			break;
+		case ID_SHIP_ALPHA_1A:		SetAlpha(SHIP_COLOR_1A,event.GetInt());			break;
+		case ID_SHIP_ALPHA_2A:		SetAlpha(SHIP_COLOR_2A,event.GetInt());			break;
+		case ID_SHIP_ALPHA_0B:		SetAlpha(SHIP_COLOR_0B,event.GetInt());			break;
+		case ID_SHIP_ALPHA_1B:		SetAlpha(SHIP_COLOR_1B,event.GetInt());			break;
+		case ID_SHIP_ALPHA_2B:		SetAlpha(SHIP_COLOR_2B,event.GetInt());			break;
+		
+	}
+
+	Signal();
+	
 }
 
 void CAisList::GetPanel()
@@ -285,7 +329,7 @@ void CAisList::GetPanel()
 	wxPanel *Page1 = new wxPanel(m_Notebook);
 	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Page1->SetSizer(m_Page1Sizer);
-	m_Notebook->AddPage(Page1,(GetMsg(MSG_AIS_TARGETS)));
+	m_Notebook->AddPage(Page1,(wxString::Format(GetMsg(MSG_AIS_TARGETS),0)));
 
 	wxBoxSizer *hSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_Page1Sizer->Add(hSizer,0,wxALL|wxEXPAND,0);
@@ -301,13 +345,13 @@ void CAisList::GetPanel()
 
 	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;
-	item.SetWidth(65);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(0,item);
-	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(1,item);
-	item.SetWidth(200);	item.SetText(GetMsg(MSG_SHIPNAME));	m_List->InsertColumn(2,item);
-	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(3,item);
-	//item.SetWidth(100);	item.SetText(GetMsg(MSG_MMSI));	m_List->InsertColumn(4,item);
+	item.SetWidth(65);	item.SetText(wxEmptyString);			m_List->InsertColumn(0,item);
+	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));			m_List->InsertColumn(1,item);
+	item.SetWidth(200);	item.SetText(GetMsg(MSG_SHIPNAME));		m_List->InsertColumn(2,item);
+	item.SetWidth(80);	item.SetText(GetMsg(MSG_CALLSIGN));		m_List->InsertColumn(4,item);
+	item.SetWidth(80);	item.SetText(GetMsg(MSG_IMO_NUMBER));	m_List->InsertColumn(5,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
-
+	
 	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
@@ -354,45 +398,151 @@ void CAisList::GetPanel()
 	m_ShowObjects->SetValue(GetShowOBJECTS());
 	ScrollSizer->Add(m_ShowObjects,0,wxALL,5);
 
-	wxGridSizer *FlexOBJECTSSizer = new wxFlexGridSizer(2);
+	wxGridSizer *FlexOBJECTSSizer = new wxGridSizer(3);
 	ScrollSizer->Add(FlexOBJECTSSizer,0,wxALL,5);
 	
-	wxStaticText *TextShipBorderColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_BORDER_COLOR),wxDefaultPosition,wxDefaultSize);
-	FlexOBJECTSSizer->Add(TextShipBorderColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipBorderColor = new wxColourPickerCtrl(Scroll,ID_SHIP_BORDER_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	//Class A
+
+	wxStaticText *TextClassA = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_CLASS_A),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextClassA,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	FlexOBJECTSSizer->AddSpacer(1);
+	FlexOBJECTSSizer->AddSpacer(1);
+	//wxStaticText *TextShipBorderColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_BORDER_COLOR),wxDefaultPosition,wxDefaultSize);
+	//FlexOBJECTSSizer->Add(TextShipBorderColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	//m_ShipBorderColorA = new wxColourPickerCtrl(Scroll,ID_SHIP_BORDER_COLORA,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
 	wxColor color;
-	color.Set(GetColor(SHIP_BORDER_COLOR).R,GetColor(SHIP_BORDER_COLOR).G,GetColor(SHIP_BORDER_COLOR).B,GetColor(SHIP_BORDER_COLOR).A);
-	m_ShipBorderColor->SetColour(color);
-	FlexOBJECTSSizer->Add(m_ShipBorderColor,0,wxALL,2);
-
-	wxStaticText *TextShipColor0 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
-	FlexOBJECTSSizer->Add(TextShipColor0,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor0 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
-	color.Set(GetColor(SHIP_COLOR_0).R,GetColor(SHIP_COLOR_0).G,GetColor(SHIP_COLOR_0).B,GetColor(SHIP_COLOR_0).A);
-	m_ShipColor0->SetColour(color);
-	FlexOBJECTSSizer->Add(m_ShipColor0,0,wxALL,2);
-
-	wxStaticText *TextShipColor1 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
-	FlexOBJECTSSizer->Add(TextShipColor1,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor1 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
-	color.Set(GetColor(SHIP_COLOR_1).R,GetColor(SHIP_COLOR_1).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
-	m_ShipColor1->SetColour(color);
-	FlexOBJECTSSizer->Add(m_ShipColor1,0,wxALL,2);
-		
-	wxStaticText *TextShipColor2 = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
-	FlexOBJECTSSizer->Add(TextShipColor2,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
-	m_ShipColor2 = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
-	color.Set(GetColor(SHIP_COLOR_2).R,GetColor(SHIP_COLOR_2).G,GetColor(SHIP_COLOR_2).B,GetColor(SHIP_COLOR_2).A);
-	m_ShipColor2->SetColour(color);
-	FlexOBJECTSSizer->Add(m_ShipColor2,0,wxALL,2);
+	//color.Set(GetColor(SHIP_BORDER_COLORA).R,GetColor(SHIP_BORDER_COLORA).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
+	//m_ShipBorderColorA->SetColour(color);
+	//FlexOBJECTSSizer->Add(m_ShipBorderColorA,0,wxALL,2);
+	//m_ShipBorderAlphaA = new wxSlider(Scroll,ID_VIEW_NAME_SCALE,0,0,0,wxDefaultPosition,wxDefaultSize);
+	//m_ShipBorderAlphaA->SetMin(0);
+	//m_ShipBorderAlphaA->SetMax(255);
+	//FlexOBJECTSSizer->Add(m_ShipBorderAlphaA,0,wxALL,2);
 	
+	wxStaticText *TextShipColor0A = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor0A,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor0A = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0A,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_0A).R,GetColor(SHIP_COLOR_0A).G,GetColor(SHIP_COLOR_0A).B,GetColor(SHIP_COLOR_0A).A);
+	m_ShipColor0A->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor0A,0,wxALL,2);
+	m_ShipAlpha0A = new wxSlider(Scroll,ID_SHIP_ALPHA_0A,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha0A->SetMin(0);
+	m_ShipAlpha0A->SetMax(255);
+	m_ShipAlpha0A->SetValue(GetAlpha(SHIP_COLOR_0A));
+	FlexOBJECTSSizer->Add(m_ShipAlpha0A,0,wxALL,2);
+
+	wxStaticText *TextShipColor1A = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor1A,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor1A = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1A,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_1A).R,GetColor(SHIP_COLOR_1A).G,GetColor(SHIP_COLOR_1A).B,GetColor(SHIP_COLOR_1A).A);
+	m_ShipColor1A->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor1A,0,wxALL,2);
+	m_ShipAlpha1A = new wxSlider(Scroll,ID_SHIP_ALPHA_1A,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha1A->SetMin(0);
+	m_ShipAlpha1A->SetMax(255);
+	m_ShipAlpha1A->SetValue(GetAlpha(SHIP_COLOR_1A));
+	FlexOBJECTSSizer->Add(m_ShipAlpha1A,0,wxALL,2);
+	
+	/*
+	wxStaticText *TextShipColor2A = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor2A,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor2A = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2A,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_2A).R,GetColor(SHIP_COLOR_2A).G,GetColor(SHIP_COLOR_2A).B,GetColor(SHIP_COLOR_2A).A);
+	m_ShipColor2A->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor2A,0,wxALL,2);
+	m_ShipAlpha2A = new wxSlider(Scroll,ID_SHIP_ALPHA_2A,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha2A->SetMin(0);
+	m_ShipAlpha2A->SetMax(255);
+	m_ShipAlpha2A->SetValue(GetAlpha(SHIP_COLOR_2A));
+	FlexOBJECTSSizer->Add(m_ShipAlpha2A,0,wxALL,2);
+	*/
+
+	
+	//Class B
+
+	//wxStaticText *TextShipBorderColorB = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_BORDER_COLOR),wxDefaultPosition,wxDefaultSize);
+	//FlexOBJECTSSizer->Add(TextShipBorderColorB,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	//m_ShipBorderColorA = new wxColourPickerCtrl(Scroll,ID_SHIP_BORDER_COLORB,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+
+	//color.Set(GetColor(SHIP_BORDER_COLORB).R,GetColor(SHIP_BORDER_COLORB).G,GetColor(SHIP_BORDER_COLORA).B,GetColor(SHIP_BORDER_COLORA).A);
+	//m_ShipBorderColorA->SetColour(color);
+	//FlexOBJECTSSizer->Add(m_ShipBorderColorA,0,wxALL,2);
+	//m_ShipBorderAlphaA = new wxSlider(Scroll,ID_SHIP_BORDER_ALPHAA,0,0,0,wxDefaultPosition,wxDefaultSize);
+	//m_ShipBorderAlphaA->SetMin(0);
+	//m_ShipBorderAlphaA->SetMax(255);
+	//FlexOBJECTSSizer->Add(m_ShipBorderAlphaA,0,wxALL,2);
+	wxStaticText *TextClassB = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_CLASS_B),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextClassB,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	FlexOBJECTSSizer->AddSpacer(1);
+	FlexOBJECTSSizer->AddSpacer(1);
+	
+	wxStaticText *TextShipColor0B = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_0),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor0B,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor0B = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_0B,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_0B).R,GetColor(SHIP_COLOR_0B).G,GetColor(SHIP_COLOR_0B).B,GetColor(SHIP_COLOR_0B).A);
+	m_ShipColor0B->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor0B,0,wxALL,2);
+	m_ShipAlpha0B = new wxSlider(Scroll,ID_SHIP_ALPHA_0B,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha0B->SetMin(0);
+	m_ShipAlpha0B->SetMax(255);
+	m_ShipAlpha0B->SetValue(GetAlpha(SHIP_COLOR_0B));
+	FlexOBJECTSSizer->Add(m_ShipAlpha0B,0,wxALL,2);
+
+	wxStaticText *TextShipColor1B = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_1),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor1B,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor1B = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_1B,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_1B).R,GetColor(SHIP_COLOR_1B).G,GetColor(SHIP_COLOR_1B).B,GetColor(SHIP_COLOR_1B).A);
+	m_ShipColor1B->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor1B,0,wxALL,2);
+	m_ShipAlpha1B = new wxSlider(Scroll,ID_SHIP_ALPHA_1B,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha1B->SetMin(0);
+	m_ShipAlpha1B->SetMax(255);
+	m_ShipAlpha1B->SetValue(GetAlpha(SHIP_COLOR_1B));
+	FlexOBJECTSSizer->Add(m_ShipAlpha1B,0,wxALL,2);
+	/*	
+	wxStaticText *TextShipColor2B = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SHIP_COLOR_2),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextShipColor2B,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_ShipColor2B = new wxColourPickerCtrl(Scroll,ID_SHIP_COLOR_2B,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(SHIP_COLOR_2B).R,GetColor(SHIP_COLOR_2B).G,GetColor(SHIP_COLOR_2B).B,GetColor(SHIP_COLOR_2B).A);
+	m_ShipColor2B->SetColour(color);
+	FlexOBJECTSSizer->Add(m_ShipColor2B,0,wxALL,2);
+	m_ShipAlpha2B = new wxSlider(Scroll,ID_SHIP_ALPHA_2B,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_ShipAlpha2B->SetMin(0);
+	m_ShipAlpha2B->SetMax(255);
+	m_ShipAlpha2B->SetValue(GetAlpha(SHIP_COLOR_2B));
+	FlexOBJECTSSizer->Add(m_ShipAlpha2B,0,wxALL,2);
+	*/
+	FlexOBJECTSSizer->AddSpacer(1);
+	FlexOBJECTSSizer->AddSpacer(1);
+	FlexOBJECTSSizer->AddSpacer(1);
+
+	//Aton kolor
 	wxStaticText *TextAtonColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ATON_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexOBJECTSSizer->Add(TextAtonColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	m_AtonColor = new wxColourPickerCtrl(Scroll,ID_ATON_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
-	color.Set(GetColor(ATON_COLOR).R,GetColor(ATON_COLOR).G,GetColor(SHIP_COLOR_1).B,GetColor(SHIP_COLOR_1).A);
+	color.Set(GetColor(ATON_COLOR).R,GetColor(ATON_COLOR).G,GetColor(ATON_COLOR).B,GetColor(ATON_COLOR).A);
 	m_AtonColor->SetColour(color);
 	FlexOBJECTSSizer->Add(m_AtonColor,0,wxALL,2);
-	
+	m_AtonAlpha = new wxSlider(Scroll,ID_ATON_ALPHA,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_AtonAlpha->SetMin(0);
+	m_AtonAlpha->SetMax(255);
+	m_AtonAlpha->SetValue(GetAlpha(ATON_COLOR));
+	FlexOBJECTSSizer->Add(m_AtonAlpha,0,wxALL,2);
+
+	//Base Station
+	wxStaticText *TextBaseStation = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_BASE_STATION_COLOR),wxDefaultPosition,wxDefaultSize);
+	FlexOBJECTSSizer->Add(TextBaseStation,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_BaseStationColor = new wxColourPickerCtrl(Scroll,ID_BASE_STATION_COLOR,*wxBLACK,wxDefaultPosition,wxDefaultSize,wxCLRP_SHOW_LABEL);
+	color.Set(GetColor(BASE_STATION_COLOR).R,GetColor(BASE_STATION_COLOR).G,GetColor(BASE_STATION_COLOR).B,GetColor(BASE_STATION_COLOR).A);
+	m_BaseStationColor->SetColour(color);
+	FlexOBJECTSSizer->Add(m_BaseStationColor,0,wxALL,2);
+	m_BaseStationAlpha = new wxSlider(Scroll,ID_BASE_STATION_ALPHA,0,0,0,wxDefaultPosition,wxDefaultSize);
+	m_BaseStationAlpha->SetMin(0);
+	m_BaseStationAlpha->SetMax(255);
+	m_BaseStationAlpha->SetValue(GetAlpha(BASE_STATION_COLOR));
+	FlexOBJECTSSizer->Add(m_BaseStationAlpha,0,wxALL,2);
+
+
 	//COG
 	m_COGLine = new wxCheckBox(Scroll,ID_SHOW_COG,GetMsg(MSG_SHOW_COG));
 	m_COGLine->SetValue(GetShowCOG());

@@ -6,8 +6,13 @@
 class CFilter: public wxDialog
 {
 		
-	wxBoxSizer *MainSizer;
+	wxBoxSizer *m_MainSizer;
+	wxButton *m_ButtonSelect;
+	wxArrayPtrVoid m_CheckList;
 	void OnCheck(wxCommandEvent &event);
+	void OnSelectAll(wxCommandEvent &event);
+	void OnDeSelectAll(wxCommandEvent &event);
+	void Set(int id, bool checked);
 
 public:
 
@@ -20,6 +25,8 @@ public:
 	enum
 	{
 		ID_FILTER_BEGIN = 5213,
+		ID_SELECT_ALL,
+		ID_DESELECT_ALL,
 	};
 	
 

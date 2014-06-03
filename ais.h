@@ -98,6 +98,7 @@ struct ais_t
     unsigned int	mmsi;		/* MMSI */
 	bool			valid[28];  //zaczynamy od 1
 	long int		timeout;
+	int				buffer_id;
     //union {
 	/* Types 1-3 Common navigation info */
 	struct msg1{
@@ -563,7 +564,7 @@ struct ais_t
 #define DAC1FID11_PRESSURE_NOT_AVAILABLE	511
 #define DAC1FID11_PRESSURE_OFFSET		-800
 		    unsigned int pressuretend;	/* tendency */
-#define DAC1FID11_PRESSURETREND_NOT_AVAILABLE	3
+#define DAC1FID11_PRESSURETEND_NOT_AVAILABLE	3
 		    unsigned int visibility;	/* units 0.1 nautical miles */
 #define DAC1FID11_VISIBILITY_NOT_AVAILABLE	255
 #define DAC1FID11_VISIBILITY_DIV		10.0
@@ -684,7 +685,7 @@ struct ais_t
 		    char text[AIS_DAC1FID29_TEXT_MAX];
 		} dac1fid29;
 		/* IMO289 - Meteorological-Hydrological data */
-		struct {
+		struct msg8_1_31{
 			bool valid;
 		    bool accuracy;	/* position accuracy, <10m if true */
 #define DAC1FID31_LATLON_SCALE	1000
@@ -706,14 +707,15 @@ struct ais_t
 #define DAC1FID31_AIRTEMP_NOT_AVAILABLE		-1024
 #define DAC1FID31_AIRTEMP_DIV			10.0
 		    unsigned int humidity;	/* relative humidity, % */
-#define DAC1FID31_HUMIDITY_NOT_AVAILABLE	101
+//#define DAC1FID31_HUMIDITY_NOT_AVAILABLE	101 // by³o
+#define DAC1FID31_HUMIDITY_NOT_AVAILABLE	127 // sam doda³em
 		    int dewpoint;		/* dew point, units 0.1C */
 #define DAC1FID31_DEWPOINT_NOT_AVAILABLE	501
 #define DAC1FID31_DEWPOINT_DIV		10.0
 		    unsigned int pressure;	/* air pressure, hpa */
 #define DAC1FID31_PRESSURE_NOT_AVAILABLE	511
 #define DAC1FID31_PRESSURE_HIGH			402
-#define DAC1FID31_PRESSURE_OFFSET		-799
+#define DAC1FID31_PRESSURE_OFFSET		799
 		    unsigned int pressuretend;	/* tendency */
 #define DAC1FID31_PRESSURETEND_NOT_AVAILABLE	3
 		    bool visgreater;            /* visibility greater than */
@@ -763,7 +765,7 @@ struct ais_t
 	    //};
 	} type8;
 	/* Type 9 - Standard SAR Aircraft Position Report */
-	struct {
+	struct msg9{
 	    unsigned int alt;		/* altitude in meters */
 #define AIS_ALT_NOT_AVAILABLE	4095
 #define AIS_ALT_HIGH    	4094	/* 4094 meters or higher */
@@ -1043,9 +1045,12 @@ const wchar_t *GetTurn(int v);
 wxArrayString PrepareMsg_1(ais_t::msg1 msg);
 wxArrayString PrepareMsg_4(ais_t::msg4 msg);
 wxArrayString PrepareMsg_5(ais_t::msg5 msg);
+wxArrayString PrepareMsg_6(ais_t::msg6 msg);
 wxArrayString PrepareMsg_8(ais_t::msg8 msg);
 wxArrayString PrepareMsg_8_1_11(ais_t::msg8::msg8_1_11 msg);
+wxArrayString PrepareMsg_8_1_31(ais_t::msg8::msg8_1_31 msg);
 wxArrayString PrepareMsg_8_200_10(ais_t::msg8::msg8_200_10 msg);
+wxArrayString PrepareMsg_9(ais_t::msg9);
 wxArrayString PrepareMsg_21(ais_t::msg21 msg);
 
 wxString PrintHtmlSimple(ais_t *msg);
@@ -1060,10 +1065,11 @@ ais_t *ais_msg_exists(int mmsi);
 void from_sixbit(unsigned char *bitvec, unsigned int start, int count, char *to);
 void ais_free_list();
 void ais_free_buffer();
+void ais_free_track();
 size_t ais_get_item_count();
 ais_t *ais_get_item(size_t idx);
 void ais_prepare_buffer(ais_t *ais);
-void ais_prepare_buffer();
+void ais_prepare_buffer(bool search);
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type);
 bool ais_set_mmsi(ais_t *ais, SAisData *ptr);
 bool ais_set_name(ais_t *ais, SAisData *ptr);
@@ -1073,30 +1079,44 @@ bool ais_set_cog(ais_t *ais, SAisData *ptr);
 bool ais_set_hdg(ais_t *ais, SAisData *ptr);
 bool ais_set_sog(ais_t *ais, SAisData *ptr);
 bool ais_set_draught(ais_t *ais, SAisData *ptr);
+bool ais_set_callsign(ais_t *ais, SAisData *ptr);
+bool ais_set_imo(ais_t *ais, SAisData *ptr);
+bool ais_set_turn(ais_t *ais, SAisData *ptr);
+
 CNaviArray <SAisData*> *ais_get_buffer();
+CNaviArray <ais_t*> *ais_get_search_buffer();
 void ais_save_file();
 void ais_load_file();
 void ais_set_option(int val);
 bool ais_get_search_ready();
 ais_mid *ais_get_mid(unsigned int mmsi);
 void ais_buffer_remove(ais_t *ptr);
+SAisData *ais_buffer_exists(int mmsi);
+SAisData *ais_buffer_get_item(int id);
+bool ais_set_class(ais_t *ais, SAisData *ptr);
 
 void ais_set_search_buffer(char *str);
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();
 
+//track buffer
+void ais_set_track(ais_t *ais);
+CNaviArray <SAisData> *ais_track_exists(int mmsi);
+
 float get_speed(unsigned int v);
-float get_lon_lat(int val);
+float get_lon_lat(int val,int msg);
 float get_cog(unsigned int v);
 float get_hdg(unsigned int v);
 float get_length(unsigned int v);
 float get_beam(unsigned int v);
+float get_airtemp(unsigned int v);
+float get_dewpoint(unsigned int v);
 
 wxString get_value_as_string(bool v);
-wxString get_value_as_string(unsigned int v , bool check_na, int na_v );
-wxString get_value_as_string(int v , bool check_na, int na_v );
-wxString get_value_as_string(float v , bool check_na, int na_v);
+wxString get_value_as_string(unsigned int v , bool check_na, int ch_v, int na_v );
+wxString get_value_as_string(int v , bool check_na, int ch_v, int na_v );
+wxString get_value_as_string(float v , bool check_na, int ch_v, int na_v);
 wxString get_value_as_string(char *v);
 
 void ais_message_1(unsigned char *bits, ais_t *ais);

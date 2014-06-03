@@ -46,5 +46,12 @@ void SetHDTLineStyle(int value);
 int GetHDTLineStyle();
 void SetAisDataChanged(bool value);
 bool GetAisDataChanged();
+void SetSelectedPtr(SAisData *ptr);
+SAisData *GetSelectedPtr();
 
+void SetSelectedAnimPtr(SAisData *ptr);
+SAisData *GetSelectedAnimPtr();
+
+bool GetStartAnimation();
+void SetStartAnimation(bool value);
 #endif

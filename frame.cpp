@@ -7,6 +7,7 @@
 #include "tools.h"
 #include "ais.h"
 #include "GeometryTools.h"
+#include "options.h"
 
 DEFINE_EVENT_TYPE(EVT_SHOW_WINDOW)
 
@@ -28,7 +29,6 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	m_DLL = (CMapPlugin*)Parent;
 	m_ParentPtr = ParentPtr;
 	m_AfterInit = false;
-	m_SelectedPtr = NULL;
 	m_Minutes = m_Seconds = 0;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	wxNotebook *m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME|wxCLIP_CHILDREN);
@@ -101,7 +101,7 @@ void CMyFrame::ShowWindowEvent(bool show)
 
 void CMyFrame::OnShowWindow(wxCommandEvent &event)
 {
-	ShowWindowEvent(event.GetInt());
+	ShowWindow(event.GetInt());
 }
 
 void CMyFrame::SetHtml(wxString html,int page)
@@ -124,15 +124,17 @@ void CMyFrame::ClearHtml(int page)
 
 void CMyFrame::OnTickerTick()
 {	
-	SetReportTime();
+	if(this->IsShown())
+		SetReportTime();
 }
 
 void CMyFrame::SetReportTime()
 {
-	if(m_SelectedPtr == NULL)
+	SAisData *ptr = GetSelectedPtr();
+	if(ptr == NULL)
 		return;
 		
-	ais_t *ais = (ais_t*)m_SelectedPtr->ais_ptr;
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
 	m_Seconds = (GetTickCount() - ais->timeout)/1000;
 		
 	int minutes = m_Seconds/60;
@@ -150,11 +152,11 @@ void CMyFrame::SetValues()
 	m_ParentY = m_ParentPtr->GetScreenPosition().y;
 		
 	double to_x, to_y;
-	m_SelectedPtr = m_DLL->GetSelectedPtr();
-	if(m_SelectedPtr == NULL)
+	SAisData *ptr = GetSelectedPtr();
+	if(ptr == NULL)
 		return;
 		
-	m_DLL->GetBroker()->Unproject(m_SelectedPtr->lon,m_SelectedPtr->lat,&to_x,&to_y);
+	m_DLL->GetBroker()->Unproject(ptr->lon,ptr->lat,&to_x,&to_y);
 		
 	double vm[4];
 	m_DLL->GetBroker()->GetVisibleMap(vm);
@@ -186,7 +188,7 @@ void CMyFrame::SetValues()
 		
 	this->SetPosition(pt);
 	
-	ais_t *ais = (ais_t*)m_SelectedPtr->ais_ptr;
+	ais_t *ais = (ais_t*)ptr->ais_ptr;
 	ClearHtml(PAGE_0);
 	SetHtml(PrintHtmlSimple(ais),PAGE_0);
 	

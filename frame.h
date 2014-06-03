@@ -14,7 +14,7 @@ class CMyIcon;
 class CMapPlugin;
 class CMyFrame: public wxDialog
 {
-	SAisData *m_SelectedPtr;
+
 	CMapPlugin *m_DLL;	
 	wxPanel *m_Page0,*m_Page1;
 	wxStaticText *m_Time;
@@ -33,16 +33,15 @@ class CMyFrame: public wxDialog
 	bool IsOnScreen(int x, int y);
 	void SetReportTime();
 	void SetValues();
-	void ShowWindowEvent(bool show);
+	void ShowWindow(bool show);
 	
 public:
 		
-	void ShowWindow(bool show);
 	CMyFrame(void *Parent, wxWindow *ParentPtr);
 	~CMyFrame();
 	void OnTickerTick();
 	void OnShowWindow(wxCommandEvent &event);
-
+	void ShowWindowEvent(bool show);
 		
 	DECLARE_EVENT_TABLE();
 
