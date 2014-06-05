@@ -111,7 +111,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_ThreadCounter;
 	bool m_ShipRender;
 	bool m_ShowFrameWindow;
-	nvPoint2d m_HdtPoint;
+	nvPoint2d m_HdtPoint,m_HdtLastPoint;
 	nvPoint2d m_ShipPoint;
 
 

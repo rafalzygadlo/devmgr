@@ -16,6 +16,7 @@
 #include "signals.h"
 #include "NaviDrawer.h"
 #include "animpos.h"
+#include <math.h>
 
 
 unsigned char PluginInfoBlock[] = {
@@ -1876,17 +1877,17 @@ void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
 
 	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
 	{
-		if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
-		{
+		//if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
+		//{
 			PrepareROTVerticesBuffer(ptr,true);	
 			//PrepareROTLineIndicesBuffer(ptr,true);
-		}	
+		//}	
 
-		if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
-		{
-			PrepareROTVerticesBuffer(ptr,false);
+		//if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
+		//{
+			//PrepareROTVerticesBuffer(ptr,false);
 			//PrepareROTLineIndicesBuffer(ptr,false);
-		}
+		//}
 	}
 
 }
@@ -1901,22 +1902,35 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 	
 	if(right)
 	{
-		m_ROTVerticesBuffer0.Append(m_HdtPoint);
-		p1 = m_ShipPoint;
-		//m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
-		//p1.x = to_x;
-		//p1.y = to_y;
-	
-		p1.x +=  width;	
-		RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(90));	
+		m_ROTVerticesBuffer0.Append(m_HdtLastPoint);
+		
+		p1.x = m_HdtLastPoint.x;
+		p1.y = m_HdtLastPoint.y;
+		m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
+		p1.x = to_x;
+		p1.y = to_y;
+
+
+		double x = (width) * sin(m_Angle + 90 * nvPI/180) + p1.x;
+		double y = (width) * cos(m_Angle + 90 * nvPI/180) + p1.y;
+
+		p1.x = x;
+		p1.y = y;
+		
+		//p1.x =  p1.x + width;
+
+		m_Broker->Unproject(p1.x, p1.y,&to_x,&to_y);
+		
+		//p1.x -= to_x;
+		//p1.y -= to_y;
+
+		//RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(90));
 		//p1.x = out_x; p1.y = out_y;
 		
-		m_Broker->Unproject(ptr->lon, -ptr->lat,&to_x,&to_y);
-
-		p1.x += to_x; p1.y += to_y; 
+		p1.x = to_x; p1.y = to_y; 
 
 		//m_Broker->Unproject(p1.x, p1.y,&to_x,&to_y);
-		//p1.x = to_x;	p1.y = to_y;
+		//p1.x += to_x;	p1.y += to_y;
 
 		m_ROTVerticesBuffer0.Append(p1);
 	}
@@ -2159,7 +2173,8 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	p1.x = -0.5 * width;	p1.y =  0.8 * height;
 	p2.x =  0.0 * width;	p2.y = -0.8 * height;
 	p3.x =  0.5 * width;	p3.y =  0.8 * height;
-	m_ShipPoint = p2;			
+	
+	m_ShipPoint	= p2;			
 	
 	double out_x,out_y;
 
@@ -2476,6 +2491,8 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	double vx = (ToPort(ptr) - ToStarboard(ptr))/2;
 	double vy = (ToBow(ptr) - ToStern(ptr))/2;
 		
+	m_ShipPoint = p5;
+	
 	p1.x -= vx; p1.y -= vy;
 	p2.x -= vx; p2.y -= vy;
 	p3.x -= vx; p3.y -= vy;
@@ -2483,7 +2500,7 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	p5.x -= vx; p5.y -= vy;
 	p6.x -= vx; p6.y -= vy;
 	p7.x -= vx; p7.y -= vy;
-	m_ShipPoint = p5;
+	
 
 	
 #ifdef ROTATE
@@ -2749,7 +2766,7 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
 	p2.x = to_x; p2.y = to_y;
-	//m_HdtLastPoint = p2;
+	m_HdtLastPoint = p2;
 	
 	//nvPoint2d npt;
 
@@ -3664,8 +3681,8 @@ void CMapPlugin::RenderNormalScale()
 	_RenderTriangles();
 	_RenderAtons();
 	_RenderBS();
-	_RenderSAR();				//moze niestabilne
-	_RenderShipLights();
+	//_RenderSAR();				//moze niestabilne
+	//_RenderShipLights();
 	RenderROT();
 	RenderCOG();
 	RenderHDT();
