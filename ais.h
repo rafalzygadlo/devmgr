@@ -1101,6 +1101,8 @@ size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();
 
+double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
+
 //track buffer
 void ais_set_track(ais_t *ais);
 CNaviArray <SAisData> *ais_track_exists(int mmsi);

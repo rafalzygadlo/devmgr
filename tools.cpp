@@ -519,7 +519,14 @@ void RotateZ( double x, double y, double &out_x, double &out_y, double radangle)
 
 double nvBearing(double lon1, double lat1, double lon2, double lat2)
 {
-	return atan2 ((cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2)) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)) * 180/nvPI;
+	double bearing = atan2 (cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)) * 180/nvPI;
+	
+	if(bearing  > 0)
+		return	bearing += 90;
+	if(bearing < -90)
+		return 	bearing = 360 + bearing + 90;
+	if(bearing < 0)
+		return bearing = 90 + bearing;
 }
 
 double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit) 
