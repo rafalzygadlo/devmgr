@@ -1096,6 +1096,7 @@ SAisData *ais_buffer_get_item(int id);
 bool ais_set_class(ais_t *ais, SAisData *ptr);
 
 void ais_set_search_buffer(char *str);
+void ais_check_collision();
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();

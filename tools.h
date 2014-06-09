@@ -57,4 +57,5 @@ wxString GetAisFile();
 wxString RGBAToStr(nvRGBA *RGB);
 nvRGBA StrToRGBA(wxString str);
 double GetMilesPerDegree(double x, double y);
+double nvBearing(double lon1, double lat1, double lon2, double lat2);
 #endif

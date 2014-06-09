@@ -324,7 +324,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void SendSynchroSignal();
 	void ShowMenu();
 	void SetAngle(SAisData *ptr);
-	
+	void CheckCollision();
+
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);
 	void PrepareBSBuffer(SAisData *ptr);

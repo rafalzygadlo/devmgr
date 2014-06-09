@@ -276,6 +276,7 @@ void CAisList::OnColorPicker(wxColourPickerEvent &event)
 		case ID_HDT_COLOR:			color.A = GetColor(HDT_COLOR).A;			SetColor(HDT_COLOR,color);				break;
 		case ID_GPS_COLOR:			color.A = GetColor(GPS_COLOR).A;			SetColor(GPS_COLOR,color);				break;
 		case ID_BASE_STATION_COLOR: color.A = GetColor(BASE_STATION_COLOR).A;	SetColor(BASE_STATION_COLOR,color);		break;
+		case ID_SHIP_TRACK_COLOR:	color.A = GetColor(SHIP_TRACK_COLOR).A;		SetColor(SHIP_TRACK_COLOR,color);		break;
 	}
 
 	Signal();

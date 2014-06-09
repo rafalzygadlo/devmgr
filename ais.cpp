@@ -2,7 +2,7 @@
 #include "tools.h"
 #include <stdio.h>
 #include "options.h"
-
+#include "GeometryTools.h"
 CNaviArray <ais_t*> vAisData;
 CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
@@ -444,6 +444,47 @@ bool ais_get_search_ready()
 	return m_SearchReady;
 }
 
+void ais_check_collision()
+{
+	SAisData *ship_ptr = GetSelectedPtr();
+	if(ship_ptr == NULL)
+		return;
+
+	for(size_t i = 0; i < vAisData.Length(); i++)
+	{
+		SAisData ais_ptr;
+		int angle;
+		ais_t *ptr = ais_get_item(i);
+		ais_set_lon_lat(ptr ,&ais_ptr);
+		ais_set_cog(ptr,&ais_ptr);
+		ais_set_sog(ptr,&ais_ptr);
+
+		angle = abs(ship_ptr->cog - ais_ptr.cog);		
+		double angle_rad = angle * nvPI/180;
+		
+		double target_sog = ais_ptr.sog;				
+		double ship_sog = ship_ptr->sog;
+
+		double a = atan((ship_sog * sin(angle_rad)/ (target_sog - ship_sog * cos(angle_rad))) * (180/nvPI));
+		double a_rad = a *  nvPI/180;
+
+		// Target Relative Course
+		double TRCToCPA = 180 - a - angle;
+		double TRCToCPA_rad = TRCToCPA * nvPI/180;
+
+		// Target Absolute Course
+		double TACToCPA = TRCToCPA + ship_ptr->cog;
+
+		double bearing = nvBearing(ship_ptr->lon,ship_ptr->lat,ais_ptr.lon,ais_ptr.lat);
+
+		fprintf(stdout,"%f %f\n",TRCToCPA,bearing);
+		break;
+	}
+
+}
+
+
+
 void ais_set_search_buffer(char *str)
 {
 	vAisSearch.Clear();
@@ -462,11 +503,7 @@ void ais_set_search_buffer(char *str)
 		bool is_mmsi = ais_set_mmsi(ais,&data);
 		ais_set_class(ais,&data);
 
-		if(data._class == AIS_CLASS_B)
-			int a = 0;
-
-		//if(is_name && is_callsign && is_imo)
-		//{
+		
 		toupper(str);
 		toupper(data.name);
 		toupper(data.callsign);
@@ -2396,6 +2433,9 @@ wxString PrintHtmlSimple(ais_t *msg)
 	ais_set_draught(msg, &ptr);
 	ar.Add(get_value_as_string(get_draught_msg5(ptr.draught),true,ptr.draught,AIS_DRAUGHT_NOT_AVAILABLE));
 
+	ais_set_turn(msg,&ptr);
+	ar.Add(GetTurn(ptr.turn));
+	
 	str.Append(_("<table border=0 cellpadding=2 cellspacing=1 width=100%%>"));
 	str.Append(wxString::Format(_("<tr><td colspan=2><font size=5><b>%s</b></font></td></tr>"),ar.Item(0)));
 	str.Append(wxString::Format(_("<font size=3><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_MMSI),ar.Item(1)));
@@ -2409,6 +2449,7 @@ wxString PrintHtmlSimple(ais_t *msg)
 	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_LON),ar.Item(8)));
 	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_LAT),ar.Item(9)));
 	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_DRAUGHT),ar.Item(10)));
+	str.Append(wxString::Format(_("<font size=2><tr><td><b>%s</b></td><td>%s</td></tr></font>"),GetMsg(MSG_TURN),ar.Item(11)));
 	str.Append(GetHtmlFooter());
 
 	return str;

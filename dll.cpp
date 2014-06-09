@@ -670,6 +670,8 @@ void CMapPlugin::OnTicker2Stop(){}
 void CMapPlugin::OnTicker2Tick()
 {
 	
+	CheckCollision();
+
 	if(m_Render)
 		return;
 		
@@ -1601,6 +1603,11 @@ void CMapPlugin::SetAngle(SAisData *ptr)
 	m_Angle = angle;
 }
 
+void CMapPlugin::CheckCollision()
+{
+	ais_check_collision();
+}
+
 void CMapPlugin::PrepareAisBuffer()
 {
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
@@ -1877,17 +1884,17 @@ void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
 
 	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
 	{
-		//if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
-		//{
+		if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
+		{
 			PrepareROTVerticesBuffer(ptr,true);	
 			//PrepareROTLineIndicesBuffer(ptr,true);
-		//}	
+		}	
 
-		//if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
-		//{
-			//PrepareROTVerticesBuffer(ptr,false);
+		if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
+		{
+			PrepareROTVerticesBuffer(ptr,false);
 			//PrepareROTLineIndicesBuffer(ptr,false);
-		//}
+		}
 	}
 
 }
@@ -1900,54 +1907,26 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 	double out_x,out_y;
 	double to_x,to_y;
 	
+	m_ROTVerticesBuffer0.Append(m_HdtLastPoint);
+	p1.x = m_HdtLastPoint.x;
+	p1.y = m_HdtLastPoint.y;
+	double ship_angle = m_Angle - 90; // opengl -90
+	double angle = 0;
+	
 	if(right)
-	{
-		m_ROTVerticesBuffer0.Append(m_HdtLastPoint);
+		angle = 90;
+	else
+		angle = -90;
 		
-		p1.x = m_HdtLastPoint.x;
-		p1.y = m_HdtLastPoint.y;
-		m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
-		p1.x = to_x;
-		p1.y = to_y;
+	double x = (width) * cos((ship_angle + angle) * nvPI/180) + p1.x;
+	double y = (width) * sin((ship_angle + angle) * nvPI/180) + p1.y;
 
-
-		double x = (width) * sin(m_Angle + 90 * nvPI/180) + p1.x;
-		double y = (width) * cos(m_Angle + 90 * nvPI/180) + p1.y;
-
-		p1.x = x;
-		p1.y = y;
+	p1.x = x;
+	p1.y = y;
+				
+	m_ROTVerticesBuffer0.Append(p1);
+	
 		
-		//p1.x =  p1.x + width;
-
-		m_Broker->Unproject(p1.x, p1.y,&to_x,&to_y);
-		
-		//p1.x -= to_x;
-		//p1.y -= to_y;
-
-		//RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(90));
-		//p1.x = out_x; p1.y = out_y;
-		
-		p1.x = to_x; p1.y = to_y; 
-
-		//m_Broker->Unproject(p1.x, p1.y,&to_x,&to_y);
-		//p1.x += to_x;	p1.y += to_y;
-
-		m_ROTVerticesBuffer0.Append(p1);
-	}
-	
-	
-	
-	
-	
-	
-
-	//p2 = m_HdtLastPoint;
-
-	//m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
-	//p2.x = to_x; p2.y = to_y;
-	
-	
-	
 }
 
 
@@ -3724,7 +3703,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	wxMutexLocker lock(*GetMutex());
+	//wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else

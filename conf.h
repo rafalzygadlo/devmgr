@@ -325,7 +325,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SMALL_SHIP_HEIGHT		35.0
 #define BS_WIDTH				10.0
 #define BS_HEIGHT				10.0
-#define ROT_WIDTH				50.0
+#define ROT_WIDTH				20.0
 
 #define SAR_WIDTH				20.0
 #define SAR_HEIGHT				20.0
@@ -375,6 +375,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define GPS_COLOR			11
 #define BASE_STATION_COLOR	12
 #define SHIP_TRACK_COLOR	13
+
 
 #define TICK_FREQUENCY			0		
 #define TICK_AIS_BUFFER			1
