@@ -7,6 +7,7 @@ CNaviArray <ais_t*> vAisData;
 CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
+CNaviArray <SAisData*> vAisCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
 
 int option = 0;
@@ -444,73 +445,91 @@ bool ais_get_search_ready()
 	return m_SearchReady;
 }
 
+bool ais_set_data(ais_t *ptr, SAisData *data)
+{
+	
+	if(!ais_set_lon_lat(ptr ,data))
+		return false;
+	if(!ais_set_cog(ptr,data))
+		return false;
+	if(!ais_set_sog(ptr,data))
+		return false;
+		
+	ais_set_name(ptr,data);
+	ais_set_mmsi(ptr,data);
+
+	return true;
+
+}
+
+size_t ais_get_collision_item_count()
+{
+	return vAisCollision.Length();
+}
+
+SAisData *ais_get_collision_item(size_t idx)
+{
+	return vAisCollision.Get(idx);
+}
+
 void ais_check_collision()
 {
 	int counter = 0;
+	vAisCollision.Clear();
 	
-	for(size_t i = 0; i < vAisData.Length(); i++)
+	for(size_t i = 0; i < vAisBuffer.Length(); i++)
 	{
+		SAisData *ship = ais_buffer_get_item(i);
 		
-		SAisData ship_ptr;
-		bool set = true;
-		ais_t *ptr = ais_get_item(i);
-		if(!ais_set_lon_lat(ptr ,&ship_ptr))	set = false;
-		if(!ais_set_cog(ptr,&ship_ptr))			set = false;
-		if(!ais_set_sog(ptr,&ship_ptr))			set = false;
-		ais_set_name(ptr,&ship_ptr);
-		ais_set_mmsi(ptr,&ship_ptr);
-	
-		if(set)
+		for(size_t j = 0; j < vAisBuffer.Length(); j++)
 		{
-		
-			for(size_t i = 0; i < vAisData.Length(); i++)
+			SAisData *target = ais_buffer_get_item(j);
+			if(ship->mmsi != target->mmsi)
 			{
-
-				SAisData ais_ptr;
-						
-				ais_t *ptr = ais_get_item(i);
-				bool _set = true;
-				if(!ais_set_lon_lat(ptr ,&ais_ptr))	_set = false;
-				if(!ais_set_cog(ptr,&ais_ptr))		_set = false;
-				if(!ais_set_sog(ptr,&ais_ptr))		_set = false;
-				ais_set_name(ptr,&ais_ptr);
-				ais_set_mmsi(ptr,&ais_ptr);
-	
-				if(_set)
+				if( ais_is_on_collision(ship,target))
 				{
-					if(ais_ptr.mmsi != ship_ptr.mmsi)
-					{
-
-						double d = nvDistance(ship_ptr.lon,ship_ptr.lat,ais_ptr.lon,ais_ptr.lat);
-						if(d < 12)
-						{
-							double cpa = ais_CPA(ship_ptr.lon,ship_ptr.lat,ship_ptr.cog,ship_ptr.sog,ais_ptr.lon,ais_ptr.lat,ais_ptr.cog,ais_ptr.sog);
-		
-							if(cpa < 0.01)
-							{
-								fprintf(stdout,"CPA %f %s -> %s\n",cpa,ship_ptr.name,ais_ptr.name);
-								counter++;
-							}
-						}
-					}
+					vAisCollision.Append(ship);
+					vAisCollision.Append(target);
+					fprintf(stdout,"%s %s\n",ship->name,target->name);
+					counter++;
 				}
 			}
-		
 		}
-		
 	}
 
-	fprintf(stdout,"Counter :%d\n",counter);
+	fprintf(stdout,"%d\n",counter);
+}
+				
+bool ais_is_on_collision(SAisData *ship,SAisData *target)
+{			
+			
+	double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
+	if(d < 12)
+	{
+		double cpa = ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
+		double tcpa = ais_TCPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
+	
+		if(cpa < 0.01)
+		{
+			fprintf(stdout,"%f %f ",cpa,tcpa);
+			return true;
+		}
+	}
 
+	return false;
 }
 
 double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
 {
 
-	if(ship_sog < 0.5 || target_sog < 0.5)
-		return 100.0;
+//	if(ship_sog < 0.5 || target_sog < 0.5)
+	//	return 100.0;
 	
-	int angle = abs(ship_cog - target_cog);		
+	if(ship_sog < 0.5)
+		return 100.0;
+
+
+	int angle = abs(ship_cog - target_cog);
 	double angle_rad = angle * nvPI/180;
 		
 	double a = atan((ship_sog * sin(angle_rad)/ (target_sog - ship_sog * cos(angle_rad))) * (180/nvPI));
@@ -526,7 +545,7 @@ double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog,
 	double bearing = nvBearing(ship_lon,ship_lat,target_lon,target_lat);
 	double rb = bearing;
 
-	//Angle beetween target bearing and target
+	//Angle beetween target bearing and target course
 	double angleTBTC = 360 - TACToCPA - (180 - bearing);
 
 	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
@@ -537,6 +556,32 @@ double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog,
 
 }
 
+double ais_TCPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
+{
+		
+	if(ship_sog < 0.5 || target_sog < 0.5)
+		return 100.0;
+
+	//Angle beetween target sog and ship sog
+	double angleSSTS = (180/nvPI) * acos(ship_sog/target_sog);
+	
+	//Optimal Vessel Course
+	int OVC = int(angleSSTS + target_cog) % 360;
+	double BearingOfTargetAtCPA = OVC + 180;
+
+	double bearing = nvBearing(ship_lon,ship_lat,target_lon,target_lat);
+
+	double angleBTBaCPA = BearingOfTargetAtCPA - bearing;
+	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
+	double closestDistance = distance * cos (angleBTBaCPA * nvPI);
+
+	double relativeSpeed = target_sog * sin(angleBTBaCPA * nvPI/180);
+	double relativeDistance = distance * sin (angleBTBaCPA * nvPI/180);
+	double TCPA = relativeDistance/relativeSpeed;
+	
+	return TCPA;	
+
+}
 
 void ais_set_search_buffer(char *str)
 {

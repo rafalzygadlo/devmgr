@@ -81,6 +81,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSARVerticesBufferPtr = NULL;
 	m_CurrentSARTriangleIndicesBufferPtr = NULL;
 	m_CurrentSARLineIndicesBufferPtr = NULL;
+
+	m_CurrentCPAVerticesBufferPtr = NULL;
 			
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -670,14 +672,15 @@ void CMapPlugin::OnTicker2Stop(){}
 void CMapPlugin::OnTicker2Tick()
 {
 	
-	CheckCollision();
-
 	if(m_Render)
 		return;
 		
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
+	CheckCollision();
+	PrepareCPABuffer();
+	
 	if(GetStartAnimation() && !m_AnimStarted)
 	{
 		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
@@ -1285,7 +1288,10 @@ void CMapPlugin::SetPtr0()
 	m_CurrentSARLineIndicesBufferPtr = &m_SARLineIndicesBuffer1;
 
 	//ROT
-	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer1; 
+	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer1;
+
+	//CPA
+	m_CurrentCPAVerticesBufferPtr = &m_CPAVerticesBuffer1;
 }
 
 void CMapPlugin::SetPtr1()
@@ -1345,6 +1351,9 @@ void CMapPlugin::SetPtr1()
 
 	//ROT
 	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer0; 
+
+	//CPA
+	m_CurrentCPAVerticesBufferPtr = &m_CPAVerticesBuffer0;
 }
 
 
@@ -1414,6 +1423,9 @@ void CMapPlugin::ClearBuffers()
 	//ROT
 	m_ROTVerticesBuffer0.Clear();
 
+	//CPA
+	m_CPAVerticesBuffer0.Clear();
+
 	//indeksy
 	m_IdToTriangleId.Clear();
 	m_IdToShipId.Clear();
@@ -1477,6 +1489,9 @@ void CMapPlugin::CopyBuffers()
 
 	//ROT
 	CopyNvPoint2d(&m_ROTVerticesBuffer0,&m_ROTVerticesBuffer1);
+	
+	//CPA
+	CopyNvPoint2d(&m_CPAVerticesBuffer0,&m_CPAVerticesBuffer1);
 	
 	//statek swiatla
 	m_Light0->CopyBuffers();
@@ -1605,14 +1620,19 @@ void CMapPlugin::SetAngle(SAisData *ptr)
 
 void CMapPlugin::CheckCollision()
 {
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+
 	ais_check_collision();
+	
+	GetMutex()->Unlock();
 }
 
 void CMapPlugin::PrepareAisBuffer()
 {
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-	ais_prepare_buffer(true);
+	ais_prepare_buffer(false);
 
 	GetMutex()->Unlock();
 }
@@ -1645,7 +1665,8 @@ void CMapPlugin::PrepareBuffer()
 	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
-		
+	
+	PrepareCPABuffer();
 	GetMutex()->Unlock();
 
 	m_Ready = true;
@@ -1927,6 +1948,45 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 	m_ROTVerticesBuffer0.Append(p1);
 	
 		
+}
+
+//CPA
+void CMapPlugin::PrepareCPABuffer()
+{
+	for(size_t i = 0; i < ais_get_collision_item_count();i+=2)
+	{
+		PrepareCPAVerticesBuffer(ais_get_collision_item(i),ais_get_collision_item(i + 1));
+	}
+}
+
+//CPA
+void CMapPlugin::PrepareCPAVerticesBuffer(SAisData *ptr1, SAisData *ptr2)
+{
+	nvPoint2d p1,p2,p3;	
+	double to_x,to_y;
+
+	m_Broker->Unproject(ptr1->lon,-ptr1->lat,&to_x,&to_y);
+	p1.x = to_x;
+	p1.y = to_y;
+	
+	m_Broker->Unproject(ptr2->lon,-ptr2->lat,&to_x,&to_y);
+	p2.x = to_x;
+	p2.y = to_y;
+
+	double width = ROT_WIDTH/m_SmoothScaleFactor;
+
+	float angle = nvGetAngleOnChart(p1.x,p1.y,p2.x,p2.y);
+
+	p3.x = (width) * cos((angle + 135) * nvPI/180) + p1.x;
+	p3.y = (width) * sin((angle + 135) * nvPI/180) + p1.y;
+	
+	m_CPAVerticesBuffer0.Append(p1);
+	m_CPAVerticesBuffer0.Append(p2);
+	m_CPAVerticesBuffer0.Append(p1);
+	m_CPAVerticesBuffer0.Append(p3);
+	
+	m_CPAVerticesBuffer0.Append(p1);
+	m_CPAVerticesBuffer0.Append(p2);
 }
 
 
@@ -3445,6 +3505,20 @@ void  CMapPlugin::RenderSelection()
 	
 }
 
+void CMapPlugin::RenderCPA()
+{
+	
+	glLineWidth(5);
+	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+			
+	if(m_CurrentCPAVerticesBufferPtr != NULL && m_CurrentCPAVerticesBufferPtr->Length() > 0)
+		RenderGeometry(GL_LINES,m_CurrentCPAVerticesBufferPtr->GetRawData(),m_CurrentCPAVerticesBufferPtr->Length());
+	glLineWidth(1);
+
+	//glDisable(GL_LINE_STIPPLE);
+}
+
+
 void CMapPlugin::RenderHDT()
 {
 	if(!GetShowHDT())
@@ -3665,6 +3739,7 @@ void CMapPlugin::RenderNormalScale()
 	RenderROT();
 	RenderCOG();
 	RenderHDT();
+	RenderCPA();
 	RenderGPS();
 	RenderShipNames();
 	RenderSelection();

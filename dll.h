@@ -164,6 +164,10 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_SARTriangleIndicesBuffer0;			CNaviArray <int> m_SARTriangleIndicesBuffer1;			CNaviArray <int> *m_CurrentSARTriangleIndicesBufferPtr;
 	CNaviArray <int> m_SARLineIndicesBuffer0;				CNaviArray <int> m_SARLineIndicesBuffer1;				CNaviArray <int> *m_CurrentSARLineIndicesBufferPtr;
 
+	// bufor kolizyjnych punktów statkow CPA
+	CNaviArray <nvPoint2d> m_CPAVerticesBuffer0;			CNaviArray <nvPoint2d> m_CPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCPAVerticesBufferPtr;			// CPA linie
+
+
 	CObject *m_Light0, *m_Light1, *m_Light2;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
@@ -205,6 +209,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSocketConfig(int index);
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
+	void PrepareCPABuffer();
 	void PrepareAisBuffer();
 	void PrepareSearchBuffer();
 	void PrepareTimeoutBuffer();
@@ -262,6 +267,9 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor ROT
 	void PrepareROTVerticesBuffer(SAisData *ptr, bool right);
 	//void PrepareROTLineIndicesBuffer(SAisData *ptr, bool right);
+
+	//bufor CPA
+	void PrepareCPAVerticesBuffer(SAisData *ptr1,SAisData *ptr2);
 
 	bool IsOnScreen(double x , double y);
 	bool VisibleStateChanged();
@@ -339,6 +347,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderCOG();
 	void RenderHDT();
 	void RenderROT();
+	void RenderCPA();
 	void RenderTracks();
 	void RenderBS();
 	void RenderSmallScale();
