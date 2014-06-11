@@ -8,6 +8,7 @@ CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
 CNaviArray <SAisData*> vAisCollision;
+CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
 
 int option = 0;
@@ -462,6 +463,42 @@ bool ais_set_data(ais_t *ptr, SAisData *data)
 
 }
 
+size_t ais_get_ship_collision_count(size_t idx)
+{
+	return vAisShipCollision.Length();
+}
+
+SAisData *ais_get_ship_collision_item(size_t idx)
+{
+	return vAisShipCollision.Get(idx);
+}
+
+void ais_check_ship_collision(double lon, double lat, float cog, float sog)
+{
+	int counter = 0;
+	vAisShipCollision.Clear();
+	
+	for(size_t i = 0; i < vAisBuffer.Length(); i++)
+	{
+		SAisData *target = ais_buffer_get_item(i);
+		
+		SAisData ship;
+		ship.lon = lon;
+		ship.lat = lat;
+		ship.cog = cog;
+		ship.sog = sog;
+
+		if( ais_is_on_collision(&ship,target))
+		{
+			vAisShipCollision.Append(target);
+			fprintf(stdout,"%s\n",target->name);
+			counter++;
+		}
+	}
+
+	fprintf(stdout,"%d\n",counter);
+}
+
 size_t ais_get_collision_item_count()
 {
 	return vAisCollision.Length();
@@ -471,6 +508,7 @@ SAisData *ais_get_collision_item(size_t idx)
 {
 	return vAisCollision.Get(idx);
 }
+
 
 void ais_check_collision()
 {
@@ -504,12 +542,13 @@ bool ais_is_on_collision(SAisData *ship,SAisData *target)
 {			
 			
 	double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
+	
 	if(d < 12)
 	{
 		double cpa = ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
 		double tcpa = ais_TCPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
 	
-		if(cpa < 0.01)
+		if(cpa < 0.2 && tcpa < 0.5 )
 		{
 			fprintf(stdout,"%f %f ",cpa,tcpa);
 			return true;
@@ -528,29 +567,45 @@ double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog,
 	if(ship_sog < 0.5)
 		return 100.0;
 
+	//target_sog = 10.0;
+	//target_cog = 320.0;
 
-	int angle = abs(ship_cog - target_cog);
+	//ship_sog = 12.0;
+	//ship_cog = 10.8;
+
+	int angle = ship_cog - target_cog;
+	if(angle < 0)
+		angle = angle + 360;
+	//else
+		//angle = 360 - angle;
+	
 	double angle_rad = angle * nvPI/180;
 		
-	double a = atan((ship_sog * sin(angle_rad)/ (target_sog - ship_sog * cos(angle_rad))) * (180/nvPI));
+	double a = atan((ship_sog * sin(angle_rad)/ (target_sog - ship_sog * cos(angle_rad)))) * (180/nvPI);
 	double a_rad = a *  nvPI/180;
 
-	// Target Relative Course
+	// Target Relative Course to CPA
 	double TRCToCPA = 180 - a - angle;
 	double TRCToCPA_rad = TRCToCPA * nvPI/180;
 
-	// Target Absolute Course
+	// Target Absolute Course to CPA
 	double TACToCPA = TRCToCPA + ship_cog;
 
 	double bearing = nvBearing(ship_lon,ship_lat,target_lon,target_lat);
 	double rb = bearing;
-
+	//bearing = 170.0;
+	// Target Absolute Course
+	double TAC = TRCToCPA + ship_cog + 180;
+	
 	//Angle beetween target bearing and target course
-	double angleTBTC = 360 - TACToCPA - (180 - bearing);
+	double angleTBTC = 360 - TAC - (180 - bearing);
+	double angleTBTC_rad = angleTBTC * nvPI/180;
 
 	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
 
-	double CPA = abs(distance * sin(angleTBTC));
+	//distance =200.0;
+
+	double CPA = abs(distance * sin(angleTBTC_rad));
 
 	return CPA;
 

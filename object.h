@@ -14,6 +14,7 @@ class CObject
 	nvRGBA m_Color;
 	GLuint m_ArrayBuffer, m_IndicesBuffer;
 	size_t m_IndicesLength;
+	GLenum m_RenderMode;
 	bool m_FirstTime;
 	void CreateVBO();
 	void Generate();
@@ -26,6 +27,7 @@ public:
 	~CObject();
 	
 	void AddIndice(int id);
+	void AddPoint(nvPoint2d pt);
 	size_t GetIndiceLength();
 	int *GetIndiceArray();
 	void Add(nvPoint2d pt, double factor);
@@ -38,6 +40,7 @@ public:
 	void SetCurrentPtr(bool buffer);
 	void SetColor(nvRGBA color);
 	void SetOffset(float vx, float vy);
+	void SetRenderMode(GLenum mode);
 	void RenderData();
 	void Render();	
 	

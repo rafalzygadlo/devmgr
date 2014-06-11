@@ -407,6 +407,14 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 #define AIS_TRACK_LAST_ITEMS	20
 
+#define SHIP_LON	0 
+#define SHIP_LAT	1
+#define SHIP_ROT	2
+#define SHIP_SOG	3
+#define SHIP_COG	4
+#define SHIP_HDT	5
+ 
+
 typedef struct SData
 {
 	int		id;

@@ -167,8 +167,13 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor kolizyjnych punktów statkow CPA
 	CNaviArray <nvPoint2d> m_CPAVerticesBuffer0;			CNaviArray <nvPoint2d> m_CPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCPAVerticesBufferPtr;			// CPA linie
 
+	// bufor kolizyjnych punktów SHIP CPA
+	CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipCPAVerticesBufferPtr;			// Ship CPA linie
+
 
 	CObject *m_Light0, *m_Light1, *m_Light2;
+
+	CObject *m_CPA,*m_ShipCPA;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
@@ -210,6 +215,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PrepareCPABuffer();
+	void PrepareShipCPABuffer();
 	void PrepareAisBuffer();
 	void PrepareSearchBuffer();
 	void PrepareTimeoutBuffer();
@@ -270,6 +276,9 @@ class CMapPlugin :public CNaviMapIOApi
 
 	//bufor CPA
 	void PrepareCPAVerticesBuffer(SAisData *ptr1,SAisData *ptr2);
+
+	//bufor CPA
+	void PrepareShipCPAVerticesBuffer(SAisData *ptr);
 
 	bool IsOnScreen(double x , double y);
 	bool VisibleStateChanged();
@@ -333,6 +342,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ShowMenu();
 	void SetAngle(SAisData *ptr);
 	void CheckCollision();
+	void CheckShipCollision();
 
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);

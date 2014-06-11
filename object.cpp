@@ -15,6 +15,7 @@ CObject::CObject()
 	m_Color.A = 200;
 	m_OffsetX = 0;
 	m_OffsetY = 0;
+	m_RenderMode = GL_TRIANGLES;
 }	
 
 CObject::~CObject(void)
@@ -31,6 +32,11 @@ void CObject::SetOffset(float vx, float vy)
 void CObject::SetColor(nvRGBA color)
 {
 	m_Color = color;
+}
+
+void CObject::AddPoint(nvPoint2d pt)
+{
+	AddVertex(pt);
 }
 
 void CObject::Add(nvPoint2d pt, double factor)
@@ -161,7 +167,10 @@ void CObject::SetCurrentPtr(bool buffer)
 
 }
 
-
+void CObject::SetRenderMode(GLenum mode)
+{
+	m_RenderMode = mode;
+}
 
 void CObject::CreateVBO()
 {
@@ -192,7 +201,7 @@ void CObject::RenderData()
 	//glColorPointer(4, GL_UNSIGNED_BYTE,  0, 0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
-	glDrawElements(GL_TRIANGLES, m_IndicesLength, GL_UNSIGNED_INT,0);
+	glDrawElements(m_RenderMode, m_IndicesLength, GL_UNSIGNED_INT,0);
 			
 	glDisableClientState(GL_VERTEX_ARRAY);
 	

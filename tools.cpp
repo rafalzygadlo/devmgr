@@ -527,6 +527,8 @@ double nvBearing(double lon1, double lat1, double lon2, double lat2)
 		return 	bearing = 360 + bearing + 90;
 	if(bearing < 0)
 		return bearing = 90 + bearing;
+	
+	return bearing;
 }
 
 double nvDistance(double lon1, double lat1, double lon2, double lat2, int distanceunit) 
