@@ -13,7 +13,7 @@ BEGIN_EVENT_TABLE(CStatus,wxDialog)
 END_EVENT_TABLE()
 
 
-CStatus::CStatus(CMySerial *serial)
+CStatus::CStatus(CReader *serial)
 	:wxDialog(NULL,wxID_ANY, _(PRODUCT_NAME), wxDefaultPosition, wxDefaultSize )
 {
 	
@@ -30,8 +30,8 @@ CStatus::CStatus(CMySerial *serial)
 	Panel1Sizer->Add(Status,0,wxALL|wxEXPAND,10);
 
 	wxString port(serial->GetPortName(),wxConvUTF8);
-	Status->AppendText(wxString::Format(_("%s: %s\n"),GetMsg(MSG_PORT).wc_str(),port.wc_str()));
-	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_BAUD).wc_str(),serial->GetBaudRate()));
+	Status->AppendText(wxString::Format(_("%s: %s\n"),GetMsg(MSG_PORT),port.wc_str()));
+	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_BAUD),serial->GetBaudRate()));
 //	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_CONNECTED),serial->IsConnected()));
 //	Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_IS_RUNNING),serial->IsRunning()));
 		

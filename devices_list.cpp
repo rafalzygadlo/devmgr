@@ -252,7 +252,7 @@ void CDevicesList::OnTreeSelChanged(wxTreeEvent &event)
 	{
 		m_ToolBar->EnableTool(ID_START,false);
 		m_ToolBar->EnableTool(ID_STOP,false);
-		ShowInfoPanel(false);
+		//ShowInfoPanel(false);
 		return;
 	}
 	
@@ -269,7 +269,7 @@ void CDevicesList::OnTreeSelChanged(wxTreeEvent &event)
 		m_ToolBar->EnableTool(ID_STOP,false);
 	}
 
-	ShowInfoPanel(true);
+	//ShowInfoPanel(true);
 }
 
 void CDevicesList::OnTreeMenu(wxTreeEvent &event)
@@ -570,13 +570,13 @@ wxPanel *CDevicesList::GetSignalsPanel(CReader *reader)
 void CDevicesList::StartDevice()
 {
 	SetIconEvent(ICON_STOP);
-	ShowInfoPanel(true);  // refresh panela
+	//ShowInfoPanel(true);  // refresh panela
 }
 
 void CDevicesList::StopDevice()
 {
 	SetIconEvent(ICON_START);
-	ShowInfoPanel(true); // refresh panela
+	//ShowInfoPanel(true); // refresh panela
 }
 
 void CDevicesList::OnConnected()
