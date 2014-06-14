@@ -1097,11 +1097,19 @@ bool ais_set_class(ais_t *ais, SAisData *ptr);
 
 void ais_set_search_buffer(char *str);
 void ais_check_collision();
+bool ais_is_on_collision(SAisData *ship,SAisData *target);
+size_t ais_get_collision_item_count();
+SAisData *ais_get_collision_item(size_t idx);
+void ais_check_ship_collision(double lon, double lat, float cog, float sog);
+size_t ais_get_ship_collision_count(size_t idx);
+SAisData *ais_get_ship_collision_item(size_t idx);
+
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();
 
 double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
+double ais_TCPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
 
 //track buffer
 void ais_set_track(ais_t *ais);

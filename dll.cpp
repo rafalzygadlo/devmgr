@@ -81,6 +81,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_CurrentSARVerticesBufferPtr = NULL;
 	m_CurrentSARTriangleIndicesBufferPtr = NULL;
 	m_CurrentSARLineIndicesBufferPtr = NULL;
+
+	m_CurrentCPAVerticesBufferPtr = NULL;
+	m_CurrentShipCPAVerticesBufferPtr = NULL;
 			
 	//m_CurrentHDT = UNDEFINED_DOUBLE;
 	m_LastHDT = UNDEFINED_DOUBLE;
@@ -167,12 +170,20 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Light2->SetColor(color);
 	m_Light2->SetOffset(1.0,2.0);
 	
+	//ship CPA
+	m_ShipCPA = new CObject();
+	// CPA
+	m_CPA = new CObject();
+	m_CPA->SetRenderMode(GL_LINES);
+	color.R = 255;color.G = 0;color.B = 0;color.A = 255;
+	m_CPA->SetColor(color);
+
 	InitMutex();
 	InitSearchMutex();
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	//m_Ticker1->Start(100);
+	m_Ticker1->Start(200);
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
@@ -204,6 +215,8 @@ CMapPlugin::~CMapPlugin()
 	delete m_Light1;
 	delete m_Light2;
 	
+	delete m_ShipCPA;
+	delete m_CPA;
 }
 
 void CMapPlugin::WriteConfig()
@@ -425,65 +438,65 @@ void CMapPlugin::Prepare()
 		
 	if(!m_PositionExists)
 	{
-		if(!UNDEFINED_VAL(m_ShipGlobalState[0]))
+		if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_LON]))
 		{
-			m_ShipOldStaticState[0] = m_ShipStaticState[0];
-			m_ShipState[0] = m_ShipGlobalState[0];
-			m_ShipStaticState[0] = m_ShipGlobalState[0];
-			SetFrequency(0);
+			m_ShipOldStaticState[SHIP_LON] = m_ShipStaticState[SHIP_LON];
+			m_ShipState[SHIP_LON] = m_ShipGlobalState[SHIP_LON];
+			m_ShipStaticState[SHIP_LON] = m_ShipGlobalState[SHIP_LON];
+			SetFrequency(SHIP_LON);
 			m_Position_0_Exists = true;
-			m_SignalID = 0;
+			m_SignalID = SHIP_LON;
 		}
 		
-		if(!UNDEFINED_VAL(m_ShipGlobalState[1]))
+		if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_LAT]))
 		{	
-			m_ShipOldStaticState[1] = m_ShipStaticState[1];
-			m_ShipState[1] = m_ShipGlobalState[1];
-			m_ShipStaticState[1] = m_ShipGlobalState[1];
-			SetFrequency(1);
+			m_ShipOldStaticState[SHIP_LAT] = m_ShipStaticState[SHIP_LAT];
+			m_ShipState[SHIP_LAT] = m_ShipGlobalState[SHIP_LAT];
+			m_ShipStaticState[SHIP_LAT] = m_ShipGlobalState[SHIP_LAT];
+			SetFrequency(SHIP_LAT);
 			m_Position_1_Exists = true;
-			m_SignalID = 1;
+			m_SignalID = SHIP_LAT;
 		}
 	}
 	
-	if(!UNDEFINED_VAL(m_ShipGlobalState[2]))
+	if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_ROT]))
 	{
-		m_ShipOldStaticState[2] = m_ShipStaticState[2];
-		m_ShipState[2] = m_ShipGlobalState[2];
-		m_ShipStaticState[2] = m_ShipGlobalState[2];
-		SetFrequency(2);
+		m_ShipOldStaticState[SHIP_ROT] = m_ShipStaticState[SHIP_ROT];
+		m_ShipState[2] = m_ShipGlobalState[SHIP_ROT];
+		m_ShipStaticState[SHIP_ROT] = m_ShipGlobalState[SHIP_ROT];
+		SetFrequency(SHIP_ROT);
 		m_ROT_Exists = true;
-		m_SignalID = 2;
+		m_SignalID = SHIP_ROT;
 	}
 	
-	if(!UNDEFINED_VAL(m_ShipGlobalState[3]))
+	if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_SOG]))
 	{
-		m_ShipOldStaticState[3] = m_ShipStaticState[3];
-		m_ShipState[3] = m_ShipGlobalState[3];
-		m_ShipStaticState[3] = m_ShipGlobalState[3];
-		SetFrequency(3);
+		m_ShipOldStaticState[SHIP_SOG] = m_ShipStaticState[SHIP_SOG];
+		m_ShipState[SHIP_SOG] = m_ShipGlobalState[SHIP_SOG];
+		m_ShipStaticState[SHIP_SOG] = m_ShipGlobalState[SHIP_SOG];
+		SetFrequency(SHIP_SOG);
 		m_SOG_Exists = true;
-		m_SignalID = 3;
+		m_SignalID = SHIP_SOG;
 	}
 	
-	if(!UNDEFINED_VAL(m_ShipGlobalState[4]))
+	if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_COG]))
 	{
-		m_ShipOldStaticState[4] = m_ShipStaticState[4];
-		m_ShipState[4] = m_ShipGlobalState[4];
-		m_ShipStaticState[4] = m_ShipGlobalState[4];
-		SetFrequency(4);
+		m_ShipOldStaticState[SHIP_COG] = m_ShipStaticState[SHIP_COG];
+		m_ShipState[SHIP_COG] = m_ShipGlobalState[SHIP_COG];
+		m_ShipStaticState[SHIP_COG] = m_ShipGlobalState[SHIP_COG];
+		SetFrequency(SHIP_COG);
 		m_COG_Exists = true;
-		m_SignalID = 4;
+		m_SignalID = SHIP_COG;
 	}
 	
-	if(!UNDEFINED_VAL(m_ShipGlobalState[5]))
+	if(!UNDEFINED_VAL(m_ShipGlobalState[SHIP_HDT]))
 	{
-		m_ShipOldStaticState[5] = m_ShipStaticState[5];
-		m_ShipState[5] = m_ShipGlobalState[5];
-		m_ShipStaticState[5] = m_ShipGlobalState[5];
-		SetFrequency(5);
+		m_ShipOldStaticState[SHIP_HDT] = m_ShipStaticState[SHIP_HDT];
+		m_ShipState[SHIP_HDT] = m_ShipGlobalState[SHIP_HDT];
+		m_ShipStaticState[SHIP_HDT] = m_ShipGlobalState[SHIP_HDT];
+		SetFrequency(SHIP_HDT);
 		m_HDT_Exists = true;
-		m_SignalID = 5;
+		m_SignalID = SHIP_HDT;
 	}
 	
 	if(m_Position_0_Exists && m_Position_1_Exists)
@@ -507,7 +520,7 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		double distance = nvDistance(m_ShipOldStaticState[0],m_ShipOldStaticState[1],m_ShipState[0],m_ShipState[1],nvMeter);
+		double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LON],m_ShipState[SHIP_LON],m_ShipState[SHIP_LAT],nvMeter);
 		//fprintf(stdout,"\nLON LAT %4.10f %4.10f %4.4f\n",m_ShipState[0],m_ShipState[1],distance);
 		m_OldPositionTick = 0;
 		return false;
@@ -557,7 +570,7 @@ bool CMapPlugin::InterpolateHDT()
 	int time = 0;
 
 	if(m_OldHDTTick == 0)
-		time = m_GlobalTick - m_ShipTimes[5];
+		time = m_GlobalTick - m_ShipTimes[SHIP_HDT];
 	else
 		time = m_GlobalTick - m_OldGlobalTick;
 	
@@ -571,14 +584,14 @@ bool CMapPlugin::InterpolateHDT()
 bool CMapPlugin::NewPosition(int time)
 {
 	
-	double v[4] = {m_ShipStaticState[0], m_ShipStaticState[1], m_ShipStaticState[3], m_ShipStaticState[4] };
+	double v[4] = {m_ShipStaticState[SHIP_LON], m_ShipStaticState[SHIP_LAT], m_ShipStaticState[SHIP_SOG], m_ShipStaticState[SHIP_COG] };
 	if(IsUndefined(v,4))
 		return false;
 		
-	double lon = m_ShipStaticState[0];
-	double lat = m_ShipStaticState[1];
-	double sog = m_ShipStaticState[3];
-	double cog = m_ShipStaticState[4];
+	double lon = m_ShipStaticState[SHIP_LON];
+	double lat = m_ShipStaticState[SHIP_LAT];
+	double sog = m_ShipStaticState[SHIP_SOG];
+	double cog = m_ShipStaticState[SHIP_COG];
 	double sec = (double)time/1000.0;
 		
 	double rad360 = 2 * nvPI / 360.0;
@@ -592,11 +605,11 @@ bool CMapPlugin::NewPosition(int time)
 	double nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
 			
 	// przypisz nowe wartosci 
-	m_ShipState[0] = nlon;
-	m_ShipState[1] = nlat;
+	m_ShipState[SHIP_LON] = nlon;
+	m_ShipState[SHIP_LAT] = nlat;
 	
-	m_ShipStaticState[0] = nlon; 
-	m_ShipStaticState[1] = nlat;
+	m_ShipStaticState[SHIP_LON] = nlon; 
+	m_ShipStaticState[SHIP_LAT] = nlat;
 	
 	//fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
 	
@@ -635,7 +648,7 @@ bool CMapPlugin::NewCOG()
 
 bool CMapPlugin::NewSOG()
 {
-	double v[1] = {m_ShipStaticState[3]}; // cog
+	double v[1] = {m_ShipStaticState[3]}; // sog
 	if(IsUndefined(v,1))
 		return false;
 		
@@ -670,14 +683,17 @@ void CMapPlugin::OnTicker2Stop(){}
 void CMapPlugin::OnTicker2Tick()
 {
 	
-	CheckCollision();
-
 	if(m_Render)
 		return;
 		
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
+	CheckCollision();
+	CheckShipCollision();
+	PrepareCPABuffer();
+	PrepareShipCPABuffer();
+	
 	if(GetStartAnimation() && !m_AnimStarted)
 	{
 		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
@@ -1285,7 +1301,8 @@ void CMapPlugin::SetPtr0()
 	m_CurrentSARLineIndicesBufferPtr = &m_SARLineIndicesBuffer1;
 
 	//ROT
-	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer1; 
+	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer1;
+		
 }
 
 void CMapPlugin::SetPtr1()
@@ -1345,6 +1362,7 @@ void CMapPlugin::SetPtr1()
 
 	//ROT
 	m_CurrentROTVerticesBufferPtr = &m_ROTVerticesBuffer0; 
+		
 }
 
 
@@ -1413,7 +1431,7 @@ void CMapPlugin::ClearBuffers()
 
 	//ROT
 	m_ROTVerticesBuffer0.Clear();
-
+	
 	//indeksy
 	m_IdToTriangleId.Clear();
 	m_IdToShipId.Clear();
@@ -1477,6 +1495,7 @@ void CMapPlugin::CopyBuffers()
 
 	//ROT
 	CopyNvPoint2d(&m_ROTVerticesBuffer0,&m_ROTVerticesBuffer1);
+		
 	
 	//statek swiatla
 	m_Light0->CopyBuffers();
@@ -1605,14 +1624,29 @@ void CMapPlugin::SetAngle(SAisData *ptr)
 
 void CMapPlugin::CheckCollision()
 {
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+
 	ais_check_collision();
+	
+	GetMutex()->Unlock();
+}
+
+void CMapPlugin::CheckShipCollision()
+{
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+
+	ais_check_ship_collision(m_ShipState[SHIP_LON],m_ShipState[SHIP_LAT],m_ShipState[SHIP_COG],m_ShipState[SHIP_SOG]);
+	
+	GetMutex()->Unlock();
 }
 
 void CMapPlugin::PrepareAisBuffer()
 {
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-	ais_prepare_buffer(true);
+	ais_prepare_buffer(false);
 
 	GetMutex()->Unlock();
 }
@@ -1929,6 +1963,92 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 		
 }
 
+//CPA
+void CMapPlugin::PrepareCPABuffer()
+{
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+	
+	m_CPA->SetCurrentPtr(true);
+	m_CPA->ClearBuffers();
+	
+	for(size_t i = 0; i < ais_get_collision_item_count();i+=2)
+		PrepareCPAVerticesBuffer(ais_get_collision_item(i),ais_get_collision_item(i + 1));
+
+	m_CPA->CopyBuffers();
+	m_CPA->SetCurrentPtr(false);
+
+	GetMutex()->Unlock();
+
+}
+
+//CPA
+void CMapPlugin::PrepareCPAVerticesBuffer(SAisData *ptr1, SAisData *ptr2)
+{
+	nvPoint2d p1,p2,p3;	
+	double to_x,to_y;
+
+	m_Broker->Unproject(ptr1->lon,-ptr1->lat,&to_x,&to_y);
+	p1.x = to_x;
+	p1.y = to_y;
+	
+	m_Broker->Unproject(ptr2->lon,-ptr2->lat,&to_x,&to_y);
+	p2.x = to_x;
+	p2.y = to_y;
+
+	double width = ROT_WIDTH/m_SmoothScaleFactor;
+
+	float angle = nvGetAngleOnChart(p1.x,p1.y,p2.x,p2.y);
+
+	p3.x = (width) * cos((angle + 135) * nvPI/180) + p1.x;
+	p3.y = (width) * sin((angle + 135) * nvPI/180) + p1.y;
+	
+	m_CPA->AddPoint(p1);
+	m_CPA->AddPoint(p2);
+	
+	
+	int id = m_CPA->GetVertexLength();
+		
+	m_CPA->AddIndice(id - 2);	//0
+	m_CPA->AddIndice(id - 1);	//1
+	
+	
+	//m_CPA->AddPoint(p1);
+	//m_CPA->AddPoint(p3);
+
+	//m_CPA->AddPoint(p1);
+	//m_CPA->AddPoint(p2);
+		
+}
+
+//Ship CPA
+void CMapPlugin::PrepareShipCPABuffer()
+{
+	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+		return;
+	
+	for(size_t i = 0; i < ais_get_collision_item_count();i++)
+	{
+		PrepareShipCPAVerticesBuffer(ais_get_collision_item(i));
+	}
+
+	GetMutex()->Unlock();
+}
+
+
+//Ship CPA
+void CMapPlugin::PrepareShipCPAVerticesBuffer(SAisData *ptr)
+{
+	nvPoint2d p1,p2,p3;	
+	double to_x,to_y;
+
+	m_Broker->Unproject(ptr->lon,-ptr->lat,&to_x,&to_y);
+	p1.x = to_x;
+	p1.y = to_y;
+	
+	m_ShipCPAVerticesBuffer0.Append(p1);
+	
+}
 
 //base station
 void CMapPlugin::PrepareBSVerticesBuffer(SAisData *ptr)
@@ -3445,6 +3565,14 @@ void  CMapPlugin::RenderSelection()
 	
 }
 
+void CMapPlugin::RenderCPA()
+{
+	glLineWidth(2);
+	m_CPA->Render();
+	glLineWidth(1);
+}
+
+
 void CMapPlugin::RenderHDT()
 {
 	if(!GetShowHDT())
@@ -3665,6 +3793,7 @@ void CMapPlugin::RenderNormalScale()
 	RenderROT();
 	RenderCOG();
 	RenderHDT();
+	RenderCPA();
 	RenderGPS();
 	RenderShipNames();
 	RenderSelection();
@@ -3871,6 +4000,7 @@ void CMapPlugin::ThreadBegin()
 {
 	m_ThreadCounter++;
 	PrepareBuffer();
+	PrepareCPABuffer();
 		
 	if(m_MouseUp)
 	{
