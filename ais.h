@@ -1103,6 +1103,7 @@ SAisData *ais_get_collision_item(size_t idx);
 void ais_check_ship_collision(double lon, double lat, float cog, float sog);
 size_t ais_get_ship_collision_count(size_t idx);
 SAisData *ais_get_ship_collision_item(size_t idx);
+void ais_free_collision();
 
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);

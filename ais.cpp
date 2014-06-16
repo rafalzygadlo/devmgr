@@ -537,20 +537,25 @@ void ais_check_collision()
 
 	fprintf(stdout,"%d\n",counter);
 }
+
+void ais_free_collision()
+{
+	vAisCollision.Clear();
+}
 				
 bool ais_is_on_collision(SAisData *ship,SAisData *target)
 {			
 			
 	double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
-	
-	if(d < 12)
+		
+	if(d < 0.5)
 	{
 		double cpa = ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
 		double tcpa = ais_TCPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
-	
-		if(cpa < 0.2 && tcpa < 0.5 )
+		fprintf(stdout,"%f %f ",cpa,tcpa);
+		if( cpa < 0.2 )
 		{
-			fprintf(stdout,"%f %f ",cpa,tcpa);
+			//fprintf(stdout,"%f %f ",cpa,tcpa);
 			return true;
 		}
 	}
@@ -576,9 +581,12 @@ double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog,
 	int angle = ship_cog - target_cog;
 	if(angle < 0)
 		angle = angle + 360;
-	//else
-		//angle = 360 - angle;
 	
+	if(angle > 180)
+		angle = 360 - angle;
+	
+	angle = 0;
+
 	double angle_rad = angle * nvPI/180;
 		
 	double a = atan((ship_sog * sin(angle_rad)/ (target_sog - ship_sog * cos(angle_rad)))) * (180/nvPI);
@@ -586,24 +594,27 @@ double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog,
 
 	// Target Relative Course to CPA
 	double TRCToCPA = 180 - a - angle;
+	TRCToCPA = 0;
 	double TRCToCPA_rad = TRCToCPA * nvPI/180;
-
-	// Target Absolute Course to CPA
-	double TACToCPA = TRCToCPA + ship_cog;
-
+		
 	double bearing = nvBearing(ship_lon,ship_lat,target_lon,target_lat);
 	double rb = bearing;
-	//bearing = 170.0;
+	//bearing = 120.0;
 	// Target Absolute Course
-	double TAC = TRCToCPA + ship_cog + 180;
-	
+	int TAC = int(TRCToCPA + ship_cog + 180) % 360;
+	//bearing = 0;
 	//Angle beetween target bearing and target course
 	double angleTBTC = 360 - TAC - (180 - bearing);
 	double angleTBTC_rad = angleTBTC * nvPI/180;
 
 	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
 
-	//distance =200.0;
+	//distance =20.0;
+
+//	fprintf(stdout,"%d",angle);
+	fprintf(stdout,"angle:%d A:%4.2f TRC:%4.2f bearing %4.2f AB %4.2f\n",angle,a,TRCToCPA,bearing,angleTBTC);
+		
+		//a,TRCToCPA,TACToCPA,bearing,angleTBTC);
 
 	double CPA = abs(distance * sin(angleTBTC_rad));
 

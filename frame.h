@@ -24,6 +24,7 @@ class CMyFrame: public wxDialog
 	bool m_AfterInit;
 	CTicker *m_Ticker;
 	int m_Seconds,m_Minutes;
+	wxStaticBitmap *m_ShipImage;
 	
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
@@ -34,6 +35,7 @@ class CMyFrame: public wxDialog
 	void SetReportTime();
 	void SetValues();
 	void ShowWindow(bool show);
+	void SetImage();
 	
 public:
 		

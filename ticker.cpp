@@ -57,9 +57,48 @@ return 0;
 
 }
 */
+/*
+void CTicker::Start(int sleep)
+{
+	
+	_Sleep = sleep;
+	_Stop = false;
+
+	if (this->Create() == wxTHREAD_NO_ERROR )
+    {
+		this->SetPriority(WXTHREAD_DEFAULT_PRIORITY);
+        this->Run();
+    }
+
+}
+
+void CTicker::Stop()
+{
+	_Stop = true;
+}
+void *CTicker::Entry()
+{
+	while(1)
+	{
+		SendSignal();	
+		Sleep(_Sleep);
+		if(_Stop)
+			break;
+	}
+
+	return 0;
+}
+*/
 
 void CTicker::Notify()
 {
+	SendSignal();
+}
+
+
+void CTicker::SendSignal()
+{
+
 	switch(Id)
 	{
 		case TICK_FREQUENCY:		((CMapPlugin*)Parent)->OnTicker1Tick();		break;
@@ -67,9 +106,10 @@ void CTicker::Notify()
 		case TICK_ANIM:				((CMapPlugin*)Parent)->OnTickerAnimTick();	break;
 		case TICK_DISPLAY_REFRESH:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
 		case TICK_WINDOW_REFRESH:	((CMyFrame*)Parent)->OnTickerTick();		break;
-		
 	}
+
 }
+
 
 bool CTicker::GetExit()
 {

@@ -171,7 +171,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Light2->SetOffset(1.0,2.0);
 	
 	//ship CPA
-	m_ShipCPA = new CObject();
+	//m_ShipCPA = new CObject();
 	// CPA
 	m_CPA = new CObject();
 	m_CPA->SetRenderMode(GL_LINES);
@@ -188,7 +188,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
 	m_TickerAnim = new CTicker(this,TICK_ANIM);
-	//m_TickerAnim->Start(1);	
+	
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -215,7 +215,7 @@ CMapPlugin::~CMapPlugin()
 	delete m_Light1;
 	delete m_Light2;
 	
-	delete m_ShipCPA;
+	//delete m_ShipCPA;
 	delete m_CPA;
 }
 
@@ -690,13 +690,12 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareBuffer();
 	PrepareSearchBuffer();
 	CheckCollision();
-	CheckShipCollision();
+	//CheckShipCollision();
 	PrepareCPABuffer();
-	PrepareShipCPABuffer();
+	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)
 	{
-		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
 		m_AnimTick = 0;
 		m_AnimStarted = true;
 		m_TickerAnim->Start(50);
@@ -705,7 +704,6 @@ void CMapPlugin::OnTicker2Tick()
 	if(m_AnimTick > 10)
 	{
 		m_AnimStarted = false;
-		//m_Broker->StartAnimation(false,m_Broker->GetParentPtr());
 		m_AnimTick = 0;
 		SetStartAnimation(false);
 		m_TickerAnim->Stop();
@@ -891,7 +889,7 @@ void CMapPlugin::Kill(void)
 	
 	m_TickerAnim->Stop();
 	delete m_TickerAnim;
-
+	
 	m_NeedExit = true;
 	WriteConfig();
 	WriteOptionsConfig();
@@ -912,6 +910,7 @@ void CMapPlugin::Kill(void)
 	ais_free_list();
 	ais_free_buffer();
 	ais_free_track();
+	ais_free_collision();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
@@ -3832,7 +3831,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());
+	wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
@@ -4111,8 +4110,8 @@ void *CMapPlugin::OnSynchro(void *NaviMapIOApiPtr, void *Params)
 
 void CMapPlugin::Synchro()
 { 
-	m_Ticker1->Stop();
-	m_Ticker1->Start(1000/GetFrequency());
+	//m_Ticker1->Stop();
+	//m_Ticker1->Start(1000/GetFrequency());
 	
 	SendSynchroSignal();
 	m_Broker->Refresh(m_Broker->GetParentPtr());

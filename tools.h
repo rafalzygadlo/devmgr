@@ -15,7 +15,8 @@ wxMutex *GetSearchMutex();
 void FreeSearchMutex();
 void InitSearchMutex();
 
-wxString GetPluginConfigPath();								
+wxString GetPluginConfigPath();
+wxString GetPluginDataFilePath();
 wxString GetWorkDir(void);
 void PrintInfo(CNaviBroker *Broker,wchar_t *text);	// drukuj info na mapie
 char **ExplodeStr(const char *str, const char *separator, int *size);
@@ -58,4 +59,5 @@ wxString RGBAToStr(nvRGBA *RGB);
 nvRGBA StrToRGBA(wxString str);
 double GetMilesPerDegree(double x, double y);
 double nvBearing(double lon1, double lat1, double lon2, double lat2);
+bool GetShipImage(int mmsi, char *&buffer, int *size);
 #endif

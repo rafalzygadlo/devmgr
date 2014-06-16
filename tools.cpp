@@ -3,6 +3,8 @@
 #include <wx/stdpaths.h>
 #include "protocol.h"
 #include "GeometryTools.h"
+#include <wx/zipstrm.h>
+#include <wx/mstream.h>
 
 wxMutex *mutex = NULL;
 wxMutex *smutex = NULL;
@@ -242,6 +244,11 @@ wxString GetPluginConfigPath()
 	return wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(PLUGIN_CONFIG_FILE));
 }
 
+wxString GetPluginDataFilePath()
+{
+	return wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(PLUGIN_DATA_FILE));
+}
+
 void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 {
 	// 9 id chart_catalogu
@@ -253,9 +260,10 @@ void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 wxString GetWorkDir(void)
 {
 	static wxString buffer;
-	wxStandardPaths *Paths = new wxStandardPaths();
- 	buffer.Printf(wxT("%s%s%s"), Paths->GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
-	delete Paths;
+	//wxStandardPaths *Paths = new wxStandardPaths();
+	wxStandardPaths Paths = wxStandardPaths::Get();
+ 	buffer.Printf(wxT("%s%s%s"), Paths.GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
+	//delete Paths;
 	return buffer;
 }
 
@@ -733,4 +741,60 @@ nvRGBA StrToRGBA(wxString str)
 	str1 = str.substr(9,3);	RGB.A = atoi(str1.char_str());
 
 	return RGB;
+}
+
+
+
+
+bool GetShipImage(int mmsi, char *&buffer, int *size)
+{
+	
+	FILE *f;
+	
+	wxString str = GetPluginDataFilePath();
+	wxCharBuffer file = str.ToUTF8(); 
+	const char *fname = file.data();
+		
+	f = fopen(fname , "rb" );
+	
+	if( f == NULL )
+		return false;
+
+	int data_size = nvFileSize(fname);
+	
+	rewind(f);
+	
+	char *data = (char*)malloc(data_size);
+		
+	size_t a = fread(data,data_size,1,f);
+	fclose(f);
+	wxMemoryInputStream memory(data,data_size);
+	
+	wxZipInputStream zip(memory);
+	wxZipEntry *entry;
+	int i = 0;
+	
+	bool exists = false;
+	while((entry = zip.GetNextEntry()) != NULL)
+	{
+		
+		wxString str = entry->GetName();
+		wxString _mmsi = wxString::Format(_("%d.jpg"),(mmsi));
+		if(str.CmpNoCase(_mmsi) == 0)
+		{
+			buffer = (char*)malloc(zip.GetLength());
+			*size = zip.GetLength();
+			zip.Read( buffer,*size );
+			exists = true;
+			delete entry;
+			break;
+		}
+		
+		delete entry;
+		
+	}
+	
+	free(data);
+	return exists;
+	
 }

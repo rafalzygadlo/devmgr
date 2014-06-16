@@ -202,7 +202,7 @@ void CDevicesList::GetPanel()
 	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,2);
 	
-	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,0,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
+	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	
 	FlexSizer->Add(m_Frequency,0,wxALL|wxEXPAND,2);
 	m_Frequency->SetMin(1);
@@ -547,7 +547,7 @@ wxPanel *CDevicesList::GetSignalsPanel(CReader *reader)
 	int cols = this->GetSize().GetWidth()/30;
 
 	wxPanel *Panel = new wxPanel(m_InfoPanel,wxID_ANY);
-	wxFlexGridSizer *grid = new wxFlexGridSizer(cols,0);
+	wxFlexGridSizer *grid = new wxFlexGridSizer(cols);
 	
 	Panel->SetSizer(grid);
 	wxFont font;

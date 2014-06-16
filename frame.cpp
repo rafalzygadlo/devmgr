@@ -8,6 +8,8 @@
 #include "ais.h"
 #include "GeometryTools.h"
 #include "options.h"
+#include <wx/dialog.h>
+
 
 DEFINE_EVENT_TYPE(EVT_SHOW_WINDOW)
 
@@ -24,7 +26,7 @@ extern CNaviBroker *BrokerPtr;
 //FRAME
 
 CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
-	:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_3D)
+	:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0)
 {
 	m_DLL = (CMapPlugin*)Parent;
 	m_ParentPtr = ParentPtr;
@@ -41,7 +43,11 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	wxBoxSizer *Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	m_Page0->SetSizer(Page1Sizer);
 
-	m_Html0 = new wxHtmlWindow(m_Page0,wxID_ANY,wxDefaultPosition,wxSize(300,350));
+	wxBitmap bmp;
+	m_ShipImage = new wxStaticBitmap(m_Page0,wxID_ANY,bmp);
+	Page1Sizer->Add(m_ShipImage,0,wxALL|wxEXPAND,0);
+
+	m_Html0 = new wxHtmlWindow(m_Page0,wxID_ANY,wxDefaultPosition,wxSize(300,200));
 	Page1Sizer->Add(m_Html0,1,wxALL|wxEXPAND,0);
 		
 	// Page2
@@ -142,7 +148,14 @@ void CMyFrame::SetReportTime()
 	m_Time->SetLabel(wxString::Format(_("Last Report Timeout: %02d:%02d"),minutes,_div.rem));
 
 	if(m_Seconds == 0)
+	{
 		SetValues();
+		this->Layout();
+		m_Html0->Layout();
+		m_Html1->Layout();
+		m_Html0->UpdateWindowUI();
+		m_Html1->UpdateWindowUI();
+	}
 	
 }
 
@@ -194,7 +207,6 @@ void CMyFrame::SetValues()
 	
 	ClearHtml(PAGE_1);
 	SetHtml(_("<a name='top'></a><br>"),PAGE_1);
-		
 	SetHtml(PrintHtmlAnchors(ais),PAGE_1);
 		
 	for(size_t i = 0; i < AIS_MESSAGES_LENGTH; i++)
@@ -207,11 +219,51 @@ void CMyFrame::SetValues()
 
 }
 
+void CMyFrame::SetImage()
+{
+	SAisData *ptr = GetSelectedPtr();
+	if(ptr == NULL)
+		return;
+	
+	char *buffer = NULL;
+	int size;
+	
+	if(GetShipImage(ptr->mmsi,buffer,&size))
+	{
+		if(buffer == NULL)
+			return;
+		wxMemoryInputStream in_0(buffer, size);
+		wxImage img_0(in_0,wxBITMAP_TYPE_ANY);
+		free(buffer);		
+		
+		if(img_0.IsOk())
+		{
+			wxBitmap bmp_0(img_0);
+			m_ShipImage->SetBitmap(bmp_0);
+			m_ShipImage->Show();
+			m_Page0->Layout();
+		}
+
+	}else{
+	
+		m_ShipImage->Hide();
+		m_Page0->Layout();
+	
+	}
+
+	if(GetSizer())
+			GetSizer()->SetSizeHints(this);
+	
+}
+
 
 void CMyFrame::ShowWindow(bool show)
 {
 	if(show)
+	{
+		SetImage();
 		SetValues();
+	}
 	
 	Show(show);
 	

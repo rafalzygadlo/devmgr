@@ -26,10 +26,16 @@ bool m_AisDataChanged = true;
 bool m_StartAnimation = false;
 SAisData *m_SelectedPtr = NULL;
 SAisData *m_SelectedAnimPtr = NULL;
+int m_CPA;
 
 nvRGBA ColorShip0A, ColorShip1A, ColorShip2A, ColorShipBorderA;
 nvRGBA ColorShip0B, ColorShip1B, ColorShip2B, ColorShipBorderB;
 nvRGBA ColorAton, ColorHDT, ColorCOG, ColorGPS, ColorBS;
+
+void SetCPA()
+{
+
+}
 
 void SetSelectedPtr(SAisData *ptr)
 {

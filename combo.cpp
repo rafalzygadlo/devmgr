@@ -6,7 +6,7 @@
 #include "tools.h"
 
 CPenStyleComboBox::CPenStyleComboBox(wxWindow *parent, int id)
-	:wxOwnerDrawnComboBox(parent,id,wxEmptyString, wxDefaultPosition, wxDefaultSize,NULL,wxCB_READONLY )
+	:wxOwnerDrawnComboBox(parent,id,wxEmptyString, wxDefaultPosition, wxDefaultSize )
 {
 	Append(GetMsg(MSG_LINE_STYLE_SOLID));
 	Append(GetMsg(MSG_LINE_STYLE_DASH));

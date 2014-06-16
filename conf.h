@@ -21,6 +21,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define PRODUCT_VERSION "1.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
+#define PLUGIN_DATA_FILE "devmgr.data"   // zip z różnymi danymi
 
 #define KEY_DEVICES "devices"
 #define KEY_NAME "name"
@@ -307,7 +308,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
 #define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
 #define DEFAULT_MAX_FREQUENCY	1000	// sekunda			
-#define AIS_BUFFER_INTERVAL		1000	//zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL		2000	//zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
