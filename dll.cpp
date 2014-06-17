@@ -189,6 +189,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 	m_TickerAnim = new CTicker(this,TICK_ANIM);
 	
+	SetBroker(NaviBroker);
+
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -1971,9 +1973,9 @@ void CMapPlugin::PrepareCPABuffer()
 	m_CPA->SetCurrentPtr(true);
 	m_CPA->ClearBuffers();
 	
-	for(size_t i = 0; i < ais_get_collision_item_count();i+=2)
-		PrepareCPAVerticesBuffer(ais_get_collision_item(i),ais_get_collision_item(i + 1));
-
+	for(size_t i = 0; i < ais_get_line_item_count();i+=2)
+		PrepareCPAVerticesBuffer(ais_get_line_item(i),ais_get_line_item(i+1));
+	
 	m_CPA->CopyBuffers();
 	m_CPA->SetCurrentPtr(false);
 
@@ -1982,41 +1984,16 @@ void CMapPlugin::PrepareCPABuffer()
 }
 
 //CPA
-void CMapPlugin::PrepareCPAVerticesBuffer(SAisData *ptr1, SAisData *ptr2)
+void CMapPlugin::PrepareCPAVerticesBuffer(nvPoint2d pt1,nvPoint2d pt2)
 {
-	nvPoint2d p1,p2,p3;	
-	double to_x,to_y;
-
-	m_Broker->Unproject(ptr1->lon,-ptr1->lat,&to_x,&to_y);
-	p1.x = to_x;
-	p1.y = to_y;
 	
-	m_Broker->Unproject(ptr2->lon,-ptr2->lat,&to_x,&to_y);
-	p2.x = to_x;
-	p2.y = to_y;
-
-	double width = ROT_WIDTH/m_SmoothScaleFactor;
-
-	float angle = nvGetAngleOnChart(p1.x,p1.y,p2.x,p2.y);
-
-	p3.x = (width) * cos((angle + 135) * nvPI/180) + p1.x;
-	p3.y = (width) * sin((angle + 135) * nvPI/180) + p1.y;
-	
-	m_CPA->AddPoint(p1);
-	m_CPA->AddPoint(p2);
-	
-	
+	m_CPA->AddPoint(pt1);
+	m_CPA->AddPoint(pt2);
+			
 	int id = m_CPA->GetVertexLength();
 		
 	m_CPA->AddIndice(id - 2);	//0
-	m_CPA->AddIndice(id - 1);	//1
-	
-	
-	//m_CPA->AddPoint(p1);
-	//m_CPA->AddPoint(p3);
-
-	//m_CPA->AddPoint(p1);
-	//m_CPA->AddPoint(p2);
+	m_CPA->AddIndice(id - 1);	//0
 		
 }
 

@@ -13,6 +13,7 @@ bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 SFrequency FrequencyTable;
 int MaxFrequency  = 0;
+CNaviBroker *Broker = NULL;
 //float m_FontSize;
 //bool m_ShowNames;
 
@@ -528,14 +529,15 @@ void RotateZ( double x, double y, double &out_x, double &out_y, double radangle)
 double nvBearing(double lon1, double lat1, double lon2, double lat2)
 {
 	double bearing = atan2 (cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)) * 180/nvPI;
-	
+	/*
 	if(bearing  > 0)
 		return	bearing += 90;
 	if(bearing < -90)
 		return 	bearing = 360 + bearing + 90;
 	if(bearing < 0)
 		return bearing = 90 + bearing;
-	
+	*/
+	//bearing = bearing + 90;
 	return bearing;
 }
 
@@ -798,3 +800,35 @@ bool GetShipImage(int mmsi, char *&buffer, int *size)
 	return exists;
 	
 }
+
+ bool CheckLineIntersection(double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y, double *i_x, double *i_y) 
+{
+
+    double s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+    double s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0) {
+
+        if (i_x != NULL)
+            *i_x = p0_x + (t * s1_x);
+        if (i_y != NULL)
+            *i_y = p0_y + (t * s1_y);
+        return true;
+    }
+
+    return false;
+};
+
+ void SetBroker(CNaviBroker *ptr)
+ {
+	Broker = ptr;
+ }
+
+ CNaviBroker *GetBroker()
+ {
+	return Broker;
+ }

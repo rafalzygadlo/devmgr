@@ -8,6 +8,7 @@
 #include <wx/wx.h>
 #include "NaviArgsTypes.h"
 #include "NaviArray.h"
+#include "GeometryTools.h"
 #include "conf.h"
 
 #define AIS_MESSAGES_LENGTH	27
@@ -17,6 +18,7 @@
 #define UCHARS(s, to)	from_sixbit((unsigned char *)bits, s, sizeof(to)-1, to)
 #define ENDCHARS(s, to)	from_sixbit((unsigned char *)bits, s, (bitlen-(s))/6,to)
 #define AIS_AUXILIARY_MMSI(n)	((n) / 10000000 == 98)
+
 
 #define AIS_MSG_1	1
 #define AIS_MSG_2	2
@@ -1105,9 +1107,14 @@ size_t ais_get_ship_collision_count(size_t idx);
 SAisData *ais_get_ship_collision_item(size_t idx);
 void ais_free_collision();
 
+size_t ais_get_line_item_count();
+nvPoint2d ais_get_line_item(size_t idx);
+
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();
+
+bool ais_collision(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
 
 double ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
 double ais_TCPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog );
