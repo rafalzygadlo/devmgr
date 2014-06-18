@@ -17,6 +17,7 @@
 	#include <crtdbg.h>
 #endif
 
+class CStatus;
 class CDevicesList : public wxPanel
 {
 	
@@ -49,6 +50,7 @@ class CDevicesList : public wxPanel
 	wxString m_Caption;
 	CReader *m_Reader;
 	wxSlider *m_Frequency;
+	CStatus *m_Status;
 		
 	int GetControlType();
 	void GetPanel();
@@ -96,6 +98,7 @@ class CDevicesList : public wxPanel
 	void OnConnected();
 	void OnNoSignal();
 	void OnReconnect();
+	void OnNMEALine(CReader *reader);
 
 
 public:

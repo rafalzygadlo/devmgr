@@ -2,7 +2,7 @@
 #include "ticker.h"
 #include "display.h"
 #include "dll.h"
-
+#include "status.h"
 
 CTicker::CTicker(void *parent, int id)
 	:wxTimer()
@@ -106,6 +106,7 @@ void CTicker::SendSignal()
 		case TICK_ANIM:				((CMapPlugin*)Parent)->OnTickerAnimTick();	break;
 		case TICK_DISPLAY_REFRESH:	((CDisplayPlugin*)Parent)->OnTickerTick();	break;
 		case TICK_WINDOW_REFRESH:	((CMyFrame*)Parent)->OnTickerTick();		break;
+		//case TICK_STATUS_REFRESH:	((CStatus*)Parent)->OnTickerTick();			break;
 	}
 
 }

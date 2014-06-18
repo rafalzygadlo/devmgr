@@ -253,7 +253,7 @@ void CMapPlugin::WriteSerialConfig(int index)
 	
 	CReader *Reader = (CReader*)m_Devices->Item(index);
 	name = Reader->GetDeviceName();
-	running = Reader->IsRunning();
+	running = Reader->GetIsRunning();
 	wxString port(Reader->GetSerialPort(),wxConvUTF8);
 	baud = Reader->GetBaudRate();
 	type = Reader->GetDeviceType();
@@ -275,7 +275,7 @@ void CMapPlugin::WriteSocketConfig(int index)
 	
 	CReader *Reader = (CReader*)m_Devices->Item(index);
 	name = Reader->GetDeviceName();
-	running = Reader->IsRunning();
+	running = Reader->GetIsRunning();
 	port = Reader->GetPort();
 	host = wxString(Reader->GetHost(),wxConvUTF8);
 	ctype = Reader->GetConnectionType();
@@ -691,9 +691,9 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	CheckCollision();
+	//CheckCollision();
 	//CheckShipCollision();
-	PrepareCPABuffer();
+	//PrepareCPABuffer();
 	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)
@@ -3976,7 +3976,7 @@ void CMapPlugin::ThreadBegin()
 {
 	m_ThreadCounter++;
 	PrepareBuffer();
-	PrepareCPABuffer();
+	//PrepareCPABuffer();
 		
 	if(m_MouseUp)
 	{

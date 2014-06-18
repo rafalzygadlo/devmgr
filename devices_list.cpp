@@ -52,6 +52,7 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 :wxPanel(parent)
 
 {
+	m_Status = NULL;
 	m_SelectedDevice = NULL;
 	m_Broker = NULL;
 	m_SignalsPanel = NULL;
@@ -70,6 +71,7 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 		m_Broker = m_MapPlugin->GetBroker();
 		SetDevices();
 	}
+	m_Status = new CStatus();
 
 }
 
@@ -77,6 +79,7 @@ CDevicesList::~CDevicesList()
 {
 	if(m_DeviceConfig != NULL)
 		delete m_DeviceConfig;
+	delete m_Status;
 		
 }
 
@@ -231,7 +234,7 @@ void CDevicesList::SetSignal(int stype, CReader* reader)
 		case SIGNAL_RECONNECT: 			OnReconnect();		break;
 		case SIGNAL_NO_SIGNAL:			OnNoSignal();		break;
 		case SIGNAL_CONNECTED:			OnConnected();		break;
-//		case SIGNAL_NMEA_LINE:			OnNMEALine();		break;
+		case SIGNAL_NMEA_LINE:			OnNMEALine(reader);	break;
 		//case DATA_SIGNAL:				OnData();			break;
 	}
 
@@ -258,7 +261,7 @@ void CDevicesList::OnTreeSelChanged(wxTreeEvent &event)
 	
 	m_SelectedDevice = m_SelectedItem->GetReader();
 	
-	if(m_SelectedDevice->IsRunning())
+	if(m_SelectedDevice->GetIsRunning())
 	{	
 		m_ToolBar->EnableTool(ID_START,false);
 		m_ToolBar->EnableTool(ID_STOP,true);
@@ -303,7 +306,7 @@ void CDevicesList::OnTreeMenu(wxTreeEvent &event)
 	Menu->Append(ID_STATUS,GetMsg(MSG_STATUS));
 	Menu->Append(ID_UNINSTALL,GetMsg(MSG_UNINSTALL));
 
-	bool running = m_SelectedDevice->IsRunning();
+	bool running = m_SelectedDevice->GetIsRunning();
 	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
 	Menu->Enable(ID_STOP,running);
 	Menu->Enable(ID_START,!running);
@@ -316,7 +319,10 @@ void CDevicesList::OnTreeMenu(wxTreeEvent &event)
 
 void CDevicesList::OnStatus(wxCommandEvent &event)
 {
-	
+	m_Status->SetReader(m_SelectedDevice);
+	m_Status->ShowModal();
+	m_Status->SetShowLog(false);
+	m_SelectedDevice->SetLineEvent(false);
 }
 
 void CDevicesList::OnStop(wxCommandEvent &event)
@@ -368,7 +374,7 @@ void CDevicesList::OnConfigureDevice(wxCommandEvent &event)
 
 void CDevicesList::OnMonitor(wxHyperlinkEvent &event)
 {
-	m_SelectedDevice->SetLineEvent();
+	m_SelectedDevice->SetLineEvent(true);
 	m_Logger->Show();
 	m_InfoPanelSizer->Layout();
 	Page1Sizer->Layout();
@@ -377,7 +383,7 @@ void CDevicesList::OnMonitor(wxHyperlinkEvent &event)
 
 void CDevicesList::ConfigureDevice()
 {
-	if(m_SelectedDevice->IsRunning())
+	if(m_SelectedDevice->GetIsRunning())
 	{
 		wxMessageBox(GetMsg(MSG_STOP_THE_DEVICE));
 		return;
@@ -506,7 +512,7 @@ void CDevicesList::ShowInfoPanel(bool show)
 			case CONNECTION_TYPE_SOCKET: m_LabelPort->SetLabel(wxString::Format(_("%s %d"),host.wc_str(),ptr->GetPort())); break;
 		}
 		
-		if(ptr->IsRunning())
+		if(ptr->GetIsRunning())
 		{
 			m_StartButton->SetLabel(GetMsg(MSG_STOP));
 			m_StartButton->SetId(ID_STOP);
@@ -579,6 +585,17 @@ void CDevicesList::StopDevice()
 	//ShowInfoPanel(true); // refresh panela
 }
 
+void CDevicesList::OnNMEALine(CReader *reader)
+{
+	
+	if(m_Status == NULL)
+		return;
+		
+	wxString str(reader->GetLineBuffer(),wxConvUTF8);
+	m_Status->AppendText(str);
+	
+}
+
 void CDevicesList::OnConnected()
 {
 	SetTextEvent(TEXT_OK);
@@ -609,7 +626,7 @@ void CDevicesList::AddTreeItem(int item_id)
 	int icon_id = ICON_START;
 	bool running = false;
 	
-	if(ptr->IsRunning())
+	if(ptr->GetIsRunning())
 	{
 		icon_id = ICON_STOP;
 		running = true;

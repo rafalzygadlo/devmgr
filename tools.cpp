@@ -18,7 +18,7 @@ CNaviBroker *Broker = NULL;
 //bool m_ShowNames;
 
 
-const wchar_t *nvLanguage[2][183] = 
+const wchar_t *nvLanguage[2][285] = 
 { 
 	/*EN*/
 	{
@@ -204,7 +204,13 @@ const wchar_t *nvLanguage[2][183] =
 		_("Class B"),
 		_("Water Temperature"),
 		_("Visibility"),
-
+		_("Yes"),
+		_("No"),
+		_("Is Running"),
+		_("Is Connected"),
+		_("Bad CRC"),
+		_("Signal quality"),
+		_("Show log"),
 	},
 	
 	/*PL*/

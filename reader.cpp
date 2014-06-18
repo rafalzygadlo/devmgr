@@ -76,7 +76,7 @@ int CReader::GetDeviceType()
 	return m_DeviceType;
 }
 
-bool CReader::IsRunning()
+bool CReader::GetIsRunning()
 {
 	return m_IsRunning;
 }
@@ -169,6 +169,28 @@ bool CReader::IsConnected()
 	return false;
 }
 
+size_t CReader::GetBadCRC()
+{
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET: return SocketPtr->GetBadCRC();
+		case CONNECTION_TYPE_SERIAL: return SerialPtr->GetBadCRC();
+	}
+	
+	return 0;
+}
+
+size_t CReader::GetSignalQuality()
+{
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET: return SocketPtr->GetSignalQuality();
+		case CONNECTION_TYPE_SERIAL: return SerialPtr->GetSignalQuality();
+	}
+	return 0;
+}
+
+
 void CReader::SetHost(char *host)
 {
 	SocketPtr->_SetHost(host);
@@ -218,9 +240,9 @@ void CReader::SetCheckCRC(bool val)
 
 }
 
-void CReader::SetLineEvent()
+void CReader::SetLineEvent(bool val)
 {
-	m_LineEvent = !m_LineEvent;
+	m_LineEvent = val;
 }
 
 // zdarzenia seriala
@@ -274,7 +296,13 @@ void CReader::OnLine( char *buffer, int length)
 
 void CReader::OnNMEALine( char *buffer, int length)
 {
-	Parse(buffer);	
+	//fprintf(stdout,"%d\n",m_LineEvent);
+	if(m_LineEvent)
+	{
+		m_SignalType = SIGNAL_NMEA_LINE;
+		m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this); // zaburza przeplyw sygnalow
+	}
+	Parse(buffer);
 	// narazie przeniesiono do OnLine
 }
 
