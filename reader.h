@@ -34,7 +34,7 @@ public:
 	CReader();
 	~CReader();
 	
-	bool IsRunning();
+	bool GetIsRunning();
 	bool RunOnStart();
 	void SetDeviceName(wxString name);
 	void SetDeviceId(size_t id);			
@@ -63,8 +63,10 @@ public:
 	int GetConnectionType();
 	char *GetBuffer();
 	char *GetLineBuffer();
-	void SetLineEvent();
+	void SetLineEvent(bool val);
 	void SetCheckCRC(bool val);
+	size_t GetBadCRC();
+	size_t GetSignalQuality();
 	
 	
 	virtual void OnConnect();

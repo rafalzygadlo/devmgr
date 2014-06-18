@@ -10,6 +10,8 @@ class CTicker :public wxTimer
 	bool Exit;
 	int Tick;
 	int Id;
+	int _Sleep;
+	bool _Stop;
 	
 #if defined (_WIN32) || defined(_WIN64)
 	DWORD ThreadID;
@@ -21,14 +23,18 @@ class CTicker :public wxTimer
 #endif
 	
 	bool GetExit();
+	void SendSignal();
 	void OnTickerStart();
 	void OnTickerStop();
 	void OnTickerTick();
+	//void *Entry();
 
 
 public:
 	CTicker(void *parent, int id);
 	~CTicker();
+	//void Start(int sleep);
+	//void Stop();
 	void Notify();
 	
 };

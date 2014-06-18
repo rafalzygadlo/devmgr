@@ -171,7 +171,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Light2->SetOffset(1.0,2.0);
 	
 	//ship CPA
-	m_ShipCPA = new CObject();
+	//m_ShipCPA = new CObject();
 	// CPA
 	m_CPA = new CObject();
 	m_CPA->SetRenderMode(GL_LINES);
@@ -188,7 +188,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
 	m_TickerAnim = new CTicker(this,TICK_ANIM);
-	//m_TickerAnim->Start(1);	
+	
+	SetBroker(NaviBroker);
+
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
 	//CreateApiMenu();
@@ -215,7 +217,7 @@ CMapPlugin::~CMapPlugin()
 	delete m_Light1;
 	delete m_Light2;
 	
-	delete m_ShipCPA;
+	//delete m_ShipCPA;
 	delete m_CPA;
 }
 
@@ -251,7 +253,7 @@ void CMapPlugin::WriteSerialConfig(int index)
 	
 	CReader *Reader = (CReader*)m_Devices->Item(index);
 	name = Reader->GetDeviceName();
-	running = Reader->IsRunning();
+	running = Reader->GetIsRunning();
 	wxString port(Reader->GetSerialPort(),wxConvUTF8);
 	baud = Reader->GetBaudRate();
 	type = Reader->GetDeviceType();
@@ -273,7 +275,7 @@ void CMapPlugin::WriteSocketConfig(int index)
 	
 	CReader *Reader = (CReader*)m_Devices->Item(index);
 	name = Reader->GetDeviceName();
-	running = Reader->IsRunning();
+	running = Reader->GetIsRunning();
 	port = Reader->GetPort();
 	host = wxString(Reader->GetHost(),wxConvUTF8);
 	ctype = Reader->GetConnectionType();
@@ -689,14 +691,13 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	CheckCollision();
-	CheckShipCollision();
-	PrepareCPABuffer();
-	PrepareShipCPABuffer();
+	//CheckCollision();
+	//CheckShipCollision();
+	//PrepareCPABuffer();
+	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)
 	{
-		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
 		m_AnimTick = 0;
 		m_AnimStarted = true;
 		m_TickerAnim->Start(50);
@@ -705,7 +706,6 @@ void CMapPlugin::OnTicker2Tick()
 	if(m_AnimTick > 10)
 	{
 		m_AnimStarted = false;
-		//m_Broker->StartAnimation(false,m_Broker->GetParentPtr());
 		m_AnimTick = 0;
 		SetStartAnimation(false);
 		m_TickerAnim->Stop();
@@ -891,7 +891,7 @@ void CMapPlugin::Kill(void)
 	
 	m_TickerAnim->Stop();
 	delete m_TickerAnim;
-
+	
 	m_NeedExit = true;
 	WriteConfig();
 	WriteOptionsConfig();
@@ -912,6 +912,7 @@ void CMapPlugin::Kill(void)
 	ais_free_list();
 	ais_free_buffer();
 	ais_free_track();
+	ais_free_collision();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
@@ -1972,9 +1973,9 @@ void CMapPlugin::PrepareCPABuffer()
 	m_CPA->SetCurrentPtr(true);
 	m_CPA->ClearBuffers();
 	
-	for(size_t i = 0; i < ais_get_collision_item_count();i+=2)
-		PrepareCPAVerticesBuffer(ais_get_collision_item(i),ais_get_collision_item(i + 1));
-
+	for(size_t i = 0; i < ais_get_line_item_count();i+=2)
+		PrepareCPAVerticesBuffer(ais_get_line_item(i),ais_get_line_item(i+1));
+	
 	m_CPA->CopyBuffers();
 	m_CPA->SetCurrentPtr(false);
 
@@ -1983,41 +1984,16 @@ void CMapPlugin::PrepareCPABuffer()
 }
 
 //CPA
-void CMapPlugin::PrepareCPAVerticesBuffer(SAisData *ptr1, SAisData *ptr2)
+void CMapPlugin::PrepareCPAVerticesBuffer(nvPoint2d pt1,nvPoint2d pt2)
 {
-	nvPoint2d p1,p2,p3;	
-	double to_x,to_y;
-
-	m_Broker->Unproject(ptr1->lon,-ptr1->lat,&to_x,&to_y);
-	p1.x = to_x;
-	p1.y = to_y;
 	
-	m_Broker->Unproject(ptr2->lon,-ptr2->lat,&to_x,&to_y);
-	p2.x = to_x;
-	p2.y = to_y;
-
-	double width = ROT_WIDTH/m_SmoothScaleFactor;
-
-	float angle = nvGetAngleOnChart(p1.x,p1.y,p2.x,p2.y);
-
-	p3.x = (width) * cos((angle + 135) * nvPI/180) + p1.x;
-	p3.y = (width) * sin((angle + 135) * nvPI/180) + p1.y;
-	
-	m_CPA->AddPoint(p1);
-	m_CPA->AddPoint(p2);
-	
-	
+	m_CPA->AddPoint(pt1);
+	m_CPA->AddPoint(pt2);
+			
 	int id = m_CPA->GetVertexLength();
 		
 	m_CPA->AddIndice(id - 2);	//0
-	m_CPA->AddIndice(id - 1);	//1
-	
-	
-	//m_CPA->AddPoint(p1);
-	//m_CPA->AddPoint(p3);
-
-	//m_CPA->AddPoint(p1);
-	//m_CPA->AddPoint(p2);
+	m_CPA->AddIndice(id - 1);	//0
 		
 }
 
@@ -3832,7 +3808,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());
+	wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
@@ -4000,7 +3976,7 @@ void CMapPlugin::ThreadBegin()
 {
 	m_ThreadCounter++;
 	PrepareBuffer();
-	PrepareCPABuffer();
+	//PrepareCPABuffer();
 		
 	if(m_MouseUp)
 	{
@@ -4111,8 +4087,8 @@ void *CMapPlugin::OnSynchro(void *NaviMapIOApiPtr, void *Params)
 
 void CMapPlugin::Synchro()
 { 
-	m_Ticker1->Stop();
-	m_Ticker1->Start(1000/GetFrequency());
+	//m_Ticker1->Stop();
+	//m_Ticker1->Start(1000/GetFrequency());
 	
 	SendSynchroSignal();
 	m_Broker->Refresh(m_Broker->GetParentPtr());

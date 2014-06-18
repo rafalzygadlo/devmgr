@@ -21,6 +21,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define PRODUCT_VERSION "1.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
+#define PLUGIN_DATA_FILE "devmgr.data"   // zip z różnymi danymi
 
 #define KEY_DEVICES "devices"
 #define KEY_NAME "name"
@@ -277,6 +278,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_CLASS_B						177
 #define MSG_WATER_TMP					178
 #define MSG_VISIBILITY					179
+#define MSG_YES							180
+#define MSG_NO							181
+#define MSG_IS_RUNNING					182
+#define MSG_IS_CONNECTED				183
+#define MSG_BAD_CRC						184
+#define MSG_SIGNAL_QUALITY				185
+#define MSG_SHOW_LOG					186
 
 
 #define MAX_DATA_POSITIONS	10
@@ -307,12 +315,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
 #define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
 #define DEFAULT_MAX_FREQUENCY	1000	// sekunda			
-#define AIS_BUFFER_INTERVAL		1000	//zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL		2000	//zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
 #define DEFAULT_VIEW_FONT_SCALE 1000
 #define WINDOW_REFRESH_INTERVAL	1000
+#define STATUS_REFRESH_INTERVAL 1000
 
 #define SHIP_TRIANGLE_WIDTH		20.0
 #define SHIP_TRIANGLE_HEIGHT	20.0
@@ -382,6 +391,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define TICK_DISPLAY_REFRESH	2
 #define TICK_WINDOW_REFRESH		3
 #define TICK_ANIM				4
+#define TICK_STATUS_REFRESH		5
 
 #define CONTROL_OFFSET	2
 #define IS_BIT_SET(k, n)  ((k) & (1 << (n)))

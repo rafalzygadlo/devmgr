@@ -42,7 +42,7 @@ CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
 	selected_and_queued.SetBackgroundColour(wxColor(100,200,0));
 	selected_and_queued.SetTextColour(*wxWHITE);
 
-	SetDoubleBuffered(true);
+	//SetDoubleBuffered(true);
 	last_selected_item = -1;
 	
 	SetItemCount(0);
@@ -86,6 +86,7 @@ void CListCtrl::OnContextMenu(wxContextMenuEvent &event)
 {
 	
 }
+/*
 void CListCtrl::OnEraseBackground(wxEraseEvent &event)
 {
 
@@ -95,7 +96,7 @@ void CListCtrl::OnPaint(wxPaintEvent &event)
 {
 	event.Skip();
 }
-
+*/
 void CListCtrl::Menu()
 {
 	

@@ -52,6 +52,7 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 :wxPanel(parent)
 
 {
+	m_Status = NULL;
 	m_SelectedDevice = NULL;
 	m_Broker = NULL;
 	m_SignalsPanel = NULL;
@@ -70,6 +71,7 @@ CDevicesList::CDevicesList(wxWindow *parent, CMapPlugin *plugin)
 		m_Broker = m_MapPlugin->GetBroker();
 		SetDevices();
 	}
+	m_Status = new CStatus();
 
 }
 
@@ -77,6 +79,7 @@ CDevicesList::~CDevicesList()
 {
 	if(m_DeviceConfig != NULL)
 		delete m_DeviceConfig;
+	delete m_Status;
 		
 }
 
@@ -202,7 +205,7 @@ void CDevicesList::GetPanel()
 	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,2);
 	
-	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,0,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
+	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	
 	FlexSizer->Add(m_Frequency,0,wxALL|wxEXPAND,2);
 	m_Frequency->SetMin(1);
@@ -231,7 +234,7 @@ void CDevicesList::SetSignal(int stype, CReader* reader)
 		case SIGNAL_RECONNECT: 			OnReconnect();		break;
 		case SIGNAL_NO_SIGNAL:			OnNoSignal();		break;
 		case SIGNAL_CONNECTED:			OnConnected();		break;
-//		case SIGNAL_NMEA_LINE:			OnNMEALine();		break;
+		case SIGNAL_NMEA_LINE:			OnNMEALine(reader);	break;
 		//case DATA_SIGNAL:				OnData();			break;
 	}
 
@@ -258,7 +261,7 @@ void CDevicesList::OnTreeSelChanged(wxTreeEvent &event)
 	
 	m_SelectedDevice = m_SelectedItem->GetReader();
 	
-	if(m_SelectedDevice->IsRunning())
+	if(m_SelectedDevice->GetIsRunning())
 	{	
 		m_ToolBar->EnableTool(ID_START,false);
 		m_ToolBar->EnableTool(ID_STOP,true);
@@ -303,7 +306,7 @@ void CDevicesList::OnTreeMenu(wxTreeEvent &event)
 	Menu->Append(ID_STATUS,GetMsg(MSG_STATUS));
 	Menu->Append(ID_UNINSTALL,GetMsg(MSG_UNINSTALL));
 
-	bool running = m_SelectedDevice->IsRunning();
+	bool running = m_SelectedDevice->GetIsRunning();
 	Menu->Enable(ID_CONFIGURE_DEVICE,!running);
 	Menu->Enable(ID_STOP,running);
 	Menu->Enable(ID_START,!running);
@@ -316,7 +319,10 @@ void CDevicesList::OnTreeMenu(wxTreeEvent &event)
 
 void CDevicesList::OnStatus(wxCommandEvent &event)
 {
-	
+	m_Status->SetReader(m_SelectedDevice);
+	m_Status->ShowModal();
+	m_Status->SetShowLog(false);
+	m_SelectedDevice->SetLineEvent(false);
 }
 
 void CDevicesList::OnStop(wxCommandEvent &event)
@@ -333,7 +339,7 @@ void CDevicesList::Stop()
 {
 	m_SelectedDevice->Stop();
 
-	CMyInfo Info(NULL,wxString::Format(GetMsg(MSG_STOPPING_DEVICE),m_SelectedDevice->GetDeviceName().wc_str()));
+	CMyInfo Info(NULL,GetMsg(MSG_STOPPING_DEVICE));
 	while(m_SelectedDevice->GetWorkingFlag())
 		wxMilliSleep(150);
 		
@@ -368,7 +374,7 @@ void CDevicesList::OnConfigureDevice(wxCommandEvent &event)
 
 void CDevicesList::OnMonitor(wxHyperlinkEvent &event)
 {
-	m_SelectedDevice->SetLineEvent();
+	m_SelectedDevice->SetLineEvent(true);
 	m_Logger->Show();
 	m_InfoPanelSizer->Layout();
 	Page1Sizer->Layout();
@@ -377,7 +383,7 @@ void CDevicesList::OnMonitor(wxHyperlinkEvent &event)
 
 void CDevicesList::ConfigureDevice()
 {
-	if(m_SelectedDevice->IsRunning())
+	if(m_SelectedDevice->GetIsRunning())
 	{
 		wxMessageBox(GetMsg(MSG_STOP_THE_DEVICE));
 		return;
@@ -506,7 +512,7 @@ void CDevicesList::ShowInfoPanel(bool show)
 			case CONNECTION_TYPE_SOCKET: m_LabelPort->SetLabel(wxString::Format(_("%s %d"),host.wc_str(),ptr->GetPort())); break;
 		}
 		
-		if(ptr->IsRunning())
+		if(ptr->GetIsRunning())
 		{
 			m_StartButton->SetLabel(GetMsg(MSG_STOP));
 			m_StartButton->SetId(ID_STOP);
@@ -547,7 +553,7 @@ wxPanel *CDevicesList::GetSignalsPanel(CReader *reader)
 	int cols = this->GetSize().GetWidth()/30;
 
 	wxPanel *Panel = new wxPanel(m_InfoPanel,wxID_ANY);
-	wxFlexGridSizer *grid = new wxFlexGridSizer(cols,0);
+	wxFlexGridSizer *grid = new wxFlexGridSizer(cols);
 	
 	Panel->SetSizer(grid);
 	wxFont font;
@@ -577,6 +583,17 @@ void CDevicesList::StopDevice()
 {
 	SetIconEvent(ICON_START);
 	//ShowInfoPanel(true); // refresh panela
+}
+
+void CDevicesList::OnNMEALine(CReader *reader)
+{
+	
+	if(m_Status == NULL)
+		return;
+		
+	wxString str(reader->GetLineBuffer(),wxConvUTF8);
+	m_Status->AppendText(str);
+	
 }
 
 void CDevicesList::OnConnected()
@@ -609,7 +626,7 @@ void CDevicesList::AddTreeItem(int item_id)
 	int icon_id = ICON_START;
 	bool running = false;
 	
-	if(ptr->IsRunning())
+	if(ptr->GetIsRunning())
 	{
 		icon_id = ICON_STOP;
 		running = true;

@@ -3,6 +3,8 @@
 #include <wx/stdpaths.h>
 #include "protocol.h"
 #include "GeometryTools.h"
+#include <wx/zipstrm.h>
+#include <wx/mstream.h>
 
 wxMutex *mutex = NULL;
 wxMutex *smutex = NULL;
@@ -11,11 +13,12 @@ bool m_HDT_Exists = false;
 int m_HDT_Counter = 0;
 SFrequency FrequencyTable;
 int MaxFrequency  = 0;
+CNaviBroker *Broker = NULL;
 //float m_FontSize;
 //bool m_ShowNames;
 
 
-const wchar_t *nvLanguage[2][183] = 
+const wchar_t *nvLanguage[2][285] = 
 { 
 	/*EN*/
 	{
@@ -201,7 +204,13 @@ const wchar_t *nvLanguage[2][183] =
 		_("Class B"),
 		_("Water Temperature"),
 		_("Visibility"),
-
+		_("Yes"),
+		_("No"),
+		_("Is Running"),
+		_("Is Connected"),
+		_("Bad CRC"),
+		_("Signal quality"),
+		_("Show log"),
 	},
 	
 	/*PL*/
@@ -242,6 +251,11 @@ wxString GetPluginConfigPath()
 	return wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(PLUGIN_CONFIG_FILE));
 }
 
+wxString GetPluginDataFilePath()
+{
+	return wxString::Format(wxT("%s%s%s"),GetWorkDir(),wxT(DIR_SEPARATOR),_(PLUGIN_DATA_FILE));
+}
+
 void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 {
 	// 9 id chart_catalogu
@@ -253,9 +267,10 @@ void PrintInfo(CNaviBroker *Broker,wchar_t *text)
 wxString GetWorkDir(void)
 {
 	static wxString buffer;
-	wxStandardPaths *Paths = new wxStandardPaths();
- 	buffer.Printf(wxT("%s%s%s"), Paths->GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
-	delete Paths;
+	//wxStandardPaths *Paths = new wxStandardPaths();
+	wxStandardPaths Paths = wxStandardPaths::Get();
+ 	buffer.Printf(wxT("%s%s%s"), Paths.GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
+	//delete Paths;
 	return buffer;
 }
 
@@ -520,14 +535,15 @@ void RotateZ( double x, double y, double &out_x, double &out_y, double radangle)
 double nvBearing(double lon1, double lat1, double lon2, double lat2)
 {
 	double bearing = atan2 (cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)) * 180/nvPI;
-	
+	/*
 	if(bearing  > 0)
 		return	bearing += 90;
 	if(bearing < -90)
 		return 	bearing = 360 + bearing + 90;
 	if(bearing < 0)
 		return bearing = 90 + bearing;
-	
+	*/
+	//bearing = bearing + 90;
 	return bearing;
 }
 
@@ -734,3 +750,91 @@ nvRGBA StrToRGBA(wxString str)
 
 	return RGB;
 }
+
+
+
+
+bool GetShipImage(int mmsi, char *&buffer, int *size)
+{
+	
+	FILE *f;
+	
+	wxString str = GetPluginDataFilePath();
+	wxCharBuffer file = str.ToUTF8(); 
+	const char *fname = file.data();
+		
+	f = fopen(fname , "rb" );
+	
+	if( f == NULL )
+		return false;
+
+	int data_size = nvFileSize(fname);
+	
+	rewind(f);
+	
+	char *data = (char*)malloc(data_size);
+		
+	size_t a = fread(data,data_size,1,f);
+	fclose(f);
+	wxMemoryInputStream memory(data,data_size);
+	
+	wxZipInputStream zip(memory);
+	wxZipEntry *entry;
+	int i = 0;
+	
+	bool exists = false;
+	while((entry = zip.GetNextEntry()) != NULL)
+	{
+		
+		wxString str = entry->GetName();
+		wxString _mmsi = wxString::Format(_("%d.jpg"),(mmsi));
+		if(str.CmpNoCase(_mmsi) == 0)
+		{
+			buffer = (char*)malloc(zip.GetLength());
+			*size = zip.GetLength();
+			zip.Read( buffer,*size );
+			exists = true;
+			delete entry;
+			break;
+		}
+		
+		delete entry;
+		
+	}
+	
+	free(data);
+	return exists;
+	
+}
+
+ bool CheckLineIntersection(double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y, double *i_x, double *i_y) 
+{
+
+    double s1_x, s1_y, s2_x, s2_y;
+    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
+    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
+    double s, t;
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0) {
+
+        if (i_x != NULL)
+            *i_x = p0_x + (t * s1_x);
+        if (i_y != NULL)
+            *i_y = p0_y + (t * s1_y);
+        return true;
+    }
+
+    return false;
+};
+
+ void SetBroker(CNaviBroker *ptr)
+ {
+	Broker = ptr;
+ }
+
+ CNaviBroker *GetBroker()
+ {
+	return Broker;
+ }

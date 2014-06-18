@@ -313,7 +313,7 @@ void CDisplayPlugin::DrawData(wxGCDC &dc, wxString caption, wxString text)
 	}
 
  	dc.DrawText( text, (int)GetWidth()/2 - FontSize.GetWidth()/2, (int)GetHeight() * 0.625 - FontSize.GetHeight() / 2 );
-	dc.EndDrawing();
+//	dc.EndDrawing();
 	
 	
 }

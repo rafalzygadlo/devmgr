@@ -48,10 +48,10 @@ void SetAisDataChanged(bool value);
 bool GetAisDataChanged();
 void SetSelectedPtr(SAisData *ptr);
 SAisData *GetSelectedPtr();
-
 void SetSelectedAnimPtr(SAisData *ptr);
 SAisData *GetSelectedAnimPtr();
-
 bool GetStartAnimation();
 void SetStartAnimation(bool value);
+void SetCPA();
+
 #endif

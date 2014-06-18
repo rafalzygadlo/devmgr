@@ -87,7 +87,8 @@ wxPanel *CWizard::Page2()
 	m_Page2Text = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_NO_DEVICE_FOUND));
 	PanelSizer->Add(m_Page2Text,0,wxALL,5);
 
-	m_ListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),NULL,wxLB_MULTIPLE);
+	m_ListBox = new wxListBox(Panel,wxID_ANY,wxDefaultPosition,wxSize(300,200),0,NULL, wxLB_MULTIPLE);
+	//m_ListBox->set
 	PanelSizer->Add(m_ListBox,0,wxALL|wxEXPAND,5);
 	
 	wxBoxSizer *ButtonSizer = new wxBoxSizer(wxHORIZONTAL);
