@@ -8,6 +8,9 @@ CNaviArray <ais_t*> vAisSearch;
 SAisData *AisData = NULL;
 CNaviArray <SAisData*> vAisBuffer;
 CNaviArray <SAisData*> vAisCollision;
+CNaviArray <double> vAisCollisionCPA;
+CNaviArray <double> vAisCollisionTCPA;
+
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
@@ -15,6 +18,7 @@ CNaviArray <CNaviArray <SAisData>*> vAisTrack;
 
 int option = 0;
 bool m_SearchReady = false;
+double TCPA, CPA;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -529,6 +533,8 @@ void ais_check_collision()
 	int counter = 0;
 	vAisCollision.Clear();
 	vAisPoints.Clear();
+	vAisCollisionCPA.Clear();
+	vAisCollisionTCPA.Clear();
 	
 	for(size_t i = 0; i < vAisBuffer.Length(); i++)
 	{
@@ -543,15 +549,15 @@ void ais_check_collision()
 				{
 					vAisCollision.Append(ship);
 					vAisCollision.Append(target);
-					//fprintf(stdout,"%s %s\n",ship->name,target->name);
-					counter++;
+					vAisCollisionCPA.Append(CPA);
+					vAisCollisionTCPA.Append(TCPA);
 				}
 			}
 		}
 		
 	}
 
-	//fprintf(stdout,"%d\n",counter);
+
 }
 
 void ais_free_collision()
@@ -559,74 +565,77 @@ void ais_free_collision()
 	vAisCollision.Clear();
 }
 
-bool ais_is_on_collision(SAisData *ship,SAisData *target)
-{			
-	double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
-		
-	return ais_collision(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
-	
-	//if(d < 0.5)
-	//{
-	//double cpa = ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
-	//double tcpa = ais_TCPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog);
-		//fprintf(stdout,"%f %f ",cpa,tcpa);
-	//if( cpa < 0.2 )
-	//{
-			//fprintf(stdout,"%f %f ",cpa,tcpa);
-		//return true;
-	//}
-	//}
-
-	return true;
+void ais_free_collision_CPA()
+{
+	vAisCollisionCPA.Clear();
 }
 
-// dla testow
+void ais_free_collision_TCPA()
+{
+	vAisCollisionTCPA.Clear();
+}
 
-bool ais_collision(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
+double ais_get_CPA_item(int id)
+{
+	return vAisCollisionCPA.Get(id);
+}
+
+double ais_get_TCPA_item(int id)
+{
+	return vAisCollisionTCPA.Get(id);
+}
+
+bool ais_is_on_collision(SAisData *ship,SAisData *target)
+{			
+			
+	//if(ais_collision(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog))
+	//{
+		if(ship->sog > 0.5)
+		{
+			TCPA = CPA = 0;
+			ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog,&CPA,&TCPA);
+			
+			
+			if( CPA < 2.0 && TCPA < 12.0)
+				return true;
+		}
+	//}
+
+	return false;
+}
+
+
+void ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog, double *cpa, double *tcpa )
 {
 
-	if(ship_sog < 0.5)
-		return false;
+	double a = 0.0174532925199433;
+	double b = 450;
 
-	float width = 0.002 * ship_sog;
-	nvPoint2d p1,p2,p3,p4;
-	double to_x,to_y;
-	
-	GetBroker()->Unproject(ship_lon,-ship_lat,&to_x,&to_y);
-	p1.x = to_x;
-	p1.y = to_y;
-		
-	p2.x = cos(nvToRad(ship_cog - 90)) * width + p1.x;
-	p2.y = sin(nvToRad(ship_cog - 90)) * width + p1.y; 
-	
-	GetBroker()->Unproject(target_lon,-target_lat,&to_x,&to_y);
-	
-	p3.x = to_x;
-	p3.y = to_y;
-	
-	p4.x = cos(nvToRad(target_cog - 90)) * width + p3.x;
-	p4.y = sin(nvToRad(target_cog - 90)) * width + p3.y;
-	
-	double i_x,i_y;
+	double vax = (ship_sog * 1852/3600 * cos(b * a - ship_cog * a));
+	double vay = (ship_sog * 1852/3600 * sin(b * a - ship_cog * a));
 
+	double vbx = (target_sog * 1852/3600 * cos(b * a - target_cog * a));
+	double vby = (target_sog * 1852/3600 * sin(b * a - target_cog * a));
+
+
+	double vw = sqrt(pow(vax - vbx,2) + pow(vay - vby,2));
+
+	double x = (ship_lon - target_lon)*60*1852;
+	double y = (ship_lat - target_lat)*60*1852;
+	
+	//=PIERWIASTEK(POTĘGA(B13-B15;2)+POTĘGA(B14-B16;2))
+
+	//=((B20*MODUŁ.LICZBY(B14-B16)-(B21*MODUŁ.LICZBY(B13-B15)))/(PIERWIASTEK(POTĘGA(B13-B15;2)+POTĘGA(B14-B16;2))))
 	
 
-	if(CheckLineIntersection(p1.x,p1.y,p2.x,p2.y,p3.x,p3.y,p4.x,p4.y,&i_x,&i_y))
-	{
-		//nvpoint2d p;
-		//p.x =
-		//p.y = 
-		vAisPoints.Append(p1);
-		vAisPoints.Append(p2);
-		vAisPoints.Append(p3);
-		vAisPoints.Append(p4);
-		
-		return true;
-	}else{
-		return true;
-	}
+	double cpa_m  = abs((x * abs(vay - vby) - (y * abs(vax - vbx))) / sqrt(pow(vax - vbx,2)  + pow(vay - vby,2) ));
 
+	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
+
+	*cpa = cpa_m/1852;
+	*tcpa = (sqrt(pow(distance,2)-pow(*cpa,2))/(sqrt(pow(vax-vbx,2)+pow(vay-vby,2)))) * 60;
 	
+
 }
 
 double ais_CPA_old(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
@@ -687,7 +696,7 @@ double ais_CPA_old(double ship_lon, double ship_lat, float ship_cog, float ship_
 	return CPA;
 
 }
-
+/*
 double ais_TCPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
 {
 		
@@ -714,6 +723,47 @@ double ais_TCPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog
 	return TCPA;	
 
 }
+*/
+// dla testow
+bool ais_collision(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog )
+{
+
+	if(ship_sog < 0.5)
+		return false;
+
+	float width = 0.002 * ship_sog;
+	nvPoint2d p1,p2,p3,p4;
+	double to_x,to_y;
+	
+	GetBroker()->Unproject(ship_lon,-ship_lat,&to_x,&to_y);
+	p1.x = to_x;
+	p1.y = to_y;
+		
+	p2.x = cos(nvToRad(ship_cog - 90)) * width + p1.x;
+	p2.y = sin(nvToRad(ship_cog - 90)) * width + p1.y; 
+	
+	GetBroker()->Unproject(target_lon,-target_lat,&to_x,&to_y);
+	
+	p3.x = to_x;
+	p3.y = to_y;
+	
+	p4.x = cos(nvToRad(target_cog - 90)) * width + p3.x;
+	p4.y = sin(nvToRad(target_cog - 90)) * width + p3.y;
+	
+	double i_x,i_y;
+
+	
+
+	if(CheckLineIntersection(p1.x,p1.y,p2.x,p2.y,p3.x,p3.y,p4.x,p4.y,&i_x,&i_y))
+	{
+		return true;
+	}else{
+		return false;
+	}
+
+	
+}
+
 
 void ais_set_search_buffer(char *str)
 {

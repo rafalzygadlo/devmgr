@@ -14,6 +14,7 @@ int m_HDT_Counter = 0;
 SFrequency FrequencyTable;
 int MaxFrequency  = 0;
 CNaviBroker *Broker = NULL;
+double m_SmoothScaleFactor = 0;
 //float m_FontSize;
 //bool m_ShowNames;
 
@@ -785,7 +786,6 @@ bool GetShipImage(int mmsi, char *&buffer, int *size)
 	bool exists = false;
 	while((entry = zip.GetNextEntry()) != NULL)
 	{
-		
 		wxString str = entry->GetName();
 		wxString _mmsi = wxString::Format(_("%d.jpg"),(mmsi));
 		if(str.CmpNoCase(_mmsi) == 0)
@@ -838,3 +838,19 @@ bool GetShipImage(int mmsi, char *&buffer, int *size)
  {
 	return Broker;
  }
+
+ double GetSmoothScaleFactor()
+ {
+	return m_SmoothScaleFactor;
+ }
+ 
+ void SetSmoothScaleFactor(double val)
+ {
+	m_SmoothScaleFactor = val;
+ }
+
+void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, double *v2)
+{
+	*v1 = (lon1 + lon2) / 2;
+	*v2 = (lat1 + lat2) / 2;
+}

@@ -1,5 +1,7 @@
 #include "Glee.h"
 #include "object.h"
+#include "tools.h"
+#include "options.h"
 
 
 CObject::CObject()
@@ -16,11 +18,23 @@ CObject::CObject()
 	m_OffsetX = 0;
 	m_OffsetY = 0;
 	m_RenderMode = GL_TRIANGLES;
+	m_Font = new nvFastFont();
+	m_Font->Assign((nvFastFont*)GetBroker()->GetFont(0) );
+	m_Font->SetEffect( nvEFFECT_GLOW );
+    m_Font->SetGlyphColor(0.0f, 0.0f, 0.0f);
+	m_Font->SetGlyphOffset( 4.0f );
+	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
+	
 }	
 
 CObject::~CObject(void)
 {
+	delete m_Font;
+}
 
+void CObject::InitGL()
+{
+	m_Font->InitGL();	
 }
 
 void CObject::SetOffset(float vx, float vy)
@@ -32,6 +46,15 @@ void CObject::SetOffset(float vx, float vy)
 void CObject::SetColor(nvRGBA color)
 {
 	m_Color = color;
+}
+
+void CObject::AddText(double x, double y,wchar_t *txt)
+{
+	SAisNames *ptr = (SAisNames*)malloc(sizeof(SAisNames));
+	ptr->lon = x;
+	ptr->lat = y;
+	memcpy(ptr->name,txt,64);
+	m_FontBuffer0.Append(ptr);
 }
 
 void CObject::AddPoint(nvPoint2d pt)
@@ -107,21 +130,38 @@ void CObject::ClearBuffers()
 {
 	m_VerticesBuffer0.Clear();
 	m_IndicesBuffer0.Clear();
+
+	for(size_t i = 0; i < m_FontBuffer0.Length(); i++)
+	{	
+		free(m_FontBuffer0.Get(i));
+	}	
+
+	m_FontBuffer0.Clear();
 }
 
 void CObject::CopyBuffers()
 {
+	
+	//vertices
 	m_VerticesBuffer1.Clear();
 	m_VerticesBuffer1.SetSize(m_VerticesBuffer0.Length());
 	
 	for(size_t i = 0; i < m_VerticesBuffer0.Length(); i++)
 		m_VerticesBuffer1.Set(i,m_VerticesBuffer0.Get(i));
 
+	//indices
 	m_IndicesBuffer1.Clear();
 	m_IndicesBuffer1.SetSize(m_IndicesBuffer0.Length());
 	
 	for(size_t i = 0; i < m_IndicesBuffer0.Length(); i++)
 		m_IndicesBuffer1.Set(i,m_IndicesBuffer0.Get(i));
+
+	//fonts
+	m_FontBuffer1.Clear();
+	m_FontBuffer1.SetSize(m_FontBuffer0.Length());
+	
+	for(size_t i = 0; i < m_FontBuffer0.Length(); i++)
+		m_FontBuffer1.Set(i,m_FontBuffer0.Get(i));
 
 }
 
@@ -158,11 +198,13 @@ void CObject::SetCurrentPtr(bool buffer)
 	{
 		m_CurrentVerticesBufferPtr = &m_VerticesBuffer1;
 		m_CurrentIndicesBufferPtr = &m_IndicesBuffer1;
+		m_CurrentFontBufferPtr = &m_FontBuffer1;
 	
 	}else{
 	
 		m_CurrentVerticesBufferPtr = &m_VerticesBuffer0;
 		m_CurrentIndicesBufferPtr = &m_IndicesBuffer0;
+		m_CurrentFontBufferPtr = &m_FontBuffer0;
 	}
 
 }
@@ -185,6 +227,56 @@ void CObject::CreateVBO()
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBA) * m_CurrentBSColorBufferPtr->Length(), m_CurrentBSColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
 	
 	m_IndicesLength = m_CurrentIndicesBufferPtr->Length();
+
+}
+
+void CObject::RenderFont()
+{
+
+	if(m_CurrentFontBufferPtr == NULL)
+		return;
+
+	size_t size = m_CurrentFontBufferPtr->Length();
+	if(size == 0)
+	{
+		m_Font->Clear();
+		return;
+	}
+		
+	size_t CaptionsSize = size;
+    vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );
+    float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *Angle = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *vx = (float*)malloc( CaptionsSize * sizeof( float ) );
+    float *vy = (float*)malloc( CaptionsSize * sizeof( float ) );
+    wchar_t **CaptionsStr = (wchar_t**)malloc(  CaptionsSize * sizeof( wchar_t** ) );
+	double to_x,to_y;
+    
+	for(size_t i = 0 ; i < m_CurrentFontBufferPtr->Length(); i++ ) 
+	{
+		SAisNames *a = m_CurrentFontBufferPtr->Get(i);
+		
+		Positions[i][0] = a->lon;
+		Positions[i][1] = a->lat + (10.0/GetSmoothScaleFactor());
+		Scale[i] = GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR;
+        vx[i] = 0.5f;
+        vy[i] = 2.0f;
+		CaptionsStr[i] = a->name;   // bez kopiowania ³añcucha!!! 
+		Angle[i] = GetBroker()->GetAngle();
+    }
+
+	m_Font->Clear();
+    m_Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
+	m_Font->ClearBuffers();
+	m_Font->CreateBuffers();
+	m_Font->Render();
+	
+	free( CaptionsStr );    // ³añcuchy nie zosta³y skopiowane, nie ma koniecznoœci zwalniania ca³ej listy
+    free( Positions );
+    free( Scale );
+    free( Angle );
+    free( vx );
+    free( vy );
 
 }
 
@@ -218,4 +310,5 @@ void CObject::Render()
 	Generate();
 	CreateVBO();
 	RenderData();
+	RenderFont();
 }

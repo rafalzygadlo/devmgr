@@ -63,4 +63,7 @@ bool GetShipImage(int mmsi, char *&buffer, int *size);
 bool CheckLineIntersection(double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y, double *i_x, double *i_y);
 void SetBroker(CNaviBroker *ptr);
 CNaviBroker *GetBroker();
+double GetSmoothScaleFactor();
+void SetSmoothScaleFactor(double val);
+void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, double *v2);
 #endif
