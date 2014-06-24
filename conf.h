@@ -61,6 +61,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_COG_LINE_STYLE "cog_line_style"
 #define KEY_HDT_LINE_STYLE "hdt_line_style"
 #define KEY_BS_COLOR "bs_color"
+#define KEY_CPA "cpa"
+#define KEY_TCPA "tcpa"
 
 #define DIR_WORKDIR "workdir"
 
@@ -285,7 +287,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_BAD_CRC						184
 #define MSG_SIGNAL_QUALITY				185
 #define MSG_SHOW_LOG					186
-
+#define MSG_VTS_OPTIONS					187
+#define MSG_ENABLE_VTS_MODE				188
+#define MSG_CPA							189
+#define MSG_TCPA						190
 
 #define MAX_DATA_POSITIONS	10
 
@@ -407,6 +412,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define DEFAULT_HDT_LINE_WIDTH 1
 #define DEFAULT_HDT_LINE_STYLE 0
 #define DEFAULT_COG_LINE_STYLE 1
+#define DEFAULT_CPA 0.5		//mile
+#define DEFAULT_TCPA 5.0	//minuty
 
 #define SHIP_STATUS_RESTRICTED_MANOEUVER	3
 #define SHIP_STATUS_CONSTRAINED_BY_DRAUGHT	4

@@ -184,7 +184,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	m_Ticker1->Start(200);
+	//m_Ticker1->Start(20);
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
@@ -2029,7 +2029,7 @@ void CMapPlugin::PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa
 	wchar_t wc[64];
 	double to_x,to_y;
 
-	swprintf(str,L"[%4.4f] [%4.4f]",cpa,tcpa);
+	swprintf(str,L"CPA:%4.4f TCPA:%4.4f",cpa*1852,tcpa*60);
 	double m1,m2;
 	nvMidPoint(ptr1->lon, ptr1->lat,ptr2->lon, ptr2->lat, &m1, &m2);
 		
@@ -3585,7 +3585,7 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::RenderCPA()
 {
-	glLineWidth(2);
+	glLineWidth(1);
 	m_CPA->Render();
 	glLineWidth(1);
 }

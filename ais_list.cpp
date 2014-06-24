@@ -28,11 +28,11 @@ BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_SPINCTRL(ID_HDT_TIME, OnHDTTime)
 	EVT_SPINCTRL(ID_HDT_LINE_WIDTH, OnHDTLineWidth)
 	EVT_SPINCTRL(ID_COG_LINE_WIDTH, OnCOGLineWidth)
+	EVT_SPINCTRLDOUBLE(ID_CPA, OnCPA)
+	EVT_SPINCTRLDOUBLE (ID_TCPA, OnTCPA)
 	EVT_COMBOBOX(ID_COG_LINE_STYLE,OnCOGLineStyle)
 	EVT_COMBOBOX(ID_HDT_LINE_STYLE,OnHDTLineStyle)
 	EVT_SLIDER(wxID_ANY,OnAlpha)
-	
-
 END_EVENT_TABLE()
 
 
@@ -244,6 +244,18 @@ void CAisList::OnHDTLineStyle(wxCommandEvent &event)
 	Signal();
 }
 
+void CAisList::OnCPA(wxSpinDoubleEvent &event)
+{
+	SetCPA(event.GetValue());
+	Signal();
+}
+
+void CAisList::OnTCPA(wxSpinDoubleEvent &event)
+{
+	SetTCPA(event.GetValue());
+	Signal();
+}
+
 void CAisList::Signal()
 {
 	if(m_Broker != NULL)
@@ -324,27 +336,41 @@ void CAisList::GetPanel()
 
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
 
-	m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize); //wxNB_NOPAGETHEME wersja 2.8
+	m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME); //wxNB_NOPAGETHEME wersja 2.8
 	//m_Notebook->SetDoubleBuffered(true);
 	m_Sizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
-	wxPanel *Page1 = new wxPanel(m_Notebook);
-	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
-	Page1->SetSizer(m_Page1Sizer);
-	m_Notebook->AddPage(Page1,(wxString::Format(GetMsg(MSG_AIS_TARGETS),0)));
+	
+	m_Notebook->AddPage(GetPage1(),GetMsg(MSG_AIS_TARGETS));
+	m_Notebook->AddPage(GetPage2(),GetMsg(MSG_AIS_OPTIONS));
+	m_Notebook->AddPage(GetPage3(),GetMsg(MSG_VTS_OPTIONS));
 
+	
+
+	this->SetSizer(m_Sizer);
+
+}
+
+
+wxPanel *CAisList::GetPage1()
+{
+
+	wxPanel *Panel = new wxPanel(m_Notebook);
+	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(m_Page1Sizer);
+	
 	wxBoxSizer *hSizer = new wxBoxSizer(wxHORIZONTAL);
 	m_Page1Sizer->Add(hSizer,0,wxALL|wxEXPAND,0);
 
-	m_SearchText = new wxSearchCtrl(Page1,ID_SEARCH,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
+	m_SearchText = new wxSearchCtrl(Panel,ID_SEARCH,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
 	hSizer->Add(m_SearchText,1,wxALL|wxEXPAND,0);
 
-	wxButton *BFilter = new wxButton(Page1,ID_FILTER,GetMsg(MSG_FILTER),wxDefaultPosition,wxSize(20,-1));
+	wxButton *BFilter = new wxButton(Panel,ID_FILTER,GetMsg(MSG_FILTER),wxDefaultPosition,wxSize(20,-1));
 	hSizer->Add(BFilter,0,wxALL,0);
 
 	//m_SearchText->SetValue(m_SearchText);
 	
 
-	m_List = new CListCtrl(Page1,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
+	m_List = new CListCtrl(Panel,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(wxEmptyString);			m_List->InsertColumn(0,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));			m_List->InsertColumn(1,item);
@@ -353,18 +379,21 @@ void CAisList::GetPanel()
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_IMO_NUMBER));	m_List->InsertColumn(5,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
 	
-	m_Html = new wxHtmlWindow(Page1,wxID_ANY,wxDefaultPosition,wxDefaultSize);
+	m_Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
 	
-	//Page2
-	wxPanel *Page2 = new wxPanel(m_Notebook);
-	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
-	Page2->SetSizer(m_Page2Sizer);
-	m_Notebook->AddPage(Page2,GetMsg(MSG_AIS_OPTIONS));
+	return Panel;
+}
 
+wxPanel *CAisList::GetPage2()
+{
+	wxPanel *Panel = new wxPanel(m_Notebook);
+	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(m_Page2Sizer);
+	
 	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
-	wxScrolledWindow *Scroll = new wxScrolledWindow(Page2, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxScrolledWindow *Scroll = new wxScrolledWindow(Panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	m_Page2Sizer->Add(Scroll,1,wxALL|wxEXPAND,0);
 	Scroll->SetFocusIgnoringChildren();
 	Scroll->SetSizer(ScrollSizer);
@@ -374,7 +403,7 @@ void CAisList::GetPanel()
 	
 	m_ShipNames = new wxCheckBox(Scroll,ID_SHOW_NAMES,GetMsg(MSG_SHOW_NAMES));
 	m_ShipNames->SetValue(GetShowNames());
-	FlexSizer->Add(m_ShipNames,0,wxALL,5);
+	FlexSizer->Add(m_ShipNames,0,wxALL,1);
 	FlexSizer->AddSpacer(1);
 	FlexSizer->AddSpacer(1);
 	wxStaticText *TextFontSize = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_FONT_SIZE),wxDefaultPosition,wxDefaultSize);
@@ -400,7 +429,7 @@ void CAisList::GetPanel()
 	//OBJECTS
 	m_ShowObjects = new wxCheckBox(Scroll,ID_SHOW_OBJECTS,GetMsg(MSG_SHOW_OBJECTS));
 	m_ShowObjects->SetValue(GetShowOBJECTS());
-	FlexSizer->Add(m_ShowObjects,0,wxALL,5);
+	FlexSizer->Add(m_ShowObjects,0,wxALL,1);
 	FlexSizer->AddSpacer(1);
 	FlexSizer->AddSpacer(1);
 	//wxGridSizer *FlexOBJECTSSizer = new wxGridSizer(3);
@@ -551,7 +580,7 @@ void CAisList::GetPanel()
 	//COG
 	m_COGLine = new wxCheckBox(Scroll,ID_SHOW_COG,GetMsg(MSG_SHOW_COG));
 	m_COGLine->SetValue(GetShowCOG());
-	FlexSizer->Add(m_COGLine,0,wxALL,5);
+	FlexSizer->Add(m_COGLine,0,wxALL,1);
 	FlexSizer->AddSpacer(1);
 	FlexSizer->AddSpacer(1);
 	//wxFlexGridSizer *FlexCOGSizer = new wxFlexGridSizer(2);
@@ -596,7 +625,7 @@ void CAisList::GetPanel()
 	//HDT
 	m_HDTLine = new wxCheckBox(Scroll,ID_SHOW_HDT,GetMsg(MSG_SHOW_HDT));
 	m_HDTLine->SetValue(GetShowHDT());
-	FlexSizer->Add(m_HDTLine,0,wxALL,5);
+	FlexSizer->Add(m_HDTLine,0,wxALL,1);
 	FlexSizer->AddSpacer(1);
 	FlexSizer->AddSpacer(1);
 	//wxFlexGridSizer *FlexHDTSizer = new wxFlexGridSizer(2);
@@ -642,13 +671,10 @@ void CAisList::GetPanel()
 	//GPS
 	m_GPSPoint = new wxCheckBox(Scroll,ID_SHOW_GPS,GetMsg(MSG_SHOW_GPS));
 	m_GPSPoint->SetValue(GetShowGPS());
-	FlexSizer->Add(m_GPSPoint,0,wxALL,5);
+	FlexSizer->Add(m_GPSPoint,0,wxALL,1);
 	FlexSizer->AddSpacer(1);
 	FlexSizer->AddSpacer(1);
 	
-	//wxFlexGridSizer *FlexGPSSizer = new wxFlexGridSizer(2);
-	//ScrollSizer->Add(FlexGPSSizer,0,wxALL|wxEXPAND,5);
-
 	wxStaticText *TextGPSColor = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_GPS_COLOR),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextGPSColor,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 
@@ -656,11 +682,51 @@ void CAisList::GetPanel()
 	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
 	m_GPSColor->SetColour(color);
 	FlexSizer->Add(m_GPSColor,0,wxALL,2);
-	
 
 	Scroll->SetScrollbars(20, 20, 20, 20);
 
+	return Panel;
 
-	this->SetSizer(m_Sizer);
+}
+wxPanel *CAisList::GetPage3()
+{
+	
+	wxPanel *Panel = new wxPanel(m_Notebook);
+	wxBoxSizer *m_Page3Sizer = new wxBoxSizer(wxVERTICAL);
+	Panel->SetSizer(m_Page3Sizer);
+	
+	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
+	wxScrolledWindow *Scroll = new wxScrolledWindow(Panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Page3Sizer->Add(Scroll,1,wxALL|wxEXPAND,0);
+	Scroll->SetFocusIgnoringChildren();
+	Scroll->SetSizer(ScrollSizer);
+		
+	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
+	ScrollSizer->Add(FlexSizer,0,wxALL,5);
+	
+	//VTS
+	m_VTS = new wxCheckBox(Scroll,ID_ENABLE_VTS,GetMsg(MSG_ENABLE_VTS_MODE));
+	FlexSizer->Add(m_VTS,0,wxALL,1);
+	m_VTS->SetValue(GetVTSMode());
+	FlexSizer->AddSpacer(1);
+			
+	wxStaticText *TextCPA = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_CPA),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextCPA,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_CPA = new wxSpinCtrlDouble(Scroll,ID_CPA,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	m_CPA->SetIncrement(0.5);
+	m_CPA->SetValue(GetCPA());
+	FlexSizer->Add(m_CPA,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+	wxStaticText *TextTCPA = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_TCPA),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextTCPA,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_TCPA = new wxSpinCtrlDouble(Scroll,ID_TCPA,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	m_TCPA->SetIncrement(0.5);
+	m_TCPA->SetValue(GetTCPA());
+	FlexSizer->Add(m_TCPA,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	
+
+	Scroll->SetScrollbars(20, 20, 20, 20);
+	
+	return Panel;
 
 }

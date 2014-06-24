@@ -26,15 +26,32 @@ bool m_AisDataChanged = true;
 bool m_StartAnimation = false;
 SAisData *m_SelectedPtr = NULL;
 SAisData *m_SelectedAnimPtr = NULL;
-int m_CPA;
+float m_CPA = DEFAULT_CPA;
+float m_TCPA = DEFAULT_TCPA;
+bool m_VTSMode = false;
 
 nvRGBA ColorShip0A, ColorShip1A, ColorShip2A, ColorShipBorderA;
 nvRGBA ColorShip0B, ColorShip1B, ColorShip2B, ColorShipBorderB;
 nvRGBA ColorAton, ColorHDT, ColorCOG, ColorGPS, ColorBS;
 
-void SetCPA()
+void SetCPA(float val)
 {
+	m_CPA = val;
+}
 
+float GetCPA()
+{
+	return m_CPA;
+}
+
+void SetTCPA(float val)
+{
+	m_TCPA = val;
+}
+
+float GetTCPA()
+{
+	return m_TCPA;
 }
 
 void SetSelectedPtr(SAisData *ptr)
@@ -372,6 +389,16 @@ void SetStartAnimation(bool value)
 	m_StartAnimation = value;
 }
 
+bool GetVTSMode()
+{
+	return m_VTSMode;
+}
+
+void SetVTSMode(bool val)
+{
+	m_VTSMode = val;
+}
+
 void ReadOptionsConfig()
 {
 
@@ -391,6 +418,10 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_HDT_LINE_WIDTH),&m_HDTLineWidth, DEFAULT_HDT_LINE_WIDTH);
 	FileConfig->Read(_(KEY_COG_LINE_STYLE),&m_COGLineStyle, DEFAULT_COG_LINE_STYLE);
 	FileConfig->Read(_(KEY_HDT_LINE_STYLE),&m_HDTLineStyle, DEFAULT_HDT_LINE_STYLE);
+
+	FileConfig->Read(_(KEY_CPA),&m_CPA,DEFAULT_CPA);
+	FileConfig->Read(_(KEY_TCPA),&m_TCPA,DEFAULT_TCPA);
+
 	wxString _color;
 	
 	//Class A
@@ -434,6 +465,8 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_BS_COLOR),&_color,RGBAToStr(&GetDefaultColor(BASE_STATION_COLOR)));
 	SetColor(BASE_STATION_COLOR,StrToRGBA(_color));
 	
+	
+
 	delete FileConfig;
 
 }
@@ -472,7 +505,10 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_HDT_LINE_WIDTH),m_HDTLineWidth);
 	FileConfig->Write(_(KEY_COG_LINE_STYLE),m_COGLineStyle);
 	FileConfig->Write(_(KEY_HDT_LINE_STYLE),m_HDTLineStyle);
-	
+
+	FileConfig->Write(_(KEY_CPA),m_CPA);
+	FileConfig->Write(_(KEY_TCPA),m_TCPA);
+
 	delete FileConfig;
 
 }

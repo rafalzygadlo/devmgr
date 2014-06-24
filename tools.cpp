@@ -165,7 +165,7 @@ const wchar_t *nvLanguage[2][285] =
 		_("Wave height"),
 		_("Wave period"),
 		_("Wave direction"),
-		_("Options"),
+		_("AIS Options"),
 		_("Show names"),
 		_("Font size"),
 		_("Show COG"),
@@ -212,6 +212,10 @@ const wchar_t *nvLanguage[2][285] =
 		_("Bad CRC"),
 		_("Signal quality"),
 		_("Show log"),
+		_("VTS Options"),
+		_("Enable VTS Mode"),
+		_("CPA [nm]"),
+		_("TCPA [min]"),
 	},
 	
 	/*PL*/

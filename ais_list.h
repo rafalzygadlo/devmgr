@@ -33,17 +33,25 @@ class CAisList : public wxPanel
 	wxSlider *m_ShipBorderAlphaB,*m_ShipAlpha0B,*m_ShipAlpha1B,*m_ShipAlpha2B;
 	wxSlider *m_AtonAlpha,*m_BaseStationAlpha;
 	
+	//page2
 	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
 	wxSlider *m_ViewNameScale;
 	wxSpinCtrl *m_HDTTime,*m_COGTime,*m_COGLineWidth,*m_HDTLineWidth;
 	CPenStyleComboBox *m_HDTLineStyle, *m_COGLineStyle;
 	 
+	//page3
+	wxCheckBox *m_VTS;
+	wxSpinCtrlDouble *m_CPA, *m_TCPA;
+
 	int m_OldCount;
 	bool m_Working;
 	void GetPanel();
 	void SetList();
 	void ClearList();
 	void Signal();
+	wxPanel *GetPage1();
+	wxPanel *GetPage2();
+	wxPanel *GetPage3();
 	//void StartThread();
 	void OnTimer(wxTimerEvent &event);
 	void OnSearchButton(wxCommandEvent &event);
@@ -65,6 +73,8 @@ class CAisList : public wxPanel
 	void OnCOGLineStyle(wxCommandEvent &event);
 	void OnHDTLineStyle(wxCommandEvent &event);
 	void OnAlpha(wxCommandEvent &event);
+	void OnCPA(wxSpinDoubleEvent &event);
+	void OnTCPA(wxSpinDoubleEvent &event);
 	
 public:
 	
@@ -124,6 +134,10 @@ public:
 		ID_COG_LINE_STYLE,
 		ID_HDT_LINE_STYLE,
 		ID_ATON_ALPHA,
+		ID_ENABLE_VTS,
+		ID_CPA,
+		ID_TCPA,
+		
 	};
 
 	DECLARE_EVENT_TABLE();

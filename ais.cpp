@@ -14,7 +14,7 @@ CNaviArray <double> vAisCollisionTCPA;
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
-
+ 
 
 int option = 0;
 bool m_SearchReady = false;
@@ -592,11 +592,21 @@ bool ais_is_on_collision(SAisData *ship,SAisData *target)
 	//{
 		if(ship->sog > 0.5)
 		{
+			double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
+
+			double ship_new_lon, ship_new_lat, target_new_lon, target_new_lat;
+			NewLonLat(10,ship->lon,ship->lat,ship->sog,ship->cog,&ship_new_lon,&ship_new_lat);
+			NewLonLat(10,target->lon,target->lat,target->sog,target->cog,&target_new_lon,&target_new_lat);
+
+			double d1 = nvDistance(ship_new_lon,ship_new_lat,target_new_lon,target_new_lat);
+
+			//if(d < d1)
+				//return false;
+
 			TCPA = CPA = 0;
 			ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog,&CPA,&TCPA);
 			
-			
-			if( CPA < 2.0 && TCPA < 12.0)
+			if( CPA < GetCPA() )
 				return true;
 		}
 	//}
@@ -632,8 +642,14 @@ void ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, d
 
 	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);
 
+	distance = distance * 1852;
 	*cpa = cpa_m/1852;
-	*tcpa = (sqrt(pow(distance,2)-pow(*cpa,2))/(sqrt(pow(vax-vbx,2)+pow(vay-vby,2)))) * 60;
+
+	double c = abs(pow(distance,2) - pow(cpa_m,2));
+
+	double z1 = sqrt(c);
+	double z2 = sqrt(pow(vax-vbx,2)  + pow(vay-vby,2));
+	*tcpa = (z1/z2)/60;
 	
 
 }

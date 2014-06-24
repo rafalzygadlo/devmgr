@@ -218,10 +218,10 @@ void CObject::CreateVBO()
 {
 	//trójkaty
 	glBindBuffer(GL_ARRAY_BUFFER, m_ArrayBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentVerticesBufferPtr->Length(), m_CurrentVerticesBufferPtr->GetRawData(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(nvPoint2d) * m_CurrentVerticesBufferPtr->Length(), m_CurrentVerticesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 			
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndicesBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentIndicesBufferPtr->Length(), m_CurrentIndicesBufferPtr->GetRawData(), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * m_CurrentIndicesBufferPtr->Length(), m_CurrentIndicesBufferPtr->GetRawData(), GL_STATIC_DRAW);
 		
 	//glBindBuffer(GL_ARRAY_BUFFER, m_BSColorBuffer);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(nvRGBA) * m_CurrentBSColorBufferPtr->Length(), m_CurrentBSColorBufferPtr->GetRawData(), GL_STATIC_DRAW);
