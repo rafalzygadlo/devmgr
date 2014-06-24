@@ -52,6 +52,11 @@ void SetSelectedAnimPtr(SAisData *ptr);
 SAisData *GetSelectedAnimPtr();
 bool GetStartAnimation();
 void SetStartAnimation(bool value);
-void SetCPA();
+void SetCPA(float v);
+float GetCPA();
+void SetTCPA(float v);
+float GetTCPA();
+bool GetVTSMode();
+void SetVTSMode(bool val);
 
 #endif

@@ -40,7 +40,7 @@ unsigned char PluginInfoBlock[] = {
 
 CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 {
-
+	SetBroker(NaviBroker);
 	m_DisplaySignal = new CDisplaySignal(NDS_DEVICE_MANAGER);
 	m_FileConfig = NULL;
     m_NeedExit = false;
@@ -131,6 +131,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_MMSIFont->SetGlowColor(0.8f, 0.8f, 0.8f );
 	//m_MMSIFont->SetGlowCenter( 4.0f );
 	
+	
 	m_Ready = true;
 	m_Render = false;
 	m_SearchTextChanged = m_FilterChanged = true;
@@ -183,13 +184,13 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	m_Ticker1->Start(200);
+	//m_Ticker1->Start(20);
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
 	m_TickerAnim = new CTicker(this,TICK_ANIM);
 	
-	SetBroker(NaviBroker);
+	
 
 	//m_SearchThread = new CNotifier();
 	//m_SearchThread->Start();
@@ -206,6 +207,7 @@ CMapPlugin::~CMapPlugin()
 	m_NameFont = NULL;
 	delete m_MMSIFont;
 	m_MMSIFont = NULL;
+	
 	delete m_MyFrame;
 		
 	ClearBuffers();
@@ -218,6 +220,7 @@ CMapPlugin::~CMapPlugin()
 	delete m_Light2;
 	
 	//delete m_ShipCPA;
+	m_CPA->ClearBuffers(); // bo robi siê poza buforem renderu statkow
 	delete m_CPA;
 }
 
@@ -378,6 +381,8 @@ void CMapPlugin::OnInitGL()
 		m_NameFont->InitGL();
 	if(m_MMSIFont)
 		m_MMSIFont->InitGL();
+	if(m_CPA)
+		m_CPA->InitGL();
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -691,9 +696,9 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	//CheckCollision();
+	CheckCollision();
 	//CheckShipCollision();
-	//PrepareCPABuffer();
+	PrepareCPABuffer();
 	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)
@@ -913,18 +918,20 @@ void CMapPlugin::Kill(void)
 	ais_free_buffer();
 	ais_free_track();
 	ais_free_collision();
+	ais_free_collision_CPA();
+	ais_free_collision_TCPA();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
 
 }
 
-void CMapPlugin::SetSmoothScaleFactor(double _Scale) 
+void CMapPlugin::SetSmoothScale(double _Scale) 
 {
 	if( _Scale > m_Factor )
-		m_SmoothScaleFactor = _Scale;
+		SetSmoothScaleFactor(_Scale);
 	else
-		m_SmoothScaleFactor = m_Factor;
+		SetSmoothScaleFactor( m_Factor);
 }
 
 
@@ -1523,10 +1530,10 @@ void CMapPlugin::SetBuffers()
 			PreparePointsBuffer(ptr);
 			
 			bool ship = false;
-			if(GetShipWidth(ptr) > (GetTriangleWidth(m_SmoothScaleFactor) * TRIANGLE_WIDTH_FACTOR))
+			if(GetShipWidth(ptr) > (GetTriangleWidth(GetSmoothScaleFactor()) * TRIANGLE_WIDTH_FACTOR))
 				ship = true;
 			
-			if(GetShipHeight(ptr) > (GetTriangleHeight(m_SmoothScaleFactor) * TRIANGLE_HEIGHT_FACTOR))
+			if(GetShipHeight(ptr) > (GetTriangleHeight(GetSmoothScaleFactor()) * TRIANGLE_HEIGHT_FACTOR))
 				ship = true;
 			
 			if(ship)
@@ -1780,7 +1787,7 @@ void CMapPlugin::PrepareShipLightsBuffer0(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 			
-	m_Light0->Add(pt,m_SmoothScaleFactor);
+	m_Light0->Add(pt,GetSmoothScaleFactor());
 
 }
 
@@ -1793,7 +1800,7 @@ void CMapPlugin::PrepareShipLightsBuffer1(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 			
-	m_Light1->Add(pt,m_SmoothScaleFactor);
+	m_Light1->Add(pt,GetSmoothScaleFactor());
 
 }
 
@@ -1806,7 +1813,7 @@ void CMapPlugin::PrepareShipLightsBuffer2(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 			
-	m_Light2->Add(pt,m_SmoothScaleFactor);
+	m_Light2->Add(pt,GetSmoothScaleFactor());
 
 }
 
@@ -1938,7 +1945,7 @@ void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
 void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 {
 	nvPoint2d p1,p2;	
-	double width = ROT_WIDTH/m_SmoothScaleFactor;
+	double width = ROT_WIDTH/GetSmoothScaleFactor();
 	double out_x,out_y;
 	double to_x,to_y;
 	
@@ -1973,8 +1980,26 @@ void CMapPlugin::PrepareCPABuffer()
 	m_CPA->SetCurrentPtr(true);
 	m_CPA->ClearBuffers();
 	
-	for(size_t i = 0; i < ais_get_line_item_count();i+=2)
-		PrepareCPAVerticesBuffer(ais_get_line_item(i),ais_get_line_item(i+1));
+	int counter = 0;
+	for(size_t i = 0; i < ais_get_collision_item_count();i+=2)
+	{
+		SAisData *ptr1 = ais_get_collision_item(i);
+		SAisData *ptr2 = ais_get_collision_item(i+1);
+
+		nvPoint2d p1,p2;
+		double to_x,to_y;
+		GetBroker()->Unproject(ptr1->lon,-ptr1->lat,&to_x,&to_y);
+		p1.x = to_x; p1.y = to_y;
+		
+		GetBroker()->Unproject(ptr2->lon,-ptr2->lat,&to_x,&to_y);
+		p2.x = to_x; p2.y = to_y;
+
+		PrepareCPAVerticesBuffer(p1,p2);
+		double cpa = ais_get_CPA_item(counter);
+		double tcpa = ais_get_TCPA_item(counter);
+		PrepareCPAFontBuffer(ptr1,ptr2,cpa,tcpa);
+		counter++;
+	}
 	
 	m_CPA->CopyBuffers();
 	m_CPA->SetCurrentPtr(false);
@@ -1996,6 +2021,23 @@ void CMapPlugin::PrepareCPAVerticesBuffer(nvPoint2d pt1,nvPoint2d pt2)
 	m_CPA->AddIndice(id - 1);	//0
 		
 }
+
+void CMapPlugin::PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa)
+{
+	
+	wchar_t str[64];
+	wchar_t wc[64];
+	double to_x,to_y;
+
+	swprintf(str,L"CPA:%4.4f TCPA:%4.4f",cpa*1852,tcpa*60);
+	double m1,m2;
+	nvMidPoint(ptr1->lon, ptr1->lat,ptr2->lon, ptr2->lat, &m1, &m2);
+		
+	m_Broker->Unproject(m1,-m2,&to_x,&to_y);
+	m_CPA->AddText(to_x,to_y,str);
+
+}
+
 
 //Ship CPA
 void CMapPlugin::PrepareShipCPABuffer()
@@ -2040,8 +2082,8 @@ void CMapPlugin::PrepareBSVerticesBuffer(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 		
-	double width = BS_WIDTH/m_SmoothScaleFactor;
-	double height = BS_HEIGHT/m_SmoothScaleFactor;
+	double width = BS_WIDTH/GetSmoothScaleFactor();
+	double height = BS_HEIGHT/GetSmoothScaleFactor();
 			
 	p1.x = -1.0 * width;	p1.y =  1.0 * height;
 	p2.x =  1.0 * width;	p2.y =  1.0 * height;
@@ -2120,8 +2162,8 @@ void CMapPlugin::PrepareAtonVerticesBuffer(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 		
-	double width = ATON_WIDTH/m_SmoothScaleFactor;
-	double height = ATON_HEIGHT/m_SmoothScaleFactor;
+	double width = ATON_WIDTH/GetSmoothScaleFactor();
+	double height = ATON_HEIGHT/GetSmoothScaleFactor();
 			
 	p1.x = -1.0 * width;	p1.y =  1.0 * height;
 	p2.x =  1.0 * width;	p2.y =  1.0 * height;
@@ -2242,8 +2284,8 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 		
-	double width =  SHIP_TRIANGLE_WIDTH/m_SmoothScaleFactor;
-	double height = SHIP_TRIANGLE_HEIGHT/m_SmoothScaleFactor;
+	double width =  SHIP_TRIANGLE_WIDTH/GetSmoothScaleFactor();
+	double height = SHIP_TRIANGLE_HEIGHT/GetSmoothScaleFactor();
 			
 	p1.x = -0.5 * width;	p1.y =  0.8 * height;
 	p2.x =  0.0 * width;	p2.y = -0.8 * height;
@@ -2372,8 +2414,8 @@ void CMapPlugin::PrepareSmallShipVerticesBuffer(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 		
-	double width =  SMALL_SHIP_WIDTH/m_SmoothScaleFactor;
-	double height = SMALL_SHIP_HEIGHT/m_SmoothScaleFactor;
+	double width =  SMALL_SHIP_WIDTH/GetSmoothScaleFactor();
+	double height = SMALL_SHIP_HEIGHT/GetSmoothScaleFactor();
 		
 	p1.x = -0.5 * width;	p1.y =  0.5    * height;	
 	p2.x =  0.5 * width;	p2.y =  0.5    * height; 
@@ -2889,8 +2931,8 @@ void CMapPlugin::PrepareSARVerticesBuffer(SAisData *ptr)
 	pt.x = to_x;
 	pt.y = to_y;
 		
-	double width =  SAR_WIDTH/m_SmoothScaleFactor;
-	double height = SAR_HEIGHT/m_SmoothScaleFactor;
+	double width =  SAR_WIDTH/GetSmoothScaleFactor();
+	double height = SAR_HEIGHT/GetSmoothScaleFactor();
 			
 	p1.x = -1.0 * width;	p1.y =  1.0 * height;
 	p2.x =  1.0 * width;	p2.y =	1.0 * height;
@@ -2999,7 +3041,7 @@ void CMapPlugin::RenderShipNames()
 		return;
 	
 	size_t CaptionsSize = size;
-    vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );    // czêœæ ca³kowita jednostki sondowania
+    vect2 *Positions = (vect2*)malloc( CaptionsSize *sizeof( vect2 ) );
     float *Scale = (float*)malloc( CaptionsSize * sizeof( float ) );
     float *Angle = (float*)malloc( CaptionsSize * sizeof( float ) );
     float *vx = (float*)malloc( CaptionsSize * sizeof( float ) );
@@ -3013,8 +3055,8 @@ void CMapPlugin::RenderShipNames()
 		SAisNames *a = m_CurrentShipNamesBufferPtr->Get(i);
 		m_Broker->Unproject(a->lon,-a->lat,&to_x,&to_y);
 		Positions[i][0] = to_x;
-        Positions[i][1] = to_y + (10.0/m_SmoothScaleFactor);
-		Scale[i] = GetFontSize()/m_SmoothScaleFactor/DEFAULT_FONT_FACTOR;
+        Positions[i][1] = to_y + (10.0/GetSmoothScaleFactor());
+		Scale[i] = GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR;
         vx[i] = 0.5f;
         vy[i] = -3.0f;
 		CaptionsStr[i] = a->name;   // bez kopiowania ³añcucha!!! 
@@ -3467,12 +3509,12 @@ void  CMapPlugin::RenderSelection()
 	if(ptr->valid_pos)
 	{
 		swprintf(mmsi,L"%d",ptr->mmsi);	
-		m_MMSIFont->Print(to_x,to_y,GetFontSize()/m_SmoothScaleFactor/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
+		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
 	}	
 	
 	// quad selection
-	double width =  SHIP_QUAD_WIDTH/m_SmoothScaleFactor;
-	double height = SHIP_QUAD_HEIGHT/m_SmoothScaleFactor;
+	double width =  SHIP_QUAD_WIDTH/GetSmoothScaleFactor();
+	double height = SHIP_QUAD_HEIGHT/GetSmoothScaleFactor();
 	nvPoint2d p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16;		
 	
 	p1.x = -1.0 * width;	p1.y =  1.0 * height;
@@ -3543,7 +3585,7 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::RenderCPA()
 {
-	glLineWidth(2);
+	glLineWidth(1);
 	m_CPA->Render();
 	glLineWidth(1);
 }
@@ -3785,6 +3827,7 @@ void CMapPlugin::RenderNormalScale()
 		m_MMSIFont->ClearBuffers();
 		m_MMSIFont->CreateBuffers();
 		m_MMSIFont->Render();
+
 	}
 
 	// napisy
@@ -3808,7 +3851,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	wxMutexLocker lock(*GetMutex());
+	//wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else

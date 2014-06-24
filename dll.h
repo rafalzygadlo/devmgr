@@ -69,7 +69,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_Interpolation;
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;
-	double m_SmoothScaleFactor, m_Factor;
+	double m_Factor;
 	float m_MapScale,m_OldMapScale;
 	double m_MapX,m_MapY,m_MouseLmbX,m_MouseLmbY;
 	int m_SelectedVertexId;
@@ -215,6 +215,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PrepareCPABuffer();
+	void PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa);
 	void PrepareShipCPABuffer();
 	void PrepareAisBuffer();
 	void PrepareSearchBuffer();
@@ -311,7 +312,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetInvalid();
 	void SetFrequency(int id);
 	void SetShip(SFunctionData *data);
-	void SetSmoothScaleFactor(double _Scale);
+	void SetSmoothScale(double _Scale);
 	void SetValues(bool lmb);
 	bool IsTriangleBuffer();
 	bool IsShipBuffer();
