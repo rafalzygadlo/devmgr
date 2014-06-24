@@ -25,6 +25,9 @@ class CMyFrame: public wxDialog
 	CTicker *m_Ticker;
 	int m_Seconds,m_Minutes;
 	wxStaticBitmap *m_ShipImage;
+	//wxTextCtrl *m_MMSI, *m_CALLSIGN, *m_IMO, *m_Name;
+	//wxStaticText *m_Flag;
+	//wxStaticText *m_COG, *m_HDT, *m_SOG , *m_LON, *m_LAT, *m_Draught, *m_Turn;
 	
 	void OnCloseButton(wxCommandEvent &event);
 	void OnClose(wxCloseEvent &event);
@@ -36,6 +39,7 @@ class CMyFrame: public wxDialog
 	void SetValues();
 	void ShowWindow(bool show);
 	void SetImage();
+	void SetData(SAisData *ptr);
 	
 public:
 		

@@ -51,6 +51,10 @@
 //#define AIS_SHIPNAME_MAXLEN	20
 #define MAX_TYPE24_INTERLEAVE	8	/* max number of queued type 24s */
 
+#define AIS_SOTDMA	0
+#define AIS_ITDMA	1
+
+
 struct ais_mid
 {
 	int id;
@@ -863,6 +867,7 @@ struct ais_t
 	    bool msg22;	        	/* can accept Message 22 management? */
 	    bool assigned;		/* assigned-mode flag */
 	    bool raim;			/* RAIM flag */
+		unsigned int cstate; /* radio communication state SOTDMA or ITDMA *   dopisa³em sam nie by³o na pocz¹tku */
 	    unsigned int radio;		/* radio status bits */
 	} type18;
 	/* Type 19 - Extended Class B CS Position Report */
@@ -1109,17 +1114,21 @@ void ais_free_collision();
 
 size_t ais_get_line_item_count();
 nvPoint2d ais_get_line_item(size_t idx);
-
+//CPA,TCPA
 double ais_get_CPA_item(int id);
 double ais_get_TCPA_item(int id);
 void ais_free_collision_CPA();
 void ais_free_collision_TCPA();
-
 double ais_get_D1_item(int id);
 double ais_get_D2_item(int id);
-
-
 bool  ais_circle_collision(SAisData *ship, SAisData *target);
+
+//communication state
+void ais_communication_state(ais_t *ais,int type);
+void ais_state(unsigned int bits, int state);
+void ais_sotdma(unsigned int bits);
+void ais_itdma(unsigned int bits);
+
 
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);

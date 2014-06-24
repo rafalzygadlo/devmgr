@@ -658,7 +658,7 @@ bool ais_circle_collision(SAisData *ship,SAisData *target)
 	if(r2 > 0.0)
 		c2.Radius = r2;
 	else
-		c2.Radius = (double)100/1852/GetMilesPerDegree(ship->lon,-ship->lat);
+		c2.Radius = (double)100/1852/GetMilesPerDegree(target->lon,-target->lat);
 
 		
 	if(nvIsCircleColision(&c1,&c2))
@@ -1035,11 +1035,8 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 	if(ais_decode(bits,bitlen,ais,type))
 	{
 		if(add)
-		{
 			vAisData.Append(ais);
-			//ais->buffer_id = vAisData.Length();
-		}
-	
+		
 	}else{
 		
 		if(add)
@@ -1049,7 +1046,71 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 		}
 	}
 	
+	ais_communication_state(ais,type);
+
 	return ais;
+}
+
+void ais_communication_state(ais_t *ais,int type)
+{
+	switch(type)
+	{
+		case AIS_MSG_1: 
+		case AIS_MSG_2:		ais_state(ais->type1.radio,AIS_SOTDMA); 			break;
+		case AIS_MSG_3:		ais_state(ais->type1.radio,AIS_ITDMA); 				break;
+		case AIS_MSG_4:		
+		case AIS_MSG_11:	ais_state(ais->type4.radio,AIS_SOTDMA);				break;
+		case AIS_MSG_9:		ais_state(ais->type9.radio,AIS_SOTDMA);				break;
+		case AIS_MSG_18:	ais_state(ais->type18.radio,ais->type18.cstate); 	break;
+	}
+}
+
+void ais_state(unsigned int bits, int state)
+{
+	switch(state)
+	{
+		case	AIS_SOTDMA:	ais_sotdma(bits);		break;
+		case	AIS_ITDMA:	ais_itdma(bits);		break;
+	}
+
+}
+
+void ais_sotdma(unsigned int bits)
+{
+	int sync_state = ubits(bits,0,2);
+	int slot_timeout = ubits(bits,0,3);
+
+	int val = 0;
+	switch(slot_timeout)
+	{
+		case 0:
+			val = ubits(bits,0,14);		//slot offset
+		break;
+
+		case 1:
+			val = ubits(bits,0,14);
+		break;
+		
+		case	2:
+		case	4:
+		case	6:
+			val = ubits(bits,0,14);		//received stations
+		break;
+		
+		case	3:
+		case	5:
+		case	7:
+			val = ubits(bits,0,14);		//slot number
+		break;
+	
+	}
+
+}
+
+void ais_itdma(unsigned int bits)
+{
+
+
 }
 
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
@@ -1215,7 +1276,8 @@ void ais_prepare_buffer(ais_t *ais)
 	if(ais_set_hdg(ais,AisData))		AisData->valid_hdg = true;
 	if(ais_set_sog(ais,AisData))		AisData->valid_sog = true;
 	if(ais_set_turn(ais,AisData))		AisData->valid_turn = true;
-
+	if(ais_set_callsign(ais,AisData))	AisData->valid_callsign = true;
+	if(ais_set_imo(ais,AisData))		AisData->valid_imo = true;
 	ais_set_class(ais,AisData);
 
 	AisData->ais_ptr = ais;
@@ -2217,7 +2279,8 @@ void ais_message_18(unsigned char *bits, ais_t *ais)
 	ais->type18.msg22   	= UBITS(145, 1)!=0;
 	ais->type18.assigned	= UBITS(146, 1)!=0;
 	ais->type18.raim		= UBITS(147, 1)!=0;
-	ais->type18.radio		= UBITS(148, 20);
+	ais->type18.cstate		= UBITS(148, 1);
+	ais->type18.radio		= UBITS(149, 19);
 }
 
 /* Extended Class B CS Position Report */

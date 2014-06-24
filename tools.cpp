@@ -127,7 +127,7 @@ const wchar_t *nvLanguage[2][285] =
 		_("ETA Minute (UTC)"),
 		_("Destination"),
 		_("Ship type"),
-		_("IMO Number"),
+		_("IMO"),
 		_("Dimension to Bow"),
 		_("Dimension to Stern"),
 		_("Dimension to Port"),
