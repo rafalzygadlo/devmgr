@@ -4,7 +4,15 @@
 #include <windows.h>
 #endif
 
-class CTicker :public wxTimer
+#define THREAD
+
+class CTicker
+#ifdef TIMER	
+	:public wxTimer
+#endif
+#ifdef THREAD
+	:public wxThread
+#endif
 {
 	void *Parent;
 	bool Exit;
@@ -27,16 +35,20 @@ class CTicker :public wxTimer
 	void OnTickerStart();
 	void OnTickerStop();
 	void OnTickerTick();
-	//void *Entry();
-
+#ifdef THREAD
+	void *Entry();
+#endif
 
 public:
 	CTicker(void *parent, int id);
 	~CTicker();
-	//void Start(int sleep);
-	//void Stop();
+#ifdef THREAD
+	void Start(int sleep);
+	void Stop();
+#endif
+#ifdef TICKER
 	void Notify();
-	
+#endif	
 };
 
 #endif
