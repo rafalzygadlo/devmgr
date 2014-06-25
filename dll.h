@@ -215,7 +215,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void ReadSerialConfig(int index);
 	void PrepareBuffer();
 	void PrepareCPABuffer();
-	void PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa);
+	void PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa, double d1, double d2);
 	void PrepareShipCPABuffer();
 	void PrepareAisBuffer();
 	void PrepareSearchBuffer();

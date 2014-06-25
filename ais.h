@@ -1115,6 +1115,12 @@ double ais_get_TCPA_item(int id);
 void ais_free_collision_CPA();
 void ais_free_collision_TCPA();
 
+double ais_get_D1_item(int id);
+double ais_get_D2_item(int id);
+
+
+bool  ais_circle_collision(SAisData *ship, SAisData *target);
+
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
 void ais_clear_search_buffer();

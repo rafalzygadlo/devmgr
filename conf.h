@@ -498,7 +498,7 @@ typedef struct
 {
 	double lon;			//pozycja lon,lat
 	double lat;
-	wchar_t name[64];
+	wchar_t name[128];
 
 }SAisNames;
 

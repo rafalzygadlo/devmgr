@@ -53,7 +53,7 @@ void CObject::AddText(double x, double y,wchar_t *txt)
 	SAisNames *ptr = (SAisNames*)malloc(sizeof(SAisNames));
 	ptr->lon = x;
 	ptr->lat = y;
-	memcpy(ptr->name,txt,64);
+	memcpy(ptr->name,txt,128);
 	m_FontBuffer0.Append(ptr);
 }
 

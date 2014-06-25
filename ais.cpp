@@ -10,7 +10,8 @@ CNaviArray <SAisData*> vAisBuffer;
 CNaviArray <SAisData*> vAisCollision;
 CNaviArray <double> vAisCollisionCPA;
 CNaviArray <double> vAisCollisionTCPA;
-
+CNaviArray <double> vAisCollisionD1;
+CNaviArray <double> vAisCollisionD2;
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
@@ -18,7 +19,7 @@ CNaviArray <CNaviArray <SAisData>*> vAisTrack;
 
 int option = 0;
 bool m_SearchReady = false;
-double TCPA, CPA;
+double TCPA, CPA, D1, D2;
 
 const wchar_t *nvHazardousCargo[2][6] = 
 {
@@ -535,6 +536,8 @@ void ais_check_collision()
 	vAisPoints.Clear();
 	vAisCollisionCPA.Clear();
 	vAisCollisionTCPA.Clear();
+	vAisCollisionD1.Clear();
+	vAisCollisionD2.Clear();
 	
 	for(size_t i = 0; i < vAisBuffer.Length(); i++)
 	{
@@ -551,6 +554,8 @@ void ais_check_collision()
 					vAisCollision.Append(target);
 					vAisCollisionCPA.Append(CPA);
 					vAisCollisionTCPA.Append(TCPA);
+					vAisCollisionD1.Append(D1);
+					vAisCollisionD2.Append(D2);
 				}
 			}
 		}
@@ -585,35 +590,83 @@ double ais_get_TCPA_item(int id)
 	return vAisCollisionTCPA.Get(id);
 }
 
+double ais_get_D1_item(int id)
+{
+	return vAisCollisionD1.Get(id);
+}
+
+double ais_get_D2_item(int id)
+{
+	return vAisCollisionD2.Get(id);
+}
+
+
 bool ais_is_on_collision(SAisData *ship,SAisData *target)
 {			
+		
+	if(ship->sog > 0.5)
+	{
+		
+		TCPA = CPA = D1 = D2 = 0;
+		double d1 = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
+
+		double ship_new_lon, ship_new_lat, target_new_lon, target_new_lat;
+		NewLonLat(10,ship->lon,ship->lat,ship->sog,ship->cog,&ship_new_lon,&ship_new_lat);
+		NewLonLat(10,target->lon,target->lat,target->sog,target->cog,&target_new_lon,&target_new_lat);
+
+		double d2 = nvDistance(ship_new_lon,ship_new_lat,target_new_lon,target_new_lat);
+		D1 = d1;
+		D2 = d2;
+		
+		if(d1 < d2)
+			return false;
+
+		ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog,&CPA,&TCPA);
 			
-	//if(ais_collision(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog))
-	//{
-		if(ship->sog > 0.5)
-		{
-			double d = nvDistance(ship->lon,ship->lat,target->lon,target->lat);
+		if( CPA > GetCPA() )
+			return false;
 
-			double ship_new_lon, ship_new_lat, target_new_lon, target_new_lat;
-			NewLonLat(10,ship->lon,ship->lat,ship->sog,ship->cog,&ship_new_lon,&ship_new_lat);
-			NewLonLat(10,target->lon,target->lat,target->sog,target->cog,&target_new_lon,&target_new_lat);
+		if(!ais_circle_collision(ship,target))
+			return false;
 
-			double d1 = nvDistance(ship_new_lon,ship_new_lat,target_new_lon,target_new_lat);
-
-			//if(d < d1)
-				//return false;
-
-			TCPA = CPA = 0;
-			ais_CPA(ship->lon,ship->lat,ship->cog,ship->sog,target->lon,target->lat,target->cog,target->sog,&CPA,&TCPA);
-			
-			if( CPA < GetCPA() )
-				return true;
-		}
-	//}
+		return true;
+	}
+	
 
 	return false;
 }
 
+bool ais_circle_collision(SAisData *ship,SAisData *target)
+{
+	nvCircle c1,c2;
+
+	c1.Center.x = ship->lon;
+	c1.Center.y = ship->lat;
+
+	double r1 = GetShipWidth(ship);
+
+	if(r1 > 0.0)
+		c1.Radius = r1;
+	else
+		c1.Radius = (double)100/1852/GetMilesPerDegree(ship->lon,-ship->lat);
+	
+	c2.Center.x = target->lon;
+	c2.Center.y = target->lat;
+
+	double r2 = GetShipWidth(target);
+	
+	if(r2 > 0.0)
+		c2.Radius = r2;
+	else
+		c2.Radius = (double)100/1852/GetMilesPerDegree(ship->lon,-ship->lat);
+
+		
+	if(nvIsCircleColision(&c1,&c2))
+		return true;
+	else
+		return false;
+
+}
 
 void ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, double target_lon, double target_lat, float target_cog, float target_sog, double *cpa, double *tcpa )
 {
@@ -633,11 +686,6 @@ void ais_CPA(double ship_lon, double ship_lat, float ship_cog, float ship_sog, d
 	double x = (ship_lon - target_lon)*60*1852;
 	double y = (ship_lat - target_lat)*60*1852;
 	
-	//=PIERWIASTEK(POTĘGA(B13-B15;2)+POTĘGA(B14-B16;2))
-
-	//=((B20*MODUŁ.LICZBY(B14-B16)-(B21*MODUŁ.LICZBY(B13-B15)))/(PIERWIASTEK(POTĘGA(B13-B15;2)+POTĘGA(B14-B16;2))))
-	
-
 	double cpa_m  = abs((x * abs(vay - vby) - (y * abs(vax - vbx))) / sqrt(pow(vax - vbx,2)  + pow(vay - vby,2) ));
 
 	double distance = nvDistance(ship_lon,ship_lat,target_lon,target_lat);

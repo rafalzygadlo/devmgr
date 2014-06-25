@@ -17,6 +17,7 @@
 #include "NaviDrawer.h"
 #include "animpos.h"
 #include <math.h>
+#include "NaviDrawer.h"
 
 
 unsigned char PluginInfoBlock[] = {
@@ -1997,7 +1998,9 @@ void CMapPlugin::PrepareCPABuffer()
 		PrepareCPAVerticesBuffer(p1,p2);
 		double cpa = ais_get_CPA_item(counter);
 		double tcpa = ais_get_TCPA_item(counter);
-		PrepareCPAFontBuffer(ptr1,ptr2,cpa,tcpa);
+		double d1 = ais_get_D1_item(counter);
+		double d2 = ais_get_D2_item(counter);
+		PrepareCPAFontBuffer(ptr1,ptr2,cpa,tcpa,d1,d2);
 		counter++;
 	}
 	
@@ -2022,14 +2025,13 @@ void CMapPlugin::PrepareCPAVerticesBuffer(nvPoint2d pt1,nvPoint2d pt2)
 		
 }
 
-void CMapPlugin::PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa)
+void CMapPlugin::PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa, double tcpa, double d1, double d2)
 {
 	
-	wchar_t str[64];
-	wchar_t wc[64];
+	wchar_t str[128];
 	double to_x,to_y;
 
-	swprintf(str,L"CPA:%4.4f TCPA:%4.4f",cpa*1852,tcpa*60);
+	swprintf(str,L"CPA:%4.4f TCPA:%4.4f %4.10f %4.10f",cpa*1852,tcpa*60,d1,d2);
 	double m1,m2;
 	nvMidPoint(ptr1->lon, ptr1->lat,ptr2->lon, ptr2->lat, &m1, &m2);
 		
@@ -3503,15 +3505,31 @@ void  CMapPlugin::RenderSelection()
 	to_y = -to_y;
 
 	wchar_t str[64];
-	wchar_t mmsi[16];
-	wchar_t wc[64];
+	
+	//wchar_t wc[64];
 	
 	if(ptr->valid_pos)
 	{
-		swprintf(mmsi,L"%d",ptr->mmsi);	
+		wchar_t mmsi[16];
+		swprintf(mmsi,L"%d",ptr->mmsi);
 		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,mmsi,0.5,3.2);
 	}	
+
+	if(ptr->valid_cog)
+	{
+		wchar_t cog[16];
+		swprintf(cog,L"%4.2f", ptr->cog);
+		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,cog,0.5,4.3);
+	}
 	
+	if(ptr->valid_sog)
+	{
+		wchar_t sog[16];
+		swprintf(sog,L"%4.2f", ptr->sog);
+		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,sog,0.5,5.4);
+	}
+
+
 	// quad selection
 	double width =  SHIP_QUAD_WIDTH/GetSmoothScaleFactor();
 	double height = SHIP_QUAD_HEIGHT/GetSmoothScaleFactor();
@@ -3580,6 +3598,21 @@ void  CMapPlugin::RenderSelection()
 		glVertex2d(p16.x,p16.y);
 	glEnd();
 	glLineWidth(1);
+
+
+	nvCircle c;
+	c.Center.x = to_x;
+	c.Center.y = to_y;
+	GetMilesPerDegree(ptr->lon,-ptr->lat);
+	double h = GetShipHeight(ptr);
+
+	if(h > 0.0)
+		c.Radius = h;
+	else
+		c.Radius = (double)100/1852/GetMilesPerDegree(ptr->lon,-ptr->lat);
+	
+	nvDrawCircle(&c);
+	
 	
 }
 
@@ -3615,23 +3648,13 @@ void CMapPlugin::RenderHDT()
 
 void CMapPlugin::RenderROT()
 {
-	//if(!GetShowROT())
-		//return;
-	
-	//if(GetROTLineStyle() == 1)
-	//{
-		//glEnable(GL_LINE_STIPPLE);
-		//glLineStipple( 5, 0xAAAA );
-	//}
-	
-	glLineWidth(GetCOGLineWidth());
-	glColor4ub(GetColor(COG_COLOR).R ,GetColor(COG_COLOR).G,GetColor(COG_COLOR).B,GetColor(COG_COLOR).A);
+	glLineWidth(GetHDTLineWidth());
+	glColor4ub(GetColor(HDT_COLOR).R ,GetColor(HDT_COLOR).G,GetColor(HDT_COLOR).B,GetColor(HDT_COLOR).A);
 			
 	if(m_CurrentROTVerticesBufferPtr != NULL && m_CurrentROTVerticesBufferPtr->Length() > 0)
 		RenderGeometry(GL_LINES,m_CurrentROTVerticesBufferPtr->GetRawData(),m_CurrentROTVerticesBufferPtr->Length());
 	glLineWidth(1);
 
-	//glDisable(GL_LINE_STIPPLE);
 }
 
 

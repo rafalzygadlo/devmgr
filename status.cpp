@@ -97,7 +97,7 @@ void CStatus::SetReader(CReader *ptr)
 	m_Status->AppendText(wxString::Format(_("%s: %d\n"),GetMsg(MSG_BAD_CRC),ptr->GetBadCRC()));
 
 	if(ptr->GetLinesCount() == 0)
-		m_Status->AppendText(_("N/A"));
+		m_Status->AppendText(_("N/A\n"));
 	else
 		m_Status->AppendText(wxString::Format(_("%s: %d%%\n\n"),GetMsg(MSG_SIGNAL_QUALITY),ptr->GetSignalQuality()));
 
