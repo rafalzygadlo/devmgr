@@ -11,10 +11,8 @@ int ubits(unsigned int bits, unsigned int start, unsigned int width)
 	unsigned int val = 0;
 	
 	for(size_t i = start; i < start + width;i++)
-	{
 		val += IS_BIT_SET(bits,i);
-	}
-
+	
 	return val;
 }
 

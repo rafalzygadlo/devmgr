@@ -55,6 +55,16 @@
 #define AIS_ITDMA	1
 
 
+#define AIS_SLOT_OFFSET				0
+#define AIS_UTC_HOUR_AND_MINUTE		1
+#define AIS_SLOT_NUMBER1			2
+#define AIS_SLOT_NUMBER2			4
+#define AIS_SLOT_NUMBER3			6
+
+#define AIS_RECEIVED_STATIONS1		3
+#define AIS_RECEIVED_STATIONS2		5
+#define AIS_RECEIVED_STATIONS3		7
+
 struct ais_mid
 {
 	int id;
@@ -1128,7 +1138,8 @@ void ais_communication_state(ais_t *ais,int type);
 void ais_state(unsigned int bits, int state);
 void ais_sotdma(unsigned int bits);
 void ais_itdma(unsigned int bits);
-
+int ais_sotdma_hour(unsigned int bits);
+int ais_sotdma_minute(unsigned int bits);
 
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);

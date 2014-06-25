@@ -1081,36 +1081,63 @@ void ais_sotdma(unsigned int bits)
 	int slot_timeout = ubits(bits,0,3);
 
 	int val = 0;
+	
 	switch(slot_timeout)
 	{
-		case 0:
+		case AIS_SLOT_OFFSET:
 			val = ubits(bits,0,14);		//slot offset
 		break;
 
-		case 1:
-			val = ubits(bits,0,14);
+		case AIS_UTC_HOUR_AND_MINUTE:
+			val = ubits(bits,0,14);		//utc hour/miunte
+			ais_sotdma_hour(val);
+			ais_sotdma_minute(val);
 		break;
 		
-		case	2:
-		case	4:
-		case	6:
+		case AIS_SLOT_NUMBER1:
+		case AIS_SLOT_NUMBER2:
+		case AIS_SLOT_NUMBER3:
 			val = ubits(bits,0,14);		//received stations
 		break;
 		
-		case	3:
-		case	5:
-		case	7:
+		case AIS_RECEIVED_STATIONS1:
+		case AIS_RECEIVED_STATIONS2:
+		case AIS_RECEIVED_STATIONS3:
 			val = ubits(bits,0,14);		//slot number
 		break;
 	
 	}
+	
+	//fprintf(stdout,"SOTDMA %d %d %d\n",sync_state,slot_timeout,val);
 
+}
+
+int ais_sotdma_hour(unsigned int bits)
+{
+	bits = ubits(bits,9,5);
+	bits = bits >> 9;
+	fprintf(stdout,"HOUR %d\n",bits);
+	Sleep(1000);
+	return bits;
+}
+
+int ais_sotdma_minute(unsigned int bits)
+{
+	bits = ubits(bits,2,6);
+	bits = bits >> 2;
+	fprintf(stdout,"MINUTE %d\n",bits);
+	Sleep(1000);
+	return bits;
 }
 
 void ais_itdma(unsigned int bits)
 {
+	int sync_state = ubits(bits,0,2);
+	int slot_increment = ubits(bits,0,13);
+	int number_of_slots = ubits(bits,0,3);
+	int keep_flag = ubits(bits,0,1);
 
-
+	//fprintf(stdout,"ITDMA %d %d %d %d\n",sync_state,slot_increment,number_of_slots,keep_flag);
 }
 
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)

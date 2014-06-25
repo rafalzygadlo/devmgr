@@ -60,6 +60,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void SetLoggerEvent();			// ustawia komunikaty w logerze to jest event logera
 	void GetDevicesList();
 	void GetAisList();
+	void GetAisMonitor();
 	void RemoveControl(int type);
 	void FreeDevicesList();
 	void FreeAisList();
@@ -144,6 +145,7 @@ public:
 		ID_DEVICE_WIZARD,
 		CONTROL_DEVICES_LIST = 1000,
 		CONTROL_AIS_LIST,
+		CONTROL_AIS_MONITOR,
 	};
 
 

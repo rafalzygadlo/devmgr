@@ -12,6 +12,7 @@
 #include "devices.h"
 #include "options.h"
 #include "signals.h"
+#include "ais_monitor.h"
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU_RANGE(ID_MENU_BEGIN,ID_MENU_END,CDisplayPlugin::OnMenuRange)
@@ -40,6 +41,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Menu = new wxMenu();
 	m_Menu->AppendRadioItem(0 + ID_MENU_BEGIN ,_("Device Manager - Configurator"));
 	m_Menu->AppendRadioItem(1 + ID_MENU_BEGIN ,_("Ais Targets"));
+	m_Menu->AppendRadioItem(2 + ID_MENU_BEGIN ,_("Ais Monitor"));
 		
 	m_Ticker = new CTicker(this,TICK_DISPLAY_REFRESH);
 	m_Ticker->Start(DISPLAY_REFRESH);
@@ -117,6 +119,13 @@ void  CDisplayPlugin::GetAisList()
 	this->Layout();
 }
 
+void  CDisplayPlugin::GetAisMonitor()
+{
+	CAisMonitor *Monitor = new CAisMonitor();
+	Monitor->Show();
+	
+}
+
 void CDisplayPlugin::RemoveControl(int type)
 {
 	switch(type)
@@ -146,6 +155,13 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 		wxMessageBox(_("The same type of control ?"));
 		return;
 	}
+	
+	if(event.GetId() == CONTROL_AIS_MONITOR)
+	{
+		GetAisMonitor();
+		return;
+	}
+	
 	m_GUI = false;
 	RemoveControl(m_ControlType);
 		
