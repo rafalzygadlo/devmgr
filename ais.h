@@ -1140,6 +1140,8 @@ void ais_sotdma(unsigned int bits);
 void ais_itdma(unsigned int bits);
 int ais_sotdma_hour(unsigned int bits);
 int ais_sotdma_minute(unsigned int bits);
+bool ais_get_slot(int id);
+
 
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);
