@@ -476,6 +476,8 @@ typedef struct
 	bool valid_name;
 	bool valid_draught;
 	bool valid_turn;
+	bool valid_callsign;
+	bool valid_imo;
 	void *ais_ptr;
 
 }SAisData;

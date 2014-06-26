@@ -658,7 +658,7 @@ bool ais_circle_collision(SAisData *ship,SAisData *target)
 	if(r2 > 0.0)
 		c2.Radius = r2;
 	else
-		c2.Radius = (double)100/1852/GetMilesPerDegree(ship->lon,-ship->lat);
+		c2.Radius = (double)100/1852/GetMilesPerDegree(target->lon,-target->lat);
 
 		
 	if(nvIsCircleColision(&c1,&c2))
@@ -1215,7 +1215,8 @@ void ais_prepare_buffer(ais_t *ais)
 	if(ais_set_hdg(ais,AisData))		AisData->valid_hdg = true;
 	if(ais_set_sog(ais,AisData))		AisData->valid_sog = true;
 	if(ais_set_turn(ais,AisData))		AisData->valid_turn = true;
-
+	if(ais_set_callsign(ais,AisData))	AisData->valid_callsign = true;
+	if(ais_set_imo(ais,AisData))		AisData->valid_imo = true;
 	ais_set_class(ais,AisData);
 
 	AisData->ais_ptr = ais;
