@@ -63,7 +63,7 @@ return 0;
 }
 */
 
-#ifdef THREAD
+#ifdef TICKER
 void CTicker::Start(int sleep)
 {
 	

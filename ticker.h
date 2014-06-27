@@ -4,7 +4,7 @@
 #include <windows.h>
 #endif
 
-#define THREAD
+#define TIMER
 
 class CTicker
 #ifdef TIMER	
@@ -46,7 +46,7 @@ public:
 	void Start(int sleep);
 	void Stop();
 #endif
-#ifdef TICKER
+#ifdef TIMER
 	void Notify();
 #endif	
 };
