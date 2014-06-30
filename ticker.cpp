@@ -5,7 +5,12 @@
 #include "status.h"
 
 CTicker::CTicker(void *parent, int id)
+#ifdef THREAD
+	:wxThread()
+#endif
+#ifdef TICKER
 	:wxTimer()
+#endif
 {
 	Exit = false;
 	Parent = parent;
@@ -57,7 +62,8 @@ return 0;
 
 }
 */
-/*
+
+#ifdef THREAD
 void CTicker::Start(int sleep)
 {
 	
@@ -88,13 +94,14 @@ void *CTicker::Entry()
 
 	return 0;
 }
-*/
+#endif
 
+#ifdef TIMER
 void CTicker::Notify()
 {
 	SendSignal();
 }
-
+#endif
 
 void CTicker::SendSignal()
 {
