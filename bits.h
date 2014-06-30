@@ -53,5 +53,6 @@ extern void putbed64(char *, int, double);
 /* bitfield extraction */
 extern uint64_t ubits(unsigned char buf[], unsigned int, unsigned int, bool);
 extern int64_t sbits(signed char buf[], unsigned int, unsigned int, bool);
+int ubits(unsigned int bits, unsigned int start, unsigned int width);
 
 #endif 

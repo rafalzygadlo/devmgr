@@ -1,21 +1,22 @@
-/* bits.c - bitfield extraction code
- *
- * This file is Copyright (c)2010 by the GPSD project
- * BSD terms apply: see the file COPYING in the distribution root for details.
- *
- * Bitfield extraction functions.  In each, start is a bit index  - not
- * a byte index - and width is a bit width.  The width is bounded above by
- * 64 bits.
- *
- * The sbits() function assumes twos-complement arithmetic. ubits()
- * and sbits() assume no padding in integers.
- */
 #include <assert.h>
 #include <stdint.h>
 //#include <stdbool.h>
 #include <limits.h>
 
 #include "bits.h"
+#include "conf.h"
+
+int ubits(unsigned int bits, unsigned int start, unsigned int width)
+{
+	unsigned int val = 0;
+	
+	for(size_t i = start; i < start + width;i++)
+	{
+		val += IS_BIT_SET(bits,i);
+	}
+
+	return val;
+}
 
 
 uint64_t ubits(unsigned char buf[], unsigned int start, unsigned int width, bool le)
