@@ -15,6 +15,7 @@ CNaviArray <double> vAisCollisionD2;
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
+bool Slot[2249];
  
 
 int option = 0;
@@ -751,7 +752,7 @@ double ais_CPA_old(double ship_lon, double ship_lat, float ship_cog, float ship_
 	//distance =20.0;
 
 //	fprintf(stdout,"%d",angle);
-	fprintf(stdout,"angle:%d A:%4.2f TRC:%4.2f bearing %4.2f AB %4.2f\n",angle,a,TRCToCPA,bearing,angleTBTC);
+	//fprintf(stdout,"angle:%d A:%4.2f TRC:%4.2f bearing %4.2f AB %4.2f\n",angle,a,TRCToCPA,bearing,angleTBTC);
 		
 		//a,TRCToCPA,TACToCPA,bearing,angleTBTC);
 
@@ -1097,13 +1098,15 @@ void ais_sotdma(unsigned int bits)
 		case AIS_SLOT_NUMBER1:
 		case AIS_SLOT_NUMBER2:
 		case AIS_SLOT_NUMBER3:
-			val = ubits(bits,0,14);		//received stations
+			val = ubits(bits,0,14);		//slot number
+			if(val < 2250)
+				Slot[val] = true;
 		break;
 		
 		case AIS_RECEIVED_STATIONS1:
 		case AIS_RECEIVED_STATIONS2:
 		case AIS_RECEIVED_STATIONS3:
-			val = ubits(bits,0,14);		//slot number
+			val = ubits(bits,0,14);		//received stations
 		break;
 	
 	}
@@ -1112,11 +1115,16 @@ void ais_sotdma(unsigned int bits)
 
 }
 
+bool ais_get_slot(int id)
+{
+	return Slot[id];
+}
+
 int ais_sotdma_hour(unsigned int bits)
 {
 	bits = ubits(bits,9,5);
 	bits = bits >> 9;
-	fprintf(stdout,"HOUR %d\n",bits);
+	//fprintf(stdout,"HOUR %d\n",bits);
 	Sleep(1000);
 	return bits;
 }
@@ -1125,7 +1133,7 @@ int ais_sotdma_minute(unsigned int bits)
 {
 	bits = ubits(bits,2,6);
 	bits = bits >> 2;
-	fprintf(stdout,"MINUTE %d\n",bits);
+	//fprintf(stdout,"MINUTE %d\n",bits);
 	Sleep(1000);
 	return bits;
 }

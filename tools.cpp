@@ -15,6 +15,8 @@ SFrequency FrequencyTable;
 int MaxFrequency  = 0;
 CNaviBroker *Broker = NULL;
 double m_SmoothScaleFactor = 0;
+int m_SelectedSlot = 0;
+int m_SelectedChannel = 0;
 //float m_FontSize;
 //bool m_ShowNames;
 
@@ -857,4 +859,24 @@ void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, d
 {
 	*v1 = (lon1 + lon2) / 2;
 	*v2 = (lat1 + lat2) / 2;
+}
+
+void SetSelectedSlot(int id)
+{
+	m_SelectedSlot = id;
+}
+
+int GetSelectedSlot()
+{
+	return m_SelectedSlot;
+}
+
+void SetSelectedChannel(int id)
+{
+	m_SelectedChannel = id;
+}
+
+int GetSelectedChannel()
+{
+	return m_SelectedChannel;
 }
