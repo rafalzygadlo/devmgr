@@ -112,8 +112,11 @@ void CAisChannel::OnPaint(wxPaintEvent &event)
 	for(size_t i = 0; i < 150; i++)
 	{
 		int id = (m_Id*150) + i;
-		if(	ais_get_slot(id))
+		if(	ais_get_slot(id,'A'))
 			dc.DrawRectangle(i * m_CellWidth , 0 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
+		
+		if(	ais_get_slot(id,'B'))
+			dc.DrawRectangle(i * m_CellWidth , 1 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
 	}
 
 	event.Skip();

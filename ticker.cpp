@@ -6,7 +6,7 @@
 
 CTicker::CTicker(void *parent, int id)
 #ifdef THREAD
-	:wxThread()
+	:wxThread(wxTHREAD_JOINABLE)
 #endif
 #ifdef TICKER
 	:wxTimer()
@@ -81,6 +81,8 @@ void CTicker::Start(int sleep)
 void CTicker::Stop()
 {
 	_Stop = true;
+	if(IsRunning())
+		Wait();
 }
 void *CTicker::Entry()
 {

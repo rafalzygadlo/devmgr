@@ -15,8 +15,10 @@ CNaviArray <double> vAisCollisionD2;
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
-bool Slot[2249];
- 
+bool SlotA[2249];
+bool SlotB[2249];
+int m_Type = 0; // last message type
+char m_Channel;
 
 int option = 0;
 bool m_SearchReady = false;
@@ -532,6 +534,7 @@ nvPoint2d ais_get_line_item(size_t idx)
 
 void ais_check_collision()
 {
+	fprintf(stdout,"Collision BEGIN\n");
 	int counter = 0;
 	vAisCollision.Clear();
 	vAisPoints.Clear();
@@ -563,7 +566,7 @@ void ais_check_collision()
 		
 	}
 
-
+	fprintf(stdout,"Collision END\n");
 }
 
 void ais_free_collision()
@@ -1008,6 +1011,11 @@ SAisData *ais_buffer_get_item(int id)
 {
 	return vAisBuffer.Get(id);
 }
+void ais_set_channel(char val)
+{
+	fprintf(stdout,"%c\n",val);
+	m_Channel = val;
+}
 
 ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 {
@@ -1025,15 +1033,15 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 		add = true;
 	}
     
-	uint64_t type =	UBITS(0, 6);
+	m_Type = UBITS(0, 6);
 	ais->mmsi = (int)UBITS(8, 30);
     ais->repeat = (int)UBITS(6, 2);
 	
-	if(type <= AIS_MESSAGES_LENGTH)
-		ais->valid[type] = true;
+	if(m_Type <= AIS_MESSAGES_LENGTH)
+		ais->valid[m_Type] = true;
 
 	ais->timeout = GetTickCount();
-	if(ais_decode(bits,bitlen,ais,type))
+	if(ais_decode(bits,bitlen,ais,m_Type))
 	{
 		if(add)
 			vAisData.Append(ais);
@@ -1047,14 +1055,14 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 		}
 	}
 	
-	ais_communication_state(ais,type);
+	
 
 	return ais;
 }
 
-void ais_communication_state(ais_t *ais,int type)
+void ais_communication_state(ais_t *ais)
 {
-	switch(type)
+	switch(m_Type)
 	{
 		case AIS_MSG_1: 
 		case AIS_MSG_2:		ais_state(ais->type1.radio,AIS_SOTDMA); 			break;
@@ -1081,16 +1089,21 @@ void ais_sotdma(unsigned int bits)
 	int sync_state = ubits(bits,0,2);
 	int slot_timeout = ubits(bits,0,3);
 
+	//slot_timeout = slot_timeout >> 2;
+
 	int val = 0;
 	
 	switch(slot_timeout)
 	{
 		case AIS_SLOT_OFFSET:
 			val = ubits(bits,0,14);		//slot offset
+			//val = val >> 5;
+			//fprintf(stdout,"OFFSET  %d %d %d\n",val,sync_state,slot_timeout);
 		break;
 
 		case AIS_UTC_HOUR_AND_MINUTE:
 			val = ubits(bits,0,14);		//utc hour/miunte
+			//val = val << 5;
 			ais_sotdma_hour(val);
 			ais_sotdma_minute(val);
 		break;
@@ -1099,14 +1112,15 @@ void ais_sotdma(unsigned int bits)
 		case AIS_SLOT_NUMBER2:
 		case AIS_SLOT_NUMBER3:
 			val = ubits(bits,0,14);		//slot number
-			if(val < 2250)
-				Slot[val] = true;
+			//val = val << 5;
+			ais_set_slot(val);
 		break;
 		
 		case AIS_RECEIVED_STATIONS1:
 		case AIS_RECEIVED_STATIONS2:
 		case AIS_RECEIVED_STATIONS3:
 			val = ubits(bits,0,14);		//received stations
+			//val = val << 5;
 		break;
 	
 	}
@@ -1115,9 +1129,27 @@ void ais_sotdma(unsigned int bits)
 
 }
 
-bool ais_get_slot(int id)
+void ais_set_slot(int val)
 {
-	return Slot[id];
+	if(val > 2250)
+		return;
+
+	switch (m_Channel)
+	{
+		case 'A':	SlotA[val] = true;	break;
+		case 'B':	SlotB[val] = true;	break;
+	
+	}
+}
+
+bool ais_get_slot(int id, char channel)
+{
+	switch (channel)
+	{
+		case 'A':	return SlotA[id];	break;
+		case 'B':	return SlotB[id];	break;
+	}
+
 }
 
 int ais_sotdma_hour(unsigned int bits)
@@ -1125,7 +1157,6 @@ int ais_sotdma_hour(unsigned int bits)
 	bits = ubits(bits,9,5);
 	bits = bits >> 9;
 	//fprintf(stdout,"HOUR %d\n",bits);
-	Sleep(1000);
 	return bits;
 }
 
@@ -1134,7 +1165,6 @@ int ais_sotdma_minute(unsigned int bits)
 	bits = ubits(bits,2,6);
 	bits = bits >> 2;
 	//fprintf(stdout,"MINUTE %d\n",bits);
-	Sleep(1000);
 	return bits;
 }
 

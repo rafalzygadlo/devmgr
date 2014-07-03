@@ -1134,14 +1134,17 @@ double ais_get_D2_item(int id);
 bool  ais_circle_collision(SAisData *ship, SAisData *target);
 
 //communication state
-void ais_communication_state(ais_t *ais,int type);
+void ais_communication_state(ais_t *ais);
 void ais_state(unsigned int bits, int state);
 void ais_sotdma(unsigned int bits);
 void ais_itdma(unsigned int bits);
 int ais_sotdma_hour(unsigned int bits);
 int ais_sotdma_minute(unsigned int bits);
-bool ais_get_slot(int id);
+bool ais_get_slot(int id, char channel);
+void ais_set_slot(int val);
 
+
+void ais_set_channel(char val);
 
 size_t ais_get_search_item_count();
 ais_t *ais_get_search_item(size_t idx);

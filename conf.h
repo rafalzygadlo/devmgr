@@ -15,14 +15,13 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 	#define DIR_SEPARATOR "/"
 #endif
 
+#define TIMER
 #define nvPI 3.1415926535897932384626433832795
-
 #define PRODUCT_NAME "Device Manager"
 #define PRODUCT_VERSION "1.1"
 #define PRODUCT_COPYRIGHT "Copyright 2010/2013 by NavSim. All rights reserved"
 #define PLUGIN_CONFIG_FILE "devmgr.conf"
 #define PLUGIN_DATA_FILE "devmgr.data"   // zip z różnymi danymi
-
 #define KEY_DEVICES "devices"
 #define KEY_NAME "name"
 #define KEY_PORT "port"
@@ -63,15 +62,11 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_BS_COLOR "bs_color"
 #define KEY_CPA "cpa"
 #define KEY_TCPA "tcpa"
-
 #define DIR_WORKDIR "workdir"
-
 #define ICON_STOP 0
 #define ICON_START 1
-
 #define MAX_BAD_CRC					2
 #define MAX_INVALID_NMEA			2
-
 // sygnały do display
 #define SIGNAL_RECONNECT			1	// sygnał urzadzenia o ponownym polaczeniu
 #define SIGNAL_ONDATA				2	// sygnał z portu o danych
@@ -310,6 +305,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define AIS_MESSAGE_ID			3
 #define AIS_FRAGMENT_NUMBER		2
 #define AIS_FRAGMENT_COUNTER	1
+#define AIS_CHANNEL				4
 #define AIS_DATA				5
 #define AIS_SHIPNAME_MAXLEN		20
 #define AIS_CALLSIGN_MAXLEN		8

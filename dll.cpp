@@ -185,7 +185,8 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	ais_load_file();
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	m_Ticker1->Start(100);
+	//m_Ticker1->Start(1);
+	
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
 
@@ -693,13 +694,14 @@ void CMapPlugin::OnTicker2Tick()
 	
 	if(m_Render)
 		return;
-		
+	
+	//fprintf(stdout,"Prepare buffer\n");
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	CheckCollision();
+	//CheckCollision();
 	//CheckShipCollision();
-	PrepareCPABuffer();
+	//PrepareCPABuffer();
 	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)
@@ -720,6 +722,8 @@ void CMapPlugin::OnTicker2Tick()
 	if(m_AnimStarted)
 		m_AnimTick++;
 	
+	//fprintf(stdout,"Prepare buffer done\n");
+
 	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
@@ -1680,7 +1684,7 @@ void CMapPlugin::PrepareBuffer()
 	
 	m_Ready = false;
 		
-	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 		return;
 	
 	SetPtr0();
@@ -1975,7 +1979,7 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 //CPA
 void CMapPlugin::PrepareCPABuffer()
 {
-	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 		return;
 	
 	m_CPA->SetCurrentPtr(true);
@@ -2044,7 +2048,7 @@ void CMapPlugin::PrepareCPAFontBuffer(SAisData *ptr1, SAisData *ptr2, double cpa
 //Ship CPA
 void CMapPlugin::PrepareShipCPABuffer()
 {
-	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
+	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 		return;
 	
 	for(size_t i = 0; i < ais_get_collision_item_count();i++)
@@ -2906,6 +2910,8 @@ void CMapPlugin::PrepareTrackVerticesBuffer(SAisData *ptr)
 {
 		
 	CNaviArray <SAisData> *ar =  ais_track_exists(ptr->mmsi);
+	if(ar == NULL)
+		return;
 
 	for(size_t i = 0; i < ar->Length(); i++)
 	{
@@ -3874,7 +3880,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());
+	wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
