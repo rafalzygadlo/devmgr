@@ -12,7 +12,7 @@
 #include "devices.h"
 #include "options.h"
 #include "signals.h"
-#include "ais_monitor.h"
+
 
 BEGIN_EVENT_TABLE(CDisplayPlugin,CNaviDiaplayApi)
 	EVT_MENU_RANGE(ID_MENU_BEGIN,ID_MENU_END,CDisplayPlugin::OnMenuRange)
@@ -23,6 +23,7 @@ END_EVENT_TABLE()
 CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) 
 :CNaviDiaplayApi( parent, id, pos, size, style, name )
 {
+	m_AisMonitor = NULL;
 	m_SelectedDevice = NULL;
 	SetDisplayID(NDS_DEVICE_MANAGER);
 	m_Broker = NULL;
@@ -84,14 +85,13 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 CDisplayPlugin::~CDisplayPlugin()
 {
+	delete m_AisMonitor;
 	m_Ticker->Stop();
 	delete m_Ticker;
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),m_ControlType);
 	delete m_FileConfig;
-
 	delete m_Menu;
-	
 }
 
 int CDisplayPlugin::GetControlType()
@@ -121,8 +121,9 @@ void  CDisplayPlugin::GetAisList()
 
 void  CDisplayPlugin::GetAisMonitor()
 {
-	CAisMonitor *Monitor = new CAisMonitor();
-	Monitor->Show();
+	if(m_AisMonitor == NULL)
+		m_AisMonitor = new CAisMonitor();
+	m_AisMonitor->Show();
 	
 }
 

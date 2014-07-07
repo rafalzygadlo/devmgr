@@ -4,9 +4,15 @@
 #include "tools.h"
 #include "ais.h"
 
+BEGIN_EVENT_TABLE(CAisMonitor,wxPanel)
+	EVT_BUTTON(ID_CLEAR,OnClear)
+	EVT_BUTTON(ID_CLOSE,OnClose)
+END_EVENT_TABLE()
+
 CAisMonitor::CAisMonitor() 
 	:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER|wxCAPTION|wxCLOSE_BOX)
 {
+	SetSize(640,480);
 	wxBoxSizer *Sizer = new wxBoxSizer(wxVERTICAL);
 	SetSizer(Sizer);
 	
@@ -22,28 +28,52 @@ CAisMonitor::CAisMonitor()
 	wxPanel *Panel = new wxPanel(this,wxID_ANY);
 	Sizer->Add(Panel,0,wxALL|wxEXPAND,5);
 
-	wxBoxSizer *PanelSizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *PanelSizer = new wxBoxSizer(wxHORIZONTAL);
 	Panel->SetSizer(PanelSizer);
 	
+	wxBoxSizer *LeftSizer = new wxBoxSizer(wxVERTICAL);
+	PanelSizer->Add(LeftSizer,0,wxALL|wxEXPAND,5);
+
 	m_Slot = new wxStaticText(Panel,wxID_ANY,wxEmptyString);
-	PanelSizer->Add(m_Slot,0,wxALL|wxEXPAND,5);
+	LeftSizer->Add(m_Slot,0,wxALL|wxEXPAND,5);
 		
 	m_Channel = new wxStaticText(Panel,wxID_ANY,wxEmptyString);
-	PanelSizer->Add(m_Channel,0,wxALL|wxEXPAND,5);
+	LeftSizer->Add(m_Channel,0,wxALL|wxEXPAND,5);
 
+	m_MID = new wxStaticText(Panel,wxID_ANY,wxEmptyString);
+	LeftSizer->Add(m_MID,0,wxALL|wxEXPAND,5);
 	
+	PanelSizer->AddStretchSpacer(1);
+	wxBoxSizer *RightSizer = new wxBoxSizer(wxVERTICAL);
+	PanelSizer->Add(RightSizer,0,wxALL|wxEXPAND,5);
+	
+	wxButton *ButtonClear = new wxButton(Panel,ID_CLEAR,GetMsg(MSG_CLEAR));
+	RightSizer->Add(ButtonClear,0,wxALL|wxEXPAND,5);
+	wxButton *ButtonClose = new wxButton(Panel,ID_CLOSE,GetMsg(MSG_CLOSE));
+	RightSizer->Add(ButtonClose,0,wxALL|wxEXPAND,5);
 
 }
 
 CAisMonitor::~CAisMonitor()
 {
+	
+}
 
+void CAisMonitor::OnClear(wxCommandEvent &event)
+{
+	ais_unset_communication_state();
+}
+
+void CAisMonitor::OnClose(wxCommandEvent &event)
+{
+	Hide();
 }
 
 void CAisMonitor::SetValues()
 {
 	m_Slot->SetLabel(wxString::Format(_("%d"),GetSelectedSlot()));
 	m_Channel->SetLabel(wxString::Format(_("%d"),GetSelectedChannel()));
+	m_MID->SetLabel(wxString::Format(_("%d"),GetSelectedMID()));
 }
 
 BEGIN_EVENT_TABLE(CAisChannel,wxPanel)
@@ -69,7 +99,8 @@ CAisChannel::CAisChannel(CAisMonitor *parent,int id)
 
 CAisChannel::~CAisChannel()
 {
-
+	m_Timer->Stop();
+	delete m_Timer;
 }
 
 void CAisChannel::OnPaint(wxPaintEvent &event)
@@ -100,11 +131,15 @@ void CAisChannel::OnPaint(wxPaintEvent &event)
 	//vline
 	dc.DrawLine(0,0 + m_CellHeight,width,0 + m_CellHeight);
 		
-	if(m_Selected)
-	{
-		DrawSelected(m_Row, m_Col, dc);
-	}
-	
+	DrawCells(dc);
+	DrawSelected(m_Row, m_Col, dc);
+		
+	event.Skip();
+}
+
+void CAisChannel::DrawCells(wxPaintDC &dc)
+{
+
 	wxBrush brush;
 	brush.SetColour(*wxRED);
 	dc.SetBrush(brush);
@@ -112,15 +147,28 @@ void CAisChannel::OnPaint(wxPaintEvent &event)
 	for(size_t i = 0; i < 150; i++)
 	{
 		int id = (m_Id*150) + i;
-		if(	ais_get_slot(id))
+		if(	ais_get_slot(id,'A'))
+		{
+			int mid = ais_get_message_id(id,'A');
+			SetColor(mid,dc);
 			dc.DrawRectangle(i * m_CellWidth , 0 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
+		}
+		
+		if(	ais_get_slot(id,'B'))
+		{
+			int mid = ais_get_message_id(id,'B');
+			SetColor(mid,dc);
+			dc.DrawRectangle(i * m_CellWidth , 1 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
+		}
 	}
 
-	event.Skip();
-}
 
+}
 void CAisChannel::DrawSelected(int row, int col, wxPaintDC &dc)
 {
+	if(!m_Selected)
+		return;
+
 	wxBrush brush;
 	brush.SetColour(*wxGREEN);
 	dc.SetBrush(brush);
@@ -131,6 +179,28 @@ void CAisChannel::DrawSelected(int row, int col, wxPaintDC &dc)
 
 	dc.DrawRectangle(col * m_CellWidth , row * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
 	
+}
+
+void CAisChannel::SetColor(int mid,wxPaintDC &dc)
+{
+	
+	wxColor color;
+	
+	switch(mid)
+	{
+		case AIS_MSG_1:	
+		case AIS_MSG_2: 
+		case AIS_MSG_3:		color.Set(0,255,0);	break;
+		case AIS_MSG_4:		color.Set(255,0,0); break;
+		case AIS_MSG_11:	color.Set(0,0,255); break;
+		case AIS_MSG_9:		color.Set(0,0,255);	break;
+		case AIS_MSG_18:	color.Set(0,0,255);	break;
+	}
+	
+	wxBrush brush;
+	brush.SetColour(color);
+	dc.SetBrush(brush);
+
 }
 
 void CAisChannel::OnSize(wxSizeEvent &event)
@@ -148,8 +218,14 @@ void CAisChannel::OnMouse(wxMouseEvent &event)
 	m_Row = y/m_CellHeight;
 	m_Selected = true;	
 	
-	SetSelectedSlot((m_Id * 150) + m_Col);
-	SetSelectedChannel(m_Row);
+	int slot = (m_Id * 150) + m_Col;
+	int channel = m_Row;
+	char _channel = ais_get_channel(channel);
+
+	SetSelectedSlot(slot);
+	SetSelectedChannel(channel);
+	int mid = ais_get_message_id(slot,_channel);
+	SetSelectedMID(mid);
 
 	Refresh();
 	m_Parent->SetValues();
@@ -163,6 +239,7 @@ void CAisChannel::OnMouseLeave(wxMouseEvent &event)
 	
 	SetSelectedSlot(-1);
 	SetSelectedChannel(-1);
+	SetSelectedMID(-1);
 	
 	m_Parent->SetValues();
 

@@ -13,6 +13,7 @@
 #include "config.h"
 #include "devices_list.h"
 #include "ais_list.h"
+#include "ais_monitor.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +27,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	CItem *m_SelectedItem;
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
+	CAisMonitor *m_AisMonitor;
 	wxString m_Name;
 	int m_SignalType;
 	bool m_GUI;

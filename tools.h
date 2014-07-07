@@ -70,5 +70,7 @@ void SetSelectedSlot(int id);
 int GetSelectedSlot();
 void SetSelectedChannel(int id);
 int GetSelectedChannel();
+void SetSelectedMID(int id);
+int GetSelectedMID();
 
 #endif

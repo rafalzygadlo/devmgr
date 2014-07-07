@@ -4,7 +4,7 @@
 #include <windows.h>
 #endif
 
-#define TIMER
+
 
 class CTicker
 #ifdef TIMER	
