@@ -17,6 +17,7 @@ CNaviBroker *Broker = NULL;
 double m_SmoothScaleFactor = 0;
 int m_SelectedSlot = 0;
 int m_SelectedChannel = 0;
+int m_SelectedMID = 0;
 //float m_FontSize;
 //bool m_ShowNames;
 
@@ -218,6 +219,7 @@ const wchar_t *nvLanguage[2][285] =
 		_("Enable VTS Mode"),
 		_("CPA [nm]"),
 		_("TCPA [min]"),
+		_("Clear"),
 	},
 	
 	/*PL*/
@@ -879,4 +881,14 @@ void SetSelectedChannel(int id)
 int GetSelectedChannel()
 {
 	return m_SelectedChannel;
+}
+
+void SetSelectedMID(int id)
+{
+	m_SelectedMID = id;
+}
+
+int GetSelectedMID()
+{
+	return m_SelectedMID;
 }

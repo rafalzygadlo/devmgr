@@ -286,6 +286,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_ENABLE_VTS_MODE				188
 #define MSG_CPA							189
 #define MSG_TCPA						190
+#define MSG_CLEAR						191
 
 #define MAX_DATA_POSITIONS	10
 

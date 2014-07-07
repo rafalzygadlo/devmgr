@@ -5,7 +5,10 @@
 
 class CAisMonitor : public wxDialog
 {
-	wxStaticText *m_Slot, *m_Channel;
+	wxStaticText *m_Slot, *m_Channel, *m_MID;
+
+	void OnClear(wxCommandEvent &event);
+	void OnClose(wxCommandEvent &event);
 
 public:
 	
@@ -13,7 +16,15 @@ public:
 	~CAisMonitor();
 	
 	void SetValues();
+
+	enum
+	{
+		ID_CLEAR = 4552,
+		ID_CLOSE,
+	};
 	
+	DECLARE_EVENT_TABLE();
+
 };
 
 
@@ -31,6 +42,8 @@ class CAisChannel : public wxPanel
 	void OnMouseLeave(wxMouseEvent &event);
 	void OnTimer(wxTimerEvent &event);
 	void DrawSelected(int row, int col, wxPaintDC &dc);
+	void DrawCells( wxPaintDC &dc);
+	void SetColor(int mid,wxPaintDC &dc);
 
 public:
 	

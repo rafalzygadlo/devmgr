@@ -161,8 +161,8 @@ bool CParser::Ais(char *line)
 	bool decode = true;
 	fc = atoi(StrList[AIS_FRAGMENT_COUNTER]);		// fragment counter
 	fn = atoi(StrList[AIS_FRAGMENT_NUMBER]);		//fragment number
-	char *ch = StrList[AIS_CHANNEL];
-	ais_set_channel(*ch);
+	char ch = *StrList[AIS_CHANNEL];
+	
 	char *data = StrList[AIS_DATA];
 	int pad = 0;
 		
@@ -229,10 +229,11 @@ bool CParser::Ais(char *line)
 	{
 		if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 			return false;
-		//fprintf(stdout,"DECODE\n");
+		
+		ais_set_channel(ch);
 		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
-		ais_communication_state(ais);
 		ais_set_track(ais);
+		ais_communication_state(ais);
 		SetAisDataChanged(true);
 		GetMutex()->Unlock();
 		free(m_Bits);
