@@ -479,6 +479,17 @@ typedef struct
 
 }SAisData;
 
+
+typedef struct
+{
+	void *reader_ptr;
+	bool slot_a[2250];
+	bool slot_b[2250];
+	int slot_a_mid[2250];
+	int slot_b_mid[2250];
+
+}SAisState;
+
 typedef struct 
 {
 	int id0;

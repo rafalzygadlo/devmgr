@@ -14,6 +14,7 @@ CParser::CParser()
 	m_Bits = NULL;
 	m_Bitlen = 0;
 	m_OldLen = 0;
+	m_Reader = NULL;
 }
 
 CParser::~CParser()
@@ -22,6 +23,11 @@ CParser::~CParser()
 	m_PositionDefinition.clear();
 	if(m_Bits)
 		free(m_Bits);
+}
+
+void CParser::SetDevice(CReader *ptr)
+{
+	m_Reader = ptr;
 }
 
 void CParser::SetBroker(CNaviBroker *broker)
@@ -231,9 +237,9 @@ bool CParser::Ais(char *line)
 			return false;
 		
 		ais_set_channel(ch);
+		ais_set_device(m_Reader);
 		ais_t *ais = ais_binary_decode(m_Bits,m_Bitlen);
 		ais_set_track(ais);
-		ais_communication_state(ais);
 		SetAisDataChanged(true);
 		GetMutex()->Unlock();
 		free(m_Bits);

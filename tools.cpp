@@ -18,6 +18,7 @@ double m_SmoothScaleFactor = 0;
 int m_SelectedSlot = 0;
 int m_SelectedChannel = 0;
 int m_SelectedMID = 0;
+wxArrayPtrVoid *m_Devices = NULL;
 //float m_FontSize;
 //bool m_ShowNames;
 
@@ -438,6 +439,23 @@ wxMutex *GetMutex()
 {
 	return mutex;
 }
+
+void InitDevices()
+{
+	m_Devices = new wxArrayPtrVoid();
+}
+
+wxArrayPtrVoid *GetDevices()
+{
+	return m_Devices;
+}
+
+void FreeDevices()
+{
+	m_Devices->Clear();
+	delete m_Devices;
+}
+
 
 void FreeSearchMutex()
 {

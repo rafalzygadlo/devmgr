@@ -16,6 +16,7 @@ CReader::CReader()
 	m_SignalType = -1;
 	m_Broker = NULL;
 	m_Parser = new CParser();
+	m_Parser->SetDevice(this);
 	TreeCtrl = NULL;
 	m_DeviceType = -1;
 	SerialPtr = (CSerial*)this;
@@ -49,6 +50,7 @@ void CReader::SetBroker(CNaviBroker *broker)
 void CReader::SetDeviceId(size_t id)
 {
 	m_DeviceId = id;
+	
 }
 
 size_t CReader::GetDeviceId()

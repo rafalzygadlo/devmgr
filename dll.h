@@ -44,7 +44,6 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_OldPositionTick, m_OldHDTTick;
 	int m_SignalID, m_MaxFrequencyID;
 	int m_GlobalFrequency[MAX_SHIP_VALUES_LEN];
-	wxArrayPtrVoid *m_Devices;
 	CNaviBroker *m_Broker;
 	bool m_ShipStateExist;
 	bool m_NeedExit;

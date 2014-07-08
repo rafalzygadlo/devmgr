@@ -41,6 +41,7 @@ unsigned char PluginInfoBlock[] = {
 
 CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 {
+	InitDevices();
 	SetBroker(NaviBroker);
 	m_DisplaySignal = new CDisplaySignal(NDS_DEVICE_MANAGER);
 	m_FileConfig = NULL;
@@ -49,7 +50,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ConfigPath = GetPluginConfigPath();
 	m_EnableControls = false;
 	m_Data = NULL;
-	m_Devices = new wxArrayPtrVoid();
 	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
@@ -202,8 +202,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 CMapPlugin::~CMapPlugin()
 {
-	m_Devices->Clear();
-	delete m_Devices;
+	FreeDevices();
 	delete m_DisplaySignal;
 	delete m_NameFont;
 	m_NameFont = NULL;
@@ -232,9 +231,9 @@ void CMapPlugin::WriteConfig()
 	m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->DeleteGroup(_(KEY_DEVICES));
 	
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		type = ptr->GetConnectionType();		
 		
 		switch(type)
@@ -256,7 +255,7 @@ void CMapPlugin::WriteSerialConfig(int index)
 	int baud, type, ctype;
 	bool running;
 	
-	CReader *Reader = (CReader*)m_Devices->Item(index);
+	CReader *Reader = (CReader*)GetDevices()->Item(index);
 	name = Reader->GetDeviceName();
 	running = Reader->GetIsRunning();
 	wxString port(Reader->GetSerialPort(),wxConvUTF8);
@@ -278,7 +277,7 @@ void CMapPlugin::WriteSocketConfig(int index)
 	int  port, ctype, type;
 	bool running;
 	
-	CReader *Reader = (CReader*)m_Devices->Item(index);
+	CReader *Reader = (CReader*)GetDevices()->Item(index);
 	name = Reader->GetDeviceName();
 	running = Reader->GetIsRunning();
 	port = Reader->GetPort();
@@ -752,15 +751,15 @@ CNaviBroker *CMapPlugin::GetBroker()
 
 size_t CMapPlugin::GetDevicesCount()
 {
-	return m_Devices->size();
+	return GetDevices()->size();
 }
 
 CReader *CMapPlugin::GetReader(size_t idx)
 {
-	if(idx > m_Devices->size())
+	if(idx > GetDevices()->size())
 		return NULL;
 	else
-		return (CReader*)m_Devices->Item(idx);
+		return (CReader*)GetDevices()->Item(idx);
 }
 
 
@@ -790,9 +789,9 @@ void CMapPlugin::StopDevice(CReader *ptr)
 
 void CMapPlugin::RemoveDevice(CReader *ptr)
 {
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *_ptr = (CReader*)m_Devices->Item(i);
+		CReader *_ptr = (CReader*)GetDevices()->Item(i);
 		if(_ptr == ptr)
 		{
 			_ptr->Stop();
@@ -801,7 +800,7 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 				wxMilliSleep(10);
 
 			delete _ptr;
-			m_Devices->Remove(_ptr);
+			GetDevices()->Remove(_ptr);
 			SendSignal(REMOVE_DEVICE,_ptr);
 		}
 	}
@@ -811,19 +810,19 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 
 void CMapPlugin::ReindexDevices()
 {
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		ptr->SetDeviceId(i);
 	}
 }
 
 void CMapPlugin::AddDevice(CReader *ptr)
 {
-	m_Devices->Add(ptr);
+	GetDevices()->Add(ptr);
 
 	ptr->SetBroker(m_Broker);
-	ptr->SetDeviceId(m_Devices->size() - 1);
+	ptr->SetDeviceId(GetDevices()->size() - 1);
 			
 	if(ptr->RunOnStart())
 		ptr->Start();
@@ -832,9 +831,9 @@ void CMapPlugin::AddDevice(CReader *ptr)
 
 void CMapPlugin::DeleteDevice(size_t idx)
 {
-	CReader *ptr = (CReader*)m_Devices->Item(idx);
+	CReader *ptr = (CReader*)GetDevices()->Item(idx);
 	ptr->Stop();
-	m_Devices->Remove(ptr);
+	GetDevices()->Remove(ptr);
 }
 
 wxArrayString CMapPlugin::GetConfigItems(wxString path)
@@ -877,7 +876,7 @@ bool CMapPlugin::GetEnableControlsFlag()
 
 wxArrayPtrVoid *CMapPlugin::GetDevicesList()
 {
-	return m_Devices;
+	return GetDevices();
 }
 
 void CMapPlugin::Run(void *Params)
@@ -908,9 +907,9 @@ void CMapPlugin::Kill(void)
 		
 	SendSignal(CLEAR_AIS_LIST,NULL);
 
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		ptr->Stop();
 		delete ptr;
 	}

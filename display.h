@@ -66,6 +66,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveControl(int type);
 	void FreeDevicesList();
 	void FreeAisList();
+	void FreeAisMonitor();
 	void FreeAisMessages();
 	void SetDevicesListSignal(int type, CDisplaySignal *sig);
 	void SetAisListSignal(int type);

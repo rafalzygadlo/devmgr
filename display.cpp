@@ -85,7 +85,6 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 CDisplayPlugin::~CDisplayPlugin()
 {
-	delete m_AisMonitor;
 	m_Ticker->Stop();
 	delete m_Ticker;
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
@@ -120,10 +119,13 @@ void  CDisplayPlugin::GetAisList()
 }
 
 void  CDisplayPlugin::GetAisMonitor()
-{
-	if(m_AisMonitor == NULL)
-		m_AisMonitor = new CAisMonitor();
-	m_AisMonitor->Show();
+{	
+	m_GUI = true;
+	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
+	m_AisMonitor = new CAisMonitor(this);
+	MainSizer->Add(m_AisMonitor,1,wxALL|wxEXPAND);
+	this->SetSizer(MainSizer);
+	this->Layout();
 	
 }
 
@@ -133,9 +135,15 @@ void CDisplayPlugin::RemoveControl(int type)
 	{
 		case CONTROL_DEVICES_LIST:	FreeDevicesList();	break;
 		case CONTROL_AIS_LIST:		FreeAisList();		break;
+		case CONTROL_AIS_MONITOR:	FreeAisMonitor();	break;
 	}
 }
 
+void CDisplayPlugin::FreeAisMonitor()
+{
+	delete m_AisMonitor;
+	m_AisMonitor = NULL;
+}
 
 void CDisplayPlugin::FreeDevicesList()
 {
@@ -156,13 +164,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 		wxMessageBox(_("The same type of control ?"));
 		return;
 	}
-	
-	if(event.GetId() == CONTROL_AIS_MONITOR)
-	{
-		GetAisMonitor();
-		return;
-	}
-	
+		
 	m_GUI = false;
 	RemoveControl(m_ControlType);
 		
@@ -170,6 +172,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 	{
 		case CONTROL_DEVICES_LIST:	GetDevicesList();	break;
 		case CONTROL_AIS_LIST:		GetAisList();		break;
+		case CONTROL_AIS_MONITOR:	GetAisMonitor();	break;
 	}
 	
 	m_ControlType = event.GetId(); // ustawiamy po zbudowaniu gui
@@ -288,6 +291,7 @@ void CDisplayPlugin::InitDisplay()
 		{
 			case CONTROL_DEVICES_LIST:	GetDevicesList();	break;
 			case CONTROL_AIS_LIST:		GetAisList();		break;
+			case CONTROL_AIS_MONITOR:	GetAisMonitor();	break;	
 		}
 	
 		this->Enable();

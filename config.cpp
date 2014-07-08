@@ -24,8 +24,7 @@ CConfig::CConfig()
 						
 	this->SetSizer(MainSizer);
 	
-	ConnectionTypeCombo = new wxComboBox(this,ID_CONNECTION_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL);
-	ConnectionTypeCombo->SetEditable(false);
+	ConnectionTypeCombo = new wxComboBox(this,ID_CONNECTION_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,0,wxCB_READONLY);
 	ConnectionTypeCombo->Append(GetMsg(MSG_DEVICE_TYPE_SOCKET));
 	ConnectionTypeCombo->Append(GetMsg(MSG_DEVICE_TYPE_SERIAL));
 	MainSizer->Add(ConnectionTypeCombo,0,wxALL|wxEXPAND,5); 
@@ -78,8 +77,7 @@ wxPanel *CConfig::GetDeviceTypePanel()
 
 	wxStaticText *DeviceType = new wxStaticText(Panel,wxID_ANY,GetMsg(MSG_DEVICE_TYPE));
 	FlexGrid1Sizer->Add(DeviceType,0,wxALL,5);
-	DeviceTypeCombo = new wxComboBox(Panel,ID_DEVICE_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize);
-	DeviceTypeCombo->SetEditable(false);
+	DeviceTypeCombo = new wxComboBox(Panel,ID_DEVICE_TYPE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,0,wxCB_READONLY);
 	FlexGrid1Sizer->Add(DeviceTypeCombo,0,wxALL,5);
 
 	DeviceTypeCombo->Clear();

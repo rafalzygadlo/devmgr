@@ -11,6 +11,7 @@
 #include <Windows.h>
 #include <wx/treectrl.h>
 
+class CParser;
 class CReader :public CSerial, public CClient
 {
 	CParser *m_Parser;

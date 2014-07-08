@@ -66,11 +66,9 @@ CNaviBroker *GetBroker();
 double GetSmoothScaleFactor();
 void SetSmoothScaleFactor(double val);
 void nvMidPoint(double lon1, double lat1,double lon2, double lat2, double *v1, double *v2);
-void SetSelectedSlot(int id);
-int GetSelectedSlot();
-void SetSelectedChannel(int id);
-int GetSelectedChannel();
-void SetSelectedMID(int id);
-int GetSelectedMID();
+
+void InitDevices();
+wxArrayPtrVoid *GetDevices();
+void FreeDevices();
 
 #endif

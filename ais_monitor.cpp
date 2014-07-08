@@ -6,22 +6,48 @@
 
 BEGIN_EVENT_TABLE(CAisMonitor,wxPanel)
 	EVT_BUTTON(ID_CLEAR,OnClear)
-	EVT_BUTTON(ID_CLOSE,OnClose)
+	EVT_COMBOBOX(ID_DEVICE,OnDevice)
 END_EVENT_TABLE()
 
-CAisMonitor::CAisMonitor() 
-	:wxDialog(NULL,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER|wxCAPTION|wxCLOSE_BOX)
+CAisMonitor::CAisMonitor(wxWindow *parent) 
+	:wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
 	SetSize(640,480);
 	wxBoxSizer *Sizer = new wxBoxSizer(wxVERTICAL);
 	SetSizer(Sizer);
+	wxComboBox *Device = NULL;
 	
+	if( GetDevices()->size() > 0)
+	{
+		Device = new wxComboBox(this,ID_DEVICE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,0, wxCB_READONLY);
+		//Device->SetEditable(false);
+		Sizer->Add(Device,0,wxALL,5);
+	}
+
+	for(size_t i = 0; i < GetDevices()->size(); i++)
+	{
+		CReader *reader = (CReader*)GetDevices()->Item(i);
+		if(reader->GetDeviceType() == 1)
+		{
+
+			if(reader->GetConnectionType() == CONNECTION_TYPE_SERIAL)
+				Device->Append(wxString::Format(_("[%s:%d] %s"),reader->GetSerialPort(),reader->GetBaudRate(),reader->GetDeviceName()));
+			
+			if(reader->GetConnectionType() == CONNECTION_TYPE_SOCKET)
+				Device->Append(wxString::Format(_("[%s::%d] %s"),reader->GetHost() ,reader->GetSocketPort(), reader->GetDeviceName()));
+
+			Device->SetClientData(reader);
+		}
+	}
+
+
 	for(size_t i = 0; i < 15; i++)
 	{
 		wxBoxSizer *ChannelSizer = new wxBoxSizer(wxHORIZONTAL);
 		Sizer->Add(ChannelSizer,1,wxALL|wxEXPAND,2);
 
 		CAisChannel *Channel = new CAisChannel(this,i);
+		m_Channels.Add(Channel);
 		ChannelSizer->Add(Channel,1,wxALL|wxEXPAND,2);
 	}
 
@@ -49,8 +75,6 @@ CAisMonitor::CAisMonitor()
 	
 	wxButton *ButtonClear = new wxButton(Panel,ID_CLEAR,GetMsg(MSG_CLEAR));
 	RightSizer->Add(ButtonClear,0,wxALL|wxEXPAND,5);
-	wxButton *ButtonClose = new wxButton(Panel,ID_CLOSE,GetMsg(MSG_CLOSE));
-	RightSizer->Add(ButtonClose,0,wxALL|wxEXPAND,5);
 
 }
 
@@ -59,21 +83,32 @@ CAisMonitor::~CAisMonitor()
 	
 }
 
+void CAisMonitor::OnDevice(wxCommandEvent &event)
+{
+	CReader *reader =  (CReader*)event.GetClientData();
+
+	for(size_t i = 0; i < m_Channels.size();i++)
+	{
+		CAisChannel *ptr = (CAisChannel*)m_Channels.Item(i);
+		ptr->SetDevice(reader);
+	}
+}
+
 void CAisMonitor::OnClear(wxCommandEvent &event)
 {
-	ais_unset_communication_state();
+	//ais_unset_communication_state();
 }
 
 void CAisMonitor::OnClose(wxCommandEvent &event)
 {
-	Hide();
+
 }
 
 void CAisMonitor::SetValues()
 {
-	m_Slot->SetLabel(wxString::Format(_("%d"),GetSelectedSlot()));
-	m_Channel->SetLabel(wxString::Format(_("%d"),GetSelectedChannel()));
-	m_MID->SetLabel(wxString::Format(_("%d"),GetSelectedMID()));
+//	m_Slot->SetLabel(wxString::Format(_("%d"),GetSelectedSlot()));
+//	m_Channel->SetLabel(wxString::Format(_("%d"),GetSelectedChannel()));
+//	m_MID->SetLabel(wxString::Format(_("%d"),GetSelectedMID()));
 }
 
 BEGIN_EVENT_TABLE(CAisChannel,wxPanel)
@@ -95,12 +130,18 @@ CAisChannel::CAisChannel(CAisMonitor *parent,int id)
 	SetDoubleBuffered(true);
 	m_Timer = new wxTimer(this,ID_TIMER);
 	m_Timer->Start(1000);
+	//m_Reader 
 }
 
 CAisChannel::~CAisChannel()
 {
 	m_Timer->Stop();
 	delete m_Timer;
+}
+
+void CAisChannel::SetDevice(CReader *ptr)
+{
+	m_Reader = ptr;
 }
 
 void CAisChannel::OnPaint(wxPaintEvent &event)
@@ -143,7 +184,8 @@ void CAisChannel::DrawCells(wxPaintDC &dc)
 	wxBrush brush;
 	brush.SetColour(*wxRED);
 	dc.SetBrush(brush);
-
+		
+		
 	for(size_t i = 0; i < 150; i++)
 	{
 		int id = (m_Id*150) + i;
@@ -222,10 +264,10 @@ void CAisChannel::OnMouse(wxMouseEvent &event)
 	int channel = m_Row;
 	char _channel = ais_get_channel(channel);
 
-	SetSelectedSlot(slot);
-	SetSelectedChannel(channel);
+//	SetSelectedSlot(slot);
+//	SetSelectedChannel(channel);
 	int mid = ais_get_message_id(slot,_channel);
-	SetSelectedMID(mid);
+//	SetSelectedMID(mid);
 
 	Refresh();
 	m_Parent->SetValues();
@@ -237,9 +279,9 @@ void CAisChannel::OnMouseLeave(wxMouseEvent &event)
 {
 	m_Selected = false;
 	
-	SetSelectedSlot(-1);
-	SetSelectedChannel(-1);
-	SetSelectedMID(-1);
+	//SetSelectedSlot(-1);
+	//SetSelectedChannel(-1);
+	//SetSelectedMID(-1);
 	
 	m_Parent->SetValues();
 
