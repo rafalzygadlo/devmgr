@@ -823,6 +823,11 @@ void CMapPlugin::AddDevice(CReader *ptr)
 
 	ptr->SetBroker(m_Broker);
 	ptr->SetDeviceId(GetDevices()->size() - 1);
+
+	if(ptr->GetDeviceType() == DEVICE_TYPE_AIS)
+	{
+		ptr->SetAisStatePtr(ais_state_init(ptr));
+	}
 			
 	if(ptr->RunOnStart())
 		ptr->Start();
@@ -921,9 +926,10 @@ void CMapPlugin::Kill(void)
 	ais_free_list();
 	ais_free_buffer();
 	ais_free_track();
-	ais_free_collision();
+	ais_free_collision(); 
 	ais_free_collision_CPA();
 	ais_free_collision_TCPA();
+	ais_state_free();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete

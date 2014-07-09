@@ -1143,11 +1143,14 @@ int ais_sotdma_hour(unsigned int bits);
 int ais_sotdma_minute(unsigned int bits);
 bool ais_get_slot(int id, char channel);
 void ais_set_slot(int val,SAisState *ptr);
-void ais_set_message_id(int id,int mid);
-int ais_get_message_id(int id, char channel);
+void ais_set_message_id(int id,int mid,SAisState *ptr);
+int ais_get_message_id(int id, char channel,SAisState *ptr);
+
 char ais_get_channel(int id);
 void ais_state_unset();
 void ais_set_device(void *ptr);
+SAisState *ais_state_init(void *device);
+void ais_state_free();
 
 void ais_set_channel(char val);
 

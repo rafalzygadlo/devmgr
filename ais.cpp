@@ -1079,6 +1079,24 @@ void ais_state_unset(SAisState *ptr)
 
 }
 
+SAisState *ais_state_init(void *device)
+{
+	SAisState *ptr = (SAisState*)malloc(sizeof(SAisState));
+	ptr->reader_ptr = device;
+	ais_state_unset(ptr);
+	vAisState.Append(ptr);
+
+	return ptr;
+}
+
+void ais_state_free()
+{
+	for(size_t i = 0; i < vAisState.Length(); i++)
+	{
+		free(vAisState.Get(i));
+	}
+}
+
 SAisState *ais_state_exists(CReader *device)
 {
 	for(size_t i = 0; i < vAisState.Length(); i++)
@@ -1140,7 +1158,7 @@ void ais_sotdma(unsigned char *bits, SAisState *ptr)
 		case AIS_SLOT_NUMBER3:
 			val = UBITS(154, 14);		//slot number
 			ais_set_slot(val,ptr);
-			ais_set_message_id(val,m_Type);
+			ais_set_message_id(val,m_Type,ptr);
 		break;
 		
 		case AIS_RECEIVED_STATIONS1:
@@ -1180,6 +1198,36 @@ bool ais_get_slot(int id, char channel)
 	return false;
 }
 
+
+void ais_set_message_id(int id,int mid,SAisState *ptr)
+{
+	if(id > 2249)
+		return;
+		
+	
+	switch (m_Channel)
+	{
+		case 'A':	ptr->slot_a_mid[id] = mid;	break;
+		case 'B':	ptr->slot_b_mid[id] = mid;	break;
+	}
+	
+}
+
+int ais_get_message_id(int id, char channel,SAisState *ptr)
+{
+	switch (channel)
+	{
+		case 'A':	return ptr->slot_a_mid[id];
+		case 'B':	return ptr->slot_b_mid[id];
+		default:	return -1;
+	}
+
+}
+
+
+
+
+
 int ais_sotdma_hour(unsigned int bits)
 {
 	bits = ubits(bits,9,5);
@@ -1206,31 +1254,8 @@ void ais_itdma(unsigned char *bits)
 	//fprintf(stdout,"ITDMA %d %d %d %d\n",sync_state,slot_increment,number_of_slots,keep_flag);
 }
 
-void ais_set_message_id(int id,int mid)
-{
-	if(id > 2249)
-		return;
 
-	//vAisMonitor.Get(m_DeviceId);
-	/*
-	switch (m_Channel)
-	{
-		case 'A':	SlotAMID[id] = mid;	break;
-		case 'B':	SlotBMID[id] = mid;	break;
-	}
-	*/
-}
 
-int ais_get_message_id(int id, char channel)
-{
-	switch (channel)
-	{
-		//case 'A':	return SlotAMID[id];
-		//case 'B':	return SlotBMID[id];
-		default:	return -1;
-	}
-
-}
 
 char ais_get_channel(int id)
 {
@@ -1793,17 +1818,6 @@ void ais_message_1(unsigned char *bits, ais_t *ais)
 	//ais->type1.spare	= UBITS(145, 3);
 	ais->type1.raim = UBITS(148, 1)!=0;
 	ais->type1.radio = (int)UBITS(149, 19);
-	
-	unsigned int a = (int)UBITS(149, 2);
-	unsigned int b = (int)UBITS(151, 3);
-	unsigned int slot = 0;
-	if(b == 2 || b == 4 || b == 6)
-	{
-		slot = (int)UBITS(154, 14);
-
-	fprintf(stdout,"SLOT: %d\n",slot);
-	}
-
 }
 
 /* Base Station Report */

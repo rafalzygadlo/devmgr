@@ -30,6 +30,7 @@ class CReader :public CSerial, public CClient
 	CClient *SocketPtr;
 	int m_ConnectionType;
 	bool m_LineEvent;
+	SAisState *m_AisState;
 
 public:
 	CReader();
@@ -68,7 +69,8 @@ public:
 	void SetCheckCRC(bool val);
 	size_t GetBadCRC();
 	size_t GetSignalQuality();
-	
+	void SetAisStatePtr(SAisState *ptr);
+	SAisState *GetAisStatePtr();
 	
 	virtual void OnConnect();
 	virtual void OnConnected();

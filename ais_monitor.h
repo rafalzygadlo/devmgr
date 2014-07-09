@@ -39,6 +39,7 @@ class CAisChannel : public wxPanel
 	int m_Col,m_Row;
 	bool m_Selected;
 	CAisMonitor *m_Parent;
+	CReader *m_Device;
 	float m_CellWidth,m_CellHeight;
 	void OnPaint(wxPaintEvent &event);
 	void OnSize(wxSizeEvent &event);
@@ -53,7 +54,7 @@ public:
 	
 	CAisChannel(CAisMonitor *parent, int id);
 	~CAisChannel();
-	void SetDevice(CReader *ptr);
+	void SetDevice(void *device);
 		
 	enum
 	{

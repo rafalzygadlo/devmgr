@@ -23,6 +23,7 @@ CReader::CReader()
 	SocketPtr = (CClient*)this;
 	m_LineEvent = false;
 	m_ConnectionType = CONNECTION_TYPE_SERIAL;
+	m_AisState = NULL;
 	
 }
 
@@ -328,4 +329,14 @@ void CReader::OnNoSignal()
 void CReader::OnData( char *buffer, int length)
 {
 	//fprintf(stdout,"%s",buffer);
+}
+
+SAisState *CReader::GetAisStatePtr()
+{
+	return m_AisState;
+}
+
+void CReader::SetAisStatePtr(SAisState * ptr)
+{
+	m_AisState = ptr;
 }

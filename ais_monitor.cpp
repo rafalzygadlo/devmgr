@@ -12,22 +12,20 @@ END_EVENT_TABLE()
 CAisMonitor::CAisMonitor(wxWindow *parent) 
 	:wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
-	SetSize(640,480);
+	
 	wxBoxSizer *Sizer = new wxBoxSizer(wxVERTICAL);
 	SetSizer(Sizer);
-	wxComboBox *Device = NULL;
+			
 	
-	if( GetDevices()->size() > 0)
-	{
-		Device = new wxComboBox(this,ID_DEVICE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,0, wxCB_READONLY);
-		//Device->SetEditable(false);
-		Sizer->Add(Device,0,wxALL,5);
-	}
-
+	wxComboBox *Device = new wxComboBox(this,ID_DEVICE,wxEmptyString,wxDefaultPosition,wxDefaultSize,NULL,0, wxCB_READONLY);
+	
+	Sizer->Add(Device,0,wxALL,5);
+	
+	int counter = 0;
 	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
 		CReader *reader = (CReader*)GetDevices()->Item(i);
-		if(reader->GetDeviceType() == 1)
+		if(reader->GetDeviceType() == DEVICE_TYPE_AIS)
 		{
 
 			if(reader->GetConnectionType() == CONNECTION_TYPE_SERIAL)
@@ -36,7 +34,8 @@ CAisMonitor::CAisMonitor(wxWindow *parent)
 			if(reader->GetConnectionType() == CONNECTION_TYPE_SOCKET)
 				Device->Append(wxString::Format(_("[%s::%d] %s"),reader->GetHost() ,reader->GetSocketPort(), reader->GetDeviceName()));
 
-			Device->SetClientData(reader);
+			Device->SetClientData(counter,reader);
+			counter++;
 		}
 	}
 
@@ -47,8 +46,8 @@ CAisMonitor::CAisMonitor(wxWindow *parent)
 		Sizer->Add(ChannelSizer,1,wxALL|wxEXPAND,2);
 
 		CAisChannel *Channel = new CAisChannel(this,i);
-		m_Channels.Add(Channel);
 		ChannelSizer->Add(Channel,1,wxALL|wxEXPAND,2);
+		m_Channels.Add(Channel);
 	}
 
 	wxPanel *Panel = new wxPanel(this,wxID_ANY);
@@ -75,23 +74,24 @@ CAisMonitor::CAisMonitor(wxWindow *parent)
 	
 	wxButton *ButtonClear = new wxButton(Panel,ID_CLEAR,GetMsg(MSG_CLEAR));
 	RightSizer->Add(ButtonClear,0,wxALL|wxEXPAND,5);
-
+	
 }
 
 CAisMonitor::~CAisMonitor()
 {
-	
+	m_Channels.Clear();
 }
 
 void CAisMonitor::OnDevice(wxCommandEvent &event)
 {
 	CReader *reader =  (CReader*)event.GetClientData();
-
+				
 	for(size_t i = 0; i < m_Channels.size();i++)
 	{
 		CAisChannel *ptr = (CAisChannel*)m_Channels.Item(i);
 		ptr->SetDevice(reader);
 	}
+	
 }
 
 void CAisMonitor::OnClear(wxCommandEvent &event)
@@ -106,9 +106,9 @@ void CAisMonitor::OnClose(wxCommandEvent &event)
 
 void CAisMonitor::SetValues()
 {
-//	m_Slot->SetLabel(wxString::Format(_("%d"),GetSelectedSlot()));
-//	m_Channel->SetLabel(wxString::Format(_("%d"),GetSelectedChannel()));
-//	m_MID->SetLabel(wxString::Format(_("%d"),GetSelectedMID()));
+	m_Slot->SetLabel(wxString::Format(_("%d"),GetSelectedSlot()));
+	m_Channel->SetLabel(wxString::Format(_("%d"),GetSelectedChannel()));
+	m_MID->SetLabel(wxString::Format(_("%d"),GetSelectedMID()));
 }
 
 BEGIN_EVENT_TABLE(CAisChannel,wxPanel)
@@ -130,7 +130,8 @@ CAisChannel::CAisChannel(CAisMonitor *parent,int id)
 	SetDoubleBuffered(true);
 	m_Timer = new wxTimer(this,ID_TIMER);
 	m_Timer->Start(1000);
-	//m_Reader 
+	m_Device = NULL;
+	
 }
 
 CAisChannel::~CAisChannel()
@@ -139,9 +140,9 @@ CAisChannel::~CAisChannel()
 	delete m_Timer;
 }
 
-void CAisChannel::SetDevice(CReader *ptr)
+void CAisChannel::SetDevice(void *device)
 {
-	m_Reader = ptr;
+	m_Device = (CReader*)device;
 }
 
 void CAisChannel::OnPaint(wxPaintEvent &event)
@@ -184,21 +185,24 @@ void CAisChannel::DrawCells(wxPaintDC &dc)
 	wxBrush brush;
 	brush.SetColour(*wxRED);
 	dc.SetBrush(brush);
-		
-		
+	
+	if(m_Device == NULL)
+		return;
+	SAisState *ptr = m_Device->GetAisStatePtr();
+	
 	for(size_t i = 0; i < 150; i++)
 	{
 		int id = (m_Id*150) + i;
-		if(	ais_get_slot(id,'A'))
+		if(	ptr->slot_a[id])
 		{
-			int mid = ais_get_message_id(id,'A');
+			int mid = ptr->slot_a_mid[id];
 			SetColor(mid,dc);
 			dc.DrawRectangle(i * m_CellWidth , 0 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
 		}
 		
-		if(	ais_get_slot(id,'B'))
+		if(	ptr->slot_b[id])
 		{
-			int mid = ais_get_message_id(id,'B');
+			int mid = ptr->slot_b_mid[id];
 			SetColor(mid,dc);
 			dc.DrawRectangle(i * m_CellWidth , 1 * m_CellHeight ,m_CellWidth+2,m_CellHeight+2);
 		}
@@ -264,10 +268,15 @@ void CAisChannel::OnMouse(wxMouseEvent &event)
 	int channel = m_Row;
 	char _channel = ais_get_channel(channel);
 
-//	SetSelectedSlot(slot);
-//	SetSelectedChannel(channel);
-	int mid = ais_get_message_id(slot,_channel);
-//	SetSelectedMID(mid);
+	SetSelectedSlot(slot);
+	SetSelectedChannel(channel);
+
+	if(m_Device == NULL)
+		return;
+	SAisState *ptr = m_Device->GetAisStatePtr();
+	
+	int mid = ais_get_message_id(slot,_channel,ptr);
+	SetSelectedMID(mid);
 
 	Refresh();
 	m_Parent->SetValues();
@@ -279,9 +288,9 @@ void CAisChannel::OnMouseLeave(wxMouseEvent &event)
 {
 	m_Selected = false;
 	
-	//SetSelectedSlot(-1);
-	//SetSelectedChannel(-1);
-	//SetSelectedMID(-1);
+	SetSelectedSlot(-1);
+	SetSelectedChannel(-1);
+	SetSelectedMID(-1);
 	
 	m_Parent->SetValues();
 
@@ -291,5 +300,6 @@ void CAisChannel::OnMouseLeave(wxMouseEvent &event)
 
 void CAisChannel::OnTimer(wxTimerEvent &event)
 {
+	
 	Refresh();
 }

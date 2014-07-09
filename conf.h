@@ -427,7 +427,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_SOG	3
 #define SHIP_COG	4
 #define SHIP_HDT	5
- 
+
+//typy urzadzen
+#define DEVICE_TYPE_AIS 1
 
 typedef struct SData
 {
