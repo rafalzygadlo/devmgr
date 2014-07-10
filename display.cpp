@@ -30,7 +30,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
-	m_DeviceID = -1;
+	m_DeviceId = -1;
 	//SetDoubleBuffered(true);
 		
 	this->Disable();
@@ -77,8 +77,12 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 	Name = parent->GetLabel();
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
-	if(!m_FileConfig->Read(wxString::Format(_("%s/%s"),Name.wc_str(),_(KEY_CONTROL_TYPE)),&m_ControlType))
+	if(!m_FileConfig->Read(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),&m_ControlType))
 		m_ControlType = DEFAULT_CONTROL_TYPE;
+
+	if(m_ControlType == CONTROL_AIS_MONITOR)
+		m_FileConfig->Read(wxString::Format(_("%s/%s"),Name,_(KEY_DEVICE_ID)),&m_DeviceId);
+	
 
 	delete m_FileConfig;
 	
@@ -92,6 +96,13 @@ CDisplayPlugin::~CDisplayPlugin()
 	delete m_Ticker;
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),m_ControlType);
+
+	if(m_ControlType == CONTROL_AIS_MONITOR)
+	{
+		m_DeviceId =  m_AisMonitor->GetDeviceId();
+		m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_DEVICE_ID)),m_DeviceId);
+	}
+	
 	delete m_FileConfig;
 	delete m_Menu;
 }
@@ -126,6 +137,7 @@ void  CDisplayPlugin::GetAisMonitor()
 	m_GUI = true;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_AisMonitor = new CAisMonitor(this);
+	m_AisMonitor->SetDeviceId(m_DeviceId);
 	MainSizer->Add(m_AisMonitor,1,wxALL|wxEXPAND);
 	this->SetSizer(MainSizer);
 	this->Layout();

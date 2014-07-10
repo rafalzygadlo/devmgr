@@ -63,6 +63,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_CPA "cpa"
 #define KEY_TCPA "tcpa"
 #define DIR_WORKDIR "workdir"
+#define KEY_DEVICE_ID "device_id"
+
 #define ICON_STOP 0
 #define ICON_START 1
 #define MAX_BAD_CRC					2
@@ -287,6 +289,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_CPA							189
 #define MSG_TCPA						190
 #define MSG_CLEAR						191
+#define MSG_SLOT						192
+#define MSG_CHANNEL						193
+#define MSG_MID							194
+
 
 #define MAX_DATA_POSITIONS	10
 
@@ -489,6 +495,8 @@ typedef struct
 	bool slot_b[2250];
 	int slot_a_mid[2250];
 	int slot_b_mid[2250];
+	int slot_a_mmsi[2250];
+	int slot_b_mmsi[2250];
 
 }SAisState;
 

@@ -1074,8 +1074,10 @@ void ais_state_unset(SAisState *ptr)
 {
 	memset(ptr->slot_a,0,2250);
 	memset(ptr->slot_b,0,2250);
-	memset(ptr->slot_a_mid,0,2250);
-	memset(ptr->slot_b_mid,0,2250);
+	memset(ptr->slot_a_mid,0,2250*sizeof(int));
+	memset(ptr->slot_b_mid,0,2250*sizeof(int));
+	memset(ptr->slot_a_mmsi,0,2250*sizeof(int));
+	memset(ptr->slot_b_mmsi,0,2250*sizeof(int));
 
 }
 
@@ -1111,7 +1113,7 @@ SAisState *ais_state_exists(CReader *device)
 }
 
 
-void ais_state(unsigned char *bits, int state)
+void ais_state(unsigned char *bits, int state, ais_t *ais)
 {
 	
 	SAisState *ptr = ais_state_exists((CReader*)m_Device);
@@ -1126,13 +1128,13 @@ void ais_state(unsigned char *bits, int state)
 		
 	switch(state)
 	{
-		case	AIS_SOTDMA:	ais_sotdma(bits,ptr);	break;
-		case	AIS_ITDMA:	ais_itdma(bits);		break;
+		case	AIS_SOTDMA:	ais_sotdma(bits,ptr,ais);	break;
+		case	AIS_ITDMA:	ais_itdma(bits);			break;
 	}
 
 }
 
-void ais_sotdma(unsigned char *bits, SAisState *ptr) 
+void ais_sotdma(unsigned char *bits, SAisState *ptr, ais_t *ais) 
 {
 	
 	int sync_state = (int)UBITS(149, 2);
@@ -1158,6 +1160,7 @@ void ais_sotdma(unsigned char *bits, SAisState *ptr)
 		case AIS_SLOT_NUMBER3:
 			val = UBITS(154, 14);		//slot number
 			ais_set_slot(val,ptr);
+			ais_set_mmsi(val,ais,ptr);
 			ais_set_message_id(val,m_Type,ptr);
 		break;
 		
@@ -1169,6 +1172,18 @@ void ais_sotdma(unsigned char *bits, SAisState *ptr)
 	
 	}
 	
+}
+void ais_set_mmsi(int val, ais_t *ais, SAisState *ptr)
+{
+	if(val > 2249)
+		return;
+		
+	switch (m_Channel)
+	{
+		case 'A':	ptr->slot_a_mmsi[val] = ais->mmsi;	break;
+		case 'B':	ptr->slot_b_mmsi[val] = ais->mmsi;	break;
+	}
+
 }
 
 void ais_set_slot(int val, SAisState *ptr)
@@ -1281,13 +1296,13 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 		case AIS_MSG_2:		
 		case AIS_MSG_3:		
 			ais_message_1(bits,ais);	
-			ais_state(bits,AIS_SOTDMA);		
+			ais_state(bits,AIS_SOTDMA,ais);		
 			result = true;	
 		break;
 		case AIS_MSG_4:		
 		case AIS_MSG_11:	
 			ais_message_4(bits,ais);	
-			ais_state(bits,AIS_SOTDMA);		
+			ais_state(bits,AIS_SOTDMA,ais);		
 			result = true;	
 		break;
 		case AIS_MSG_5:		
@@ -1337,7 +1352,7 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 		break;
 		case AIS_MSG_18:	
 			ais_message_18(bits,ais);		
-			ais_state(bits,ais->type18.cstate);		
+			ais_state(bits,ais->type18.cstate,ais);		
 			result = true;	
 			break;
 		case AIS_MSG_19:	

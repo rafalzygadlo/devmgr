@@ -31,7 +31,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxString m_Name;
 	int m_SignalType;
 	bool m_GUI;
-	int m_DeviceID;
+	int m_DeviceId;
 	
 	CDevicesList *m_DevicesList;
 	CAisList *m_AisList;

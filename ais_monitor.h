@@ -8,6 +8,9 @@ class CAisMonitor : public wxPanel
 {
 	wxStaticText *m_Slot, *m_Channel, *m_MID;
 	wxArrayPtrVoid m_Channels;
+	int m_DeviceId;
+	wxComboBox *m_Devices;
+	CReader *m_Reader;
 
 	void OnClear(wxCommandEvent &event);
 	void OnClose(wxCommandEvent &event);
@@ -17,6 +20,8 @@ public:
 	
 	CAisMonitor(wxWindow *parent);
 	~CAisMonitor();
+	int GetDeviceId();
+	void SetDeviceId(int device_id);
 	
 	void SetValues();
 
@@ -52,7 +57,7 @@ class CAisChannel : public wxPanel
 
 public:
 	
-	CAisChannel(CAisMonitor *parent, int id);
+	CAisChannel(wxWindow *parent, CAisMonitor *monitor, int id);
 	~CAisChannel();
 	void SetDevice(void *device);
 		

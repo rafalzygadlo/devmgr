@@ -221,6 +221,9 @@ const wchar_t *nvLanguage[2][285] =
 		_("CPA [nm]"),
 		_("TCPA [min]"),
 		_("Clear"),
+		_("Slot"),
+		_("Channel"),
+		_("MID"),
 	},
 	
 	/*PL*/
