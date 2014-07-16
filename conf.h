@@ -15,6 +15,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 	#define DIR_SEPARATOR "/"
 #endif
 
+
 #define TIMER
 #define nvPI 3.1415926535897932384626433832795
 #define PRODUCT_NAME "Device Manager"
@@ -454,52 +455,6 @@ typedef struct SFunctionData
 
 }SFunctionData;
 
-typedef struct
-{
-	bool valid[28];  //zaczynamy od 1 (czy komunikat wystepuje)
-	unsigned int mmsi;
-	double lon;			//pozycja lon,lat
-	double lat;
-	float cog;
-	float hdg;
-	float sog;
-	int draught;
-	int turn;
-	int to_bow;
-	int to_stern;
-	int to_port;
-	int to_starboard;
-	char name[64 + 1];	// shipname, aton name itp
-	char callsign[AIS_CALLSIGN_MAXLEN];
-	unsigned int imo;
-	int _class;			// klasa komunikatu
-	bool valid_dim;		// czy wystapil wymiar
-	bool valid_pos;		// czy wystapila pozycja
-	bool valid_cog;		// czy cog
-	bool valid_hdg;
-	bool valid_sog;
-	bool valid_name;
-	bool valid_draught;
-	bool valid_turn;
-	bool valid_callsign;
-	bool valid_imo;
-	void *ais_ptr;
-
-}SAisData;
-
-
-typedef struct
-{
-	void *reader_ptr;
-	bool slot_a[2250];
-	bool slot_b[2250];
-	int slot_a_mid[2250];
-	int slot_b_mid[2250];
-	int slot_a_mmsi[2250];
-	int slot_b_mmsi[2250];
-
-}SAisState;
-
 typedef struct 
 {
 	int id0;
@@ -514,13 +469,6 @@ typedef struct
 
 }SFrequency;
 
-typedef struct
-{
-	double lon;			//pozycja lon,lat
-	double lat;
-	wchar_t name[128];
-
-}SAisNames;
 
 // globalne identyfikatory eventów
 enum

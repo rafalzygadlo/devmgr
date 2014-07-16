@@ -108,6 +108,7 @@ CAisMonitor::~CAisMonitor()
 void CAisMonitor::OnDevice(wxCommandEvent &event)
 {
 	CReader *reader =  (CReader*)event.GetClientData();
+	m_Reader = reader;
 	m_DeviceId = reader->GetDeviceId();
 	for(size_t i = 0; i < m_Channels.size();i++)
 	{

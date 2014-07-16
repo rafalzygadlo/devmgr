@@ -5,6 +5,7 @@
 #include "GeometryTools.h"
 #include "nvFastFont.h"
 #include "NaviBroker.h"
+#include "ais.h"
 
 class CObject
 {

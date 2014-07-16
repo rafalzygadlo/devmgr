@@ -182,7 +182,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 	InitMutex();
 	InitSearchMutex();
-	ais_load_file();
+	ais_load_file(GetAisFile().char_str());
+
+	
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
 	//m_Ticker1->Start(1);
@@ -922,7 +924,7 @@ void CMapPlugin::Kill(void)
 	if(m_FileConfig != NULL)
         delete m_FileConfig;
 
-	ais_save_file();
+	ais_save_file(GetAisFile().char_str());
 	ais_free_list();
 	ais_free_buffer();
 	ais_free_track();
@@ -1539,14 +1541,18 @@ void CMapPlugin::SetBuffers()
 			SetAngle(ptr);
 			PreparePointsBuffer(ptr);
 			
+			bool size = false;
 			bool ship = false;
+			if(GetShipWidth(ptr) > 0.0 && GetShipHeight(ptr) > 0.0)
+				size = true;
+			
 			if(GetShipWidth(ptr) > (GetTriangleWidth(GetSmoothScaleFactor()) * TRIANGLE_WIDTH_FACTOR))
 				ship = true;
 			
 			if(GetShipHeight(ptr) > (GetTriangleHeight(GetSmoothScaleFactor()) * TRIANGLE_HEIGHT_FACTOR))
 				ship = true;
 			
-			if(ship)
+			if(ship && size)
 				PrepareShipBuffer(ptr);
 			else
 				PrepareTriangleBuffer(ptr);
@@ -1675,7 +1681,7 @@ void CMapPlugin::PrepareSearchBuffer()
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
 		
-	ais_set_search_buffer(GetSearchText());
+	ais_set_search_buffer(GetSearchText(),GetFilter());
 		
 	GetMutex()->Unlock();
 	
@@ -1851,11 +1857,7 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 {
 	if(!ptr->valid_dim || !ptr->valid_pos)
 		return;
-	if(GetShipWidth(ptr) == 0)
-		return;
-	if(GetShipHeight(ptr) == 0)
-		return;
-
+	
 	PrepareShipVerticesBuffer(ptr);
 	PrepareShipTriangleIndicesBuffer(ptr);
 	PrepareShipLineIndicesBuffer(ptr);
@@ -1870,7 +1872,7 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 {
-	if(ptr->valid[AIS_MSG_5] || ptr->valid[AIS_MSG_24])
+	if(ptr->valid_dim)
 	{
 		// jako male statki
 		if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
@@ -3841,7 +3843,7 @@ void CMapPlugin::RenderNormalScale()
 	_RenderAtons();
 	_RenderBS();
 	//_RenderSAR();				//moze niestabilne
-	//_RenderShipLights();
+	_RenderShipLights();
 	RenderROT();
 	RenderCOG();
 	RenderHDT();

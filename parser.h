@@ -7,7 +7,7 @@
 #include "protocol.h"
 #include "NaviMapIOApi.h"
 #include "reader.h"
-//#include "NaviArray.h"
+#include "conf.h"
 
 class CReader;
 class CParser

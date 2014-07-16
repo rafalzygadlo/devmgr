@@ -5,7 +5,7 @@
 #include <wx/dirdlg.h>
 #include "NaviMapIOApi.h"
 #include "tools.h"
-#include "ais.h"
+#include "ais_html.h"
 #include "GeometryTools.h"
 #include "options.h"
 #include <wx/dialog.h>
@@ -23,7 +23,7 @@ END_EVENT_TABLE()
 //FRAME
 
 CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
-	:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0)
+:wxDialog(ParentPtr,wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER)
 {
 	m_DLL = (CMapPlugin*)Parent;
 	m_ParentPtr = ParentPtr;

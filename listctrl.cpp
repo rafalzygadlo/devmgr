@@ -4,7 +4,7 @@
 #include "info.h"
 #include <algorithm>
 #include <wx/mstream.h>
-#include "ais.h"
+#include "ais_html.h"
 #include "options.h"
 
 

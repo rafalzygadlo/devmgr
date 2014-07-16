@@ -625,30 +625,6 @@ int GetMaxFrequency()
 	return MaxFrequency;
 }
 
-void NewLonLat(int seconds, double lon, double lat, double sog, double cog, double *new_lon, double *new_lat)
-{
-	
-	double _sec = (double)seconds;
-		
-	//sog = 1000.0;
-	cog = cog - 180;
-
-	double rad360 = 2 * nvPI / 360.0;
-	double sogm = (1852.0 /3600) * sog;
-	double dlatm = (sogm * cos ( 2 * nvPI - cog * rad360 )) * _sec;
-	double dlonm = (sogm * sin ( 2 * nvPI - cog * rad360 )) * _sec;
-	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
-	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
-		
-	double nlon = lon + dlonm / (lonDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
-	double nlat = lat + dlatm / (latDistance * 1852.0);	// sta³a iloœæ km na 1 stopien
-			
-	// przypisz nowe wartosci 
-	*new_lon = nlon;
-	*new_lat = nlat;
-	
-}
-
 bool IsPointInsideMesh(nvPoint2f *point, nvPoint2d *points, int points_length, int *indices, int indices_length )
 {
 	for(size_t i = 0; i < indices_length; i+=3)
@@ -711,42 +687,12 @@ wxString FormatLatitude(float y)
     return str;
 
 }
-
+/*
 double GetMilesPerDegree(double x, double y)
 {
 	return nvDistance( x, y, x + 1.0, y );	// iloœæ mil na stopieñ w aktualnej pozycji y
 }
-
-double ToBow(SAisData *ptr)
-{
-	return  (double)ptr->to_bow/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
-}
-
-double ToStern(SAisData *ptr)
-{
-	return (double)ptr->to_stern/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
-}
-
-double ToPort(SAisData *ptr)
-{
-	return (double)ptr->to_port/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
-}
-
-double ToStarboard(SAisData *ptr)
-{
-	return (double)ptr->to_starboard/1852/GetMilesPerDegree(ptr->lon,-ptr->lat); 
-}
-
-double GetShipHeight(SAisData *ptr)
-{
-	return ToBow(ptr) + ToStern(ptr);
-}
-
-double GetShipWidth(SAisData *ptr)
-{
-	return ToPort(ptr) + ToStarboard(ptr);
-}
-
+*/
 double GetTriangleHeight(double smooth_scale)
 {
 	return SHIP_TRIANGLE_HEIGHT/smooth_scale;
@@ -835,29 +781,7 @@ bool GetShipImage(int mmsi, char *&buffer, int *size)
 	return exists;
 	
 }
-
- bool CheckLineIntersection(double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y, double *i_x, double *i_y) 
-{
-
-    double s1_x, s1_y, s2_x, s2_y;
-    s1_x = p1_x - p0_x;     s1_y = p1_y - p0_y;
-    s2_x = p3_x - p2_x;     s2_y = p3_y - p2_y;
-    double s, t;
-    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
-    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
-
-    if (s >= 0.0 && s <= 1.0 && t >= 0.0 && t <= 1.0) {
-
-        if (i_x != NULL)
-            *i_x = p0_x + (t * s1_x);
-        if (i_y != NULL)
-            *i_y = p0_y + (t * s1_y);
-        return true;
-    }
-
-    return false;
-};
-
+ 
  void SetBroker(CNaviBroker *ptr)
  {
 	Broker = ptr;

@@ -10,6 +10,7 @@
 #include "sclient.h"
 #include <Windows.h>
 #include <wx/treectrl.h>
+#include "ais.h"
 
 class CParser;
 class CReader :public CSerial, public CClient
