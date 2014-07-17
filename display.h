@@ -130,7 +130,7 @@ public:
 	virtual void OnWork(CDisplaySignal *Signal);
 	virtual void BeforeWork(CDisplaySignal *Signal);
 	virtual void AfterWork(CDisplaySignal *Signal);
-	virtual void OnRender(wxGCDC &dc);
+	//virtual void OnRender(wxGCDC &dc);
 
 	enum
 	{

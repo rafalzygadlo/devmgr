@@ -293,7 +293,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_SLOT						192
 #define MSG_CHANNEL						193
 #define MSG_MID							194
-
+#define MSG_AGE							195
 
 #define MAX_DATA_POSITIONS	10
 
@@ -324,7 +324,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
 #define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
 #define DEFAULT_MAX_FREQUENCY	1000	// sekunda			
-#define AIS_BUFFER_INTERVAL		2000	//zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL		1000	//zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display

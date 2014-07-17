@@ -159,18 +159,21 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	color.R = 255;color.G = 0;color.B = 0;color.A = 200;
 	m_Light0->SetColor(color);
 	m_Light0->SetOffset(-1.0,-1.0);
-	
+	m_Light0->SetRenderMode(GL_QUADS);
+
 	color.R = 0;color.G = 255;color.B = 0;color.A = 200;
 	m_Light1 = new CObject();
 	m_Light1->SetSize(LIGHT1_WIDTH,LIGHT1_HEIGHT);
 	m_Light1->SetColor(color);
 	m_Light1->SetOffset(1.0,1.0);
-	
+	m_Light1->SetRenderMode(GL_TRIANGLES);
+
 	color.R = 0;color.G = 0;color.B = 255;color.A = 200;
 	m_Light2 = new CObject();
 	m_Light2->SetSize(LIGHT2_WIDTH,LIGHT2_HEIGHT);
 	m_Light2->SetColor(color);
 	m_Light2->SetOffset(1.0,2.0);
+	m_Light2->SetRenderMode(GL_TRIANGLES);
 	
 	//ship CPA
 	//m_ShipCPA = new CObject();
@@ -3769,7 +3772,7 @@ void CMapPlugin::_RenderShipLights()
 {
 	m_Light0->Render();
 	m_Light1->Render();
-	m_Light2->Render();
+	//m_Light2->Render();
 	
 }
 

@@ -37,16 +37,18 @@ END_EVENT_TABLE()
 
 
 CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display) 
-:wxPanel(parent)
+:wxPanel(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize)
 {
 	m_Broker = NULL;
-	//SetDoubleBuffered(true);
 	m_Broker = plugin->GetBroker();
 	m_Display = display;
 	GetPanel();
 	m_OldCount = 0;
 	m_Working = false;
 	SetList();
+	SetBackgroundStyle(wxBG_STYLE_SYSTEM);
+	
+	//SetDoubleBuffered(true);
 }
 
 CAisList::~CAisList()
@@ -58,6 +60,10 @@ CAisList::~CAisList()
 
 //}
 
+void CAisList::OnEraseBackground(wxEraseEvent &event)
+{
+
+}
 void CAisList::SetSignal(int signal)
 {
 	switch(signal)
@@ -118,9 +124,10 @@ void CAisList::SetList()
 	{
 		count = ais_get_search_item_count();
 		m_List->SetItemCount(count);
-		m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
+		//m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
+		m_List->Refresh();
 		m_List->SetSearch(true);
-
+		
 		if(m_OldCount != count)
 			m_Notebook->SetPageText(PAGE_0,wxString::Format(GetMsg(MSG_AIS_TARGETS),count));
 		m_OldCount = count;
@@ -315,7 +322,7 @@ void CAisList::OnAlpha(wxCommandEvent &event)
 {
 	switch(event.GetId())
 	{
-		case ID_SHIP_BORDER_ALPHA:	SetAlpha(SHIP_BORDER_COLORA,event.GetInt());		break;
+		case ID_SHIP_BORDER_ALPHA:	SetAlpha(SHIP_BORDER_COLORA,event.GetInt());	break;
 		case ID_ATON_ALPHA:			SetAlpha(ATON_COLOR,event.GetInt());			break;
 		case ID_BASE_STATION_ALPHA: SetAlpha(BASE_STATION_COLOR,event.GetInt());	break;
 		case ID_SHIP_ALPHA_0A:		SetAlpha(SHIP_COLOR_0A,event.GetInt());			break;
@@ -337,15 +344,12 @@ void CAisList::GetPanel()
 	wxBoxSizer *m_Sizer = new wxBoxSizer(wxVERTICAL);
 
 	m_Notebook = new wxNotebook(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxNB_NOPAGETHEME); //wxNB_NOPAGETHEME wersja 2.8
-	//m_Notebook->SetDoubleBuffered(true);
 	m_Sizer->Add(m_Notebook,1,wxALL|wxEXPAND,0);
 	
 	m_Notebook->AddPage(GetPage1(),GetMsg(MSG_AIS_TARGETS));
 	m_Notebook->AddPage(GetPage2(),GetMsg(MSG_AIS_OPTIONS));
 	m_Notebook->AddPage(GetPage3(),GetMsg(MSG_VTS_OPTIONS));
-
 	
-
 	this->SetSizer(m_Sizer);
 
 }
@@ -354,7 +358,7 @@ void CAisList::GetPanel()
 wxPanel *CAisList::GetPage1()
 {
 
-	wxPanel *Panel = new wxPanel(m_Notebook);
+	wxPanel *Panel = new wxPanel(m_Notebook,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer = new wxBoxSizer(wxVERTICAL);
 	Panel->SetSizer(m_Page1Sizer);
 	
@@ -369,14 +373,14 @@ wxPanel *CAisList::GetPage1()
 
 	//m_SearchText->SetValue(m_SearchText);
 	
-
-	m_List = new CListCtrl(Panel,this,wxLC_REPORT | wxLC_HRULES | wxLC_VIRTUAL);
+	m_List = new CListCtrl(Panel,this,wxLC_REPORT |  wxLC_VIRTUAL );
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(wxEmptyString);			m_List->InsertColumn(0,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));			m_List->InsertColumn(1,item);
 	item.SetWidth(200);	item.SetText(GetMsg(MSG_SHIPNAME));		m_List->InsertColumn(2,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_CALLSIGN));		m_List->InsertColumn(4,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_IMO_NUMBER));	m_List->InsertColumn(5,item);
+	item.SetWidth(80);	item.SetText(GetMsg(MSG_AGE));			m_List->InsertColumn(6,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
 	
 	m_Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxDefaultSize);

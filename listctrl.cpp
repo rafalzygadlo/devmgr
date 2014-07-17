@@ -15,16 +15,18 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	EVT_CONTEXT_MENU(CListCtrl::OnContextMenu)
 	EVT_LIST_ITEM_SELECTED(ID_LIST,CListCtrl::OnSelected)
 	//EVT_PAINT(CListCtrl::OnPaint)
-	//EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
+	EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
-	EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
+	//EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
 END_EVENT_TABLE()
  
 CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
-:wxListCtrl( Parent, ID_LIST, wxDefaultPosition, wxDefaultSize, style )
+:wxListCtrl( Parent, ID_LIST, wxDefaultPosition, wxDefaultSize, style |wxFULL_REPAINT_ON_RESIZE )
 {
 	
+	//SetBackgroundStyle(wxBG_STYLE_SYSTEM);
+	//SetDoubleBuffered(true);
 	_AisList = AisList;
 		
 	error.SetTextColour(*wxRED);
@@ -42,7 +44,7 @@ CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
 	selected_and_queued.SetBackgroundColour(wxColor(100,200,0));
 	selected_and_queued.SetTextColour(*wxWHITE);
 
-	//SetDoubleBuffered(true);
+	
 	last_selected_item = -1;
 	
 	SetItemCount(0);
@@ -86,12 +88,57 @@ void CListCtrl::OnContextMenu(wxContextMenuEvent &event)
 {
 	
 }
-/*
+
 void CListCtrl::OnEraseBackground(wxEraseEvent &event)
 {
+	// to prevent flickering, erase only content *outside* of the 
+   // actual list items stuff
+   if(GetItemCount() > 0) {
+       wxDC * dc = event.GetDC();
+       assert(dc);
 
+       // get some info
+       wxCoord width = 0, height = 0;
+       GetClientSize(&width, &height);
+
+       wxCoord x, y, w, h;
+       dc->SetClippingRegion(0, 0, width, height);
+       dc->GetClippingBox(&x, &y, &w, &h); 
+
+       long top_item = GetTopItem();
+       long bottom_item = top_item + GetCountPerPage();
+       if(bottom_item >= GetItemCount()) {
+           bottom_item = GetItemCount() - 1;
+       }                
+
+       // trick: we want to exclude a couple pixels
+       // on the left side thus use wxLIST_RECT_LABEL
+       // for the top rect and wxLIST_RECT_BOUNDS for bottom
+       // rect
+       wxRect top_rect, bottom_rect;
+       GetItemRect(top_item, top_rect, wxLIST_RECT_LABEL);
+       GetItemRect(bottom_item, bottom_rect, wxLIST_RECT_BOUNDS);
+
+       // set the new clipping region and do erasing
+       wxRect items_rect(top_rect.GetLeftTop(), bottom_rect.GetBottomRight());
+       wxRegion reg(wxRegion(x, y, w, h)); 
+       reg.Subtract(items_rect);
+       dc->DestroyClippingRegion();
+       dc->SetClippingRegion(reg);
+
+       // do erasing
+       dc->SetBackground(wxBrush(GetBackgroundColour(), wxSOLID));
+       dc->Clear();
+
+       // restore old clipping region
+       dc->DestroyClippingRegion();
+       dc->SetClippingRegion(wxRegion(x, y, w, h));
+   } else {
+       event.Skip();
+   }
 }
 
+/*
 void CListCtrl::OnPaint(wxPaintEvent &event)
 {
 	event.Skip();
@@ -248,6 +295,8 @@ void CListCtrl::OnCacheHint(wxListEvent& event)
 {
     m_From = event.GetCacheFrom();
 	m_To = event.GetCacheTo();
+	fprintf(stdout,"from:%d to:%d\n",m_From,m_To);
+	event.Skip();
 }
 
 long CListCtrl::_GetFrom()
@@ -324,18 +373,19 @@ wxString CListCtrl::OnGetItemText(long item, long column) const
 	
 	double _lon,_lat;
 	
-	//int seconds = (GetTickCount() - ais->timeout)/1000;
+	int seconds = (GetTickCount() - ais->timeout)/1000;
 		
-	//int minutes = seconds/60;
-	//div_t _div = div(seconds,60);
+	int minutes = seconds/60;
+	div_t _div = div(seconds,60);
 
 	switch (column)
 	{
-		case 0:	str = mes;											break;
-		case 1:	str = wxString::Format(_("%d"),ais->mmsi);			break;
-		case 2:	str = wxString::Format(_("%s"),name.wc_str());		break;
-		case 3: str = wxString::Format(_("%s"),callsign.wc_str());	break;
-		case 4: str = wxString::Format(_("%s"),imo.wc_str());		break;
+		case 0:	str = mes;												break;
+		case 1:	str = wxString::Format(_("%d"),ais->mmsi);				break;
+		case 2:	str = wxString::Format(_("%s"),name.wc_str());			break;
+		case 3: str = wxString::Format(_("%s"),callsign.wc_str());		break;
+		case 4: str = wxString::Format(_("%s"),imo.wc_str());			break;
+		case 5: str = wxString::Format(_("%d:%02d"),minutes,_div.rem);	break;
 	}
 
 	return str;

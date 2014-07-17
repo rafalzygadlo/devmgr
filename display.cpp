@@ -23,6 +23,7 @@ END_EVENT_TABLE()
 CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) 
 :CNaviDiaplayApi( parent, id, pos, size, style, name )
 {
+	//SetRenderBackground(false);
 	m_AisMonitor = NULL;
 	m_SelectedDevice = NULL;
 	SetDisplayID(NDS_DEVICE_MANAGER);
@@ -31,8 +32,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
 	m_DeviceId = -1;
-	//SetDoubleBuffered(true);
-		
+			
 	this->Disable();
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
@@ -127,7 +127,7 @@ void  CDisplayPlugin::GetAisList()
 	m_GUI = true;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_AisList = new CAisList(this,m_MapPlugin,this);
-	MainSizer->Add(m_AisList,1,wxALL|wxEXPAND);
+	MainSizer->Add(m_AisList,1,wxALL|wxEXPAND,0);
 	this->SetSizer(MainSizer);
 	this->Layout();
 }
@@ -364,7 +364,7 @@ void CDisplayPlugin::SynchroOptions()
 		m_AisList->Synchro();
 			
 }
-
+/*
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {
 	bool exists = false;
@@ -384,7 +384,7 @@ void CDisplayPlugin::OnRender(wxGCDC &dc)
 		DrawData(dc,m_Caption,_("N/A"));
 
 }
-
+*/
 void CDisplayPlugin::OnWork(CDisplaySignal *Signal) 
 {
 	

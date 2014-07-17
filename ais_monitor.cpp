@@ -175,7 +175,7 @@ void CAisMonitor::SetValues()
 	int mid = GetSelectedMID();
 		
 	if(mid >0)
-		m_MID->SetLabel(GetMsg((MSG_AIS_1_NAME - 1  + mid)));
+		m_MID->SetLabel(GetMsg((AIS_MSG_1 - 1  + mid)));
 	else
 		m_MID->SetLabel(wxEmptyString);
 

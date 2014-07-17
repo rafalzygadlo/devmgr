@@ -224,6 +224,7 @@ const wchar_t *nvLanguage[2][285] =
 		_("Slot"),
 		_("Channel"),
 		_("MID"),
+		_("Age"),
 	},
 	
 	/*PL*/
