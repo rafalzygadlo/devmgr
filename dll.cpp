@@ -1683,9 +1683,10 @@ void CMapPlugin::PrepareSearchBuffer()
 	int counter = 0;
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-		
+	
 	ais_set_search_buffer(GetSearchText(),GetFilter());
-		
+	ais_sort();		
+	
 	GetMutex()->Unlock();
 	
 	SendSignal(SIGNAL_UPDATE_LIST,0);
