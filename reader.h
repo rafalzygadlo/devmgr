@@ -10,7 +10,9 @@
 #include "sclient.h"
 #include <Windows.h>
 #include <wx/treectrl.h>
+#include "ais.h"
 
+class CParser;
 class CReader :public CSerial, public CClient
 {
 	CParser *m_Parser;
@@ -29,6 +31,7 @@ class CReader :public CSerial, public CClient
 	CClient *SocketPtr;
 	int m_ConnectionType;
 	bool m_LineEvent;
+	SAisState *m_AisState;
 
 public:
 	CReader();
@@ -67,7 +70,8 @@ public:
 	void SetCheckCRC(bool val);
 	size_t GetBadCRC();
 	size_t GetSignalQuality();
-	
+	void SetAisStatePtr(SAisState *ptr);
+	SAisState *GetAisStatePtr();
 	
 	virtual void OnConnect();
 	virtual void OnConnected();

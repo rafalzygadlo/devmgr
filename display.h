@@ -31,6 +31,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	wxString m_Name;
 	int m_SignalType;
 	bool m_GUI;
+	int m_DeviceId;
 	
 	CDevicesList *m_DevicesList;
 	CAisList *m_AisList;
@@ -66,6 +67,7 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	void RemoveControl(int type);
 	void FreeDevicesList();
 	void FreeAisList();
+	void FreeAisMonitor();
 	void FreeAisMessages();
 	void SetDevicesListSignal(int type, CDisplaySignal *sig);
 	void SetAisListSignal(int type);
@@ -128,7 +130,7 @@ public:
 	virtual void OnWork(CDisplaySignal *Signal);
 	virtual void BeforeWork(CDisplaySignal *Signal);
 	virtual void AfterWork(CDisplaySignal *Signal);
-	virtual void OnRender(wxGCDC &dc);
+	//virtual void OnRender(wxGCDC &dc);
 
 	enum
 	{

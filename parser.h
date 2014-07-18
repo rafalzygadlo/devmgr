@@ -6,8 +6,10 @@
 #include "conf.h"
 #include "protocol.h"
 #include "NaviMapIOApi.h"
-//#include "NaviArray.h"
+#include "reader.h"
+#include "conf.h"
 
+class CReader;
 class CParser
 {
 	SData m_Data;
@@ -19,6 +21,7 @@ class CParser
 	unsigned char *m_Bits;
 	size_t m_Bitlen, m_OldLen;
 	CFunctions Functions;
+	CReader *m_Reader;
 	//CNaviArray <CNaviArray <SData>*> DataList;
 	
 	char ConvertChar(char data);
@@ -42,6 +45,7 @@ public:
 	void Parse( char *line);
 	void SetDefinition(int device_type);
 	void SetBroker(CNaviBroker *broker);
+	void SetDevice(CReader *ptr);
 		
 };
 

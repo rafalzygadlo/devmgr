@@ -23,6 +23,7 @@ END_EVENT_TABLE()
 CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name) 
 :CNaviDiaplayApi( parent, id, pos, size, style, name )
 {
+	//SetRenderBackground(false);
 	m_AisMonitor = NULL;
 	m_SelectedDevice = NULL;
 	SetDisplayID(NDS_DEVICE_MANAGER);
@@ -30,8 +31,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	m_SignalsPanel = NULL;
 	m_Sizer = NULL;
 	m_MapPlugin = NULL;
-	//SetDoubleBuffered(true);
-		
+	m_DeviceId = -1;
+			
 	this->Disable();
 	m_FirstTime = true;
 	m_SelectedItem = NULL;
@@ -76,8 +77,12 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 	Name = parent->GetLabel();
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
-	if(!m_FileConfig->Read(wxString::Format(_("%s/%s"),Name.wc_str(),_(KEY_CONTROL_TYPE)),&m_ControlType))
+	if(!m_FileConfig->Read(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),&m_ControlType))
 		m_ControlType = DEFAULT_CONTROL_TYPE;
+
+	if(m_ControlType == CONTROL_AIS_MONITOR)
+		m_FileConfig->Read(wxString::Format(_("%s/%s"),Name,_(KEY_DEVICE_ID)),&m_DeviceId);
+	
 
 	delete m_FileConfig;
 	
@@ -85,11 +90,19 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 CDisplayPlugin::~CDisplayPlugin()
 {
-	delete m_AisMonitor;
+	Name = GetName();
+	
 	m_Ticker->Stop();
 	delete m_Ticker;
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_CONTROL_TYPE)),m_ControlType);
+
+	if(m_ControlType == CONTROL_AIS_MONITOR)
+	{
+		m_DeviceId =  m_AisMonitor->GetDeviceId();
+		m_FileConfig->Write(wxString::Format(_("%s/%s"),Name,_(KEY_DEVICE_ID)),m_DeviceId);
+	}
+	
 	delete m_FileConfig;
 	delete m_Menu;
 }
@@ -114,16 +127,20 @@ void  CDisplayPlugin::GetAisList()
 	m_GUI = true;
 	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_AisList = new CAisList(this,m_MapPlugin,this);
-	MainSizer->Add(m_AisList,1,wxALL|wxEXPAND);
+	MainSizer->Add(m_AisList,1,wxALL|wxEXPAND,0);
 	this->SetSizer(MainSizer);
 	this->Layout();
 }
 
 void  CDisplayPlugin::GetAisMonitor()
-{
-	if(m_AisMonitor == NULL)
-		m_AisMonitor = new CAisMonitor();
-	m_AisMonitor->Show();
+{	
+	m_GUI = true;
+	wxBoxSizer *MainSizer = new wxBoxSizer(wxVERTICAL);
+	m_AisMonitor = new CAisMonitor(this);
+	m_AisMonitor->SetDeviceId(m_DeviceId);
+	MainSizer->Add(m_AisMonitor,1,wxALL|wxEXPAND);
+	this->SetSizer(MainSizer);
+	this->Layout();
 	
 }
 
@@ -133,9 +150,15 @@ void CDisplayPlugin::RemoveControl(int type)
 	{
 		case CONTROL_DEVICES_LIST:	FreeDevicesList();	break;
 		case CONTROL_AIS_LIST:		FreeAisList();		break;
+		case CONTROL_AIS_MONITOR:	FreeAisMonitor();	break;
 	}
 }
 
+void CDisplayPlugin::FreeAisMonitor()
+{
+	delete m_AisMonitor;
+	m_AisMonitor = NULL;
+}
 
 void CDisplayPlugin::FreeDevicesList()
 {
@@ -156,13 +179,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 		wxMessageBox(_("The same type of control ?"));
 		return;
 	}
-	
-	if(event.GetId() == CONTROL_AIS_MONITOR)
-	{
-		GetAisMonitor();
-		return;
-	}
-	
+		
 	m_GUI = false;
 	RemoveControl(m_ControlType);
 		
@@ -170,6 +187,7 @@ void CDisplayPlugin::OnMenuRange(wxCommandEvent &event)
 	{
 		case CONTROL_DEVICES_LIST:	GetDevicesList();	break;
 		case CONTROL_AIS_LIST:		GetAisList();		break;
+		case CONTROL_AIS_MONITOR:	GetAisMonitor();	break;
 	}
 	
 	m_ControlType = event.GetId(); // ustawiamy po zbudowaniu gui
@@ -288,6 +306,7 @@ void CDisplayPlugin::InitDisplay()
 		{
 			case CONTROL_DEVICES_LIST:	GetDevicesList();	break;
 			case CONTROL_AIS_LIST:		GetAisList();		break;
+			case CONTROL_AIS_MONITOR:	GetAisMonitor();	break;	
 		}
 	
 		this->Enable();
@@ -345,7 +364,7 @@ void CDisplayPlugin::SynchroOptions()
 		m_AisList->Synchro();
 			
 }
-
+/*
 void CDisplayPlugin::OnRender(wxGCDC &dc) 
 {
 	bool exists = false;
@@ -365,7 +384,7 @@ void CDisplayPlugin::OnRender(wxGCDC &dc)
 		DrawData(dc,m_Caption,_("N/A"));
 
 }
-
+*/
 void CDisplayPlugin::OnWork(CDisplaySignal *Signal) 
 {
 	

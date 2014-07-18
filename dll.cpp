@@ -41,6 +41,7 @@ unsigned char PluginInfoBlock[] = {
 
 CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 {
+	InitDevices();
 	SetBroker(NaviBroker);
 	m_DisplaySignal = new CDisplaySignal(NDS_DEVICE_MANAGER);
 	m_FileConfig = NULL;
@@ -49,7 +50,6 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_ConfigPath = GetPluginConfigPath();
 	m_EnableControls = false;
 	m_Data = NULL;
-	m_Devices = new wxArrayPtrVoid();
 	m_PositionExists = false;
 	m_Position_0_Exists = m_Position_1_Exists = false;
 	m_OtherData = false;
@@ -159,18 +159,21 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	color.R = 255;color.G = 0;color.B = 0;color.A = 200;
 	m_Light0->SetColor(color);
 	m_Light0->SetOffset(-1.0,-1.0);
-	
+	m_Light0->SetRenderMode(GL_QUADS);
+
 	color.R = 0;color.G = 255;color.B = 0;color.A = 200;
 	m_Light1 = new CObject();
 	m_Light1->SetSize(LIGHT1_WIDTH,LIGHT1_HEIGHT);
 	m_Light1->SetColor(color);
 	m_Light1->SetOffset(1.0,1.0);
-	
+	m_Light1->SetRenderMode(GL_TRIANGLES);
+
 	color.R = 0;color.G = 0;color.B = 255;color.A = 200;
 	m_Light2 = new CObject();
 	m_Light2->SetSize(LIGHT2_WIDTH,LIGHT2_HEIGHT);
 	m_Light2->SetColor(color);
 	m_Light2->SetOffset(1.0,2.0);
+	m_Light2->SetRenderMode(GL_TRIANGLES);
 	
 	//ship CPA
 	//m_ShipCPA = new CObject();
@@ -182,7 +185,9 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 	InitMutex();
 	InitSearchMutex();
-	ais_load_file();
+	ais_load_file(GetAisFile().char_str());
+
+	
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
 	//m_Ticker1->Start(1);
@@ -202,8 +207,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 
 CMapPlugin::~CMapPlugin()
 {
-	m_Devices->Clear();
-	delete m_Devices;
+	FreeDevices();
 	delete m_DisplaySignal;
 	delete m_NameFont;
 	m_NameFont = NULL;
@@ -232,9 +236,9 @@ void CMapPlugin::WriteConfig()
 	m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);
 	m_FileConfig->DeleteGroup(_(KEY_DEVICES));
 	
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		type = ptr->GetConnectionType();		
 		
 		switch(type)
@@ -256,7 +260,7 @@ void CMapPlugin::WriteSerialConfig(int index)
 	int baud, type, ctype;
 	bool running;
 	
-	CReader *Reader = (CReader*)m_Devices->Item(index);
+	CReader *Reader = (CReader*)GetDevices()->Item(index);
 	name = Reader->GetDeviceName();
 	running = Reader->GetIsRunning();
 	wxString port(Reader->GetSerialPort(),wxConvUTF8);
@@ -278,7 +282,7 @@ void CMapPlugin::WriteSocketConfig(int index)
 	int  port, ctype, type;
 	bool running;
 	
-	CReader *Reader = (CReader*)m_Devices->Item(index);
+	CReader *Reader = (CReader*)GetDevices()->Item(index);
 	name = Reader->GetDeviceName();
 	running = Reader->GetIsRunning();
 	port = Reader->GetPort();
@@ -752,15 +756,15 @@ CNaviBroker *CMapPlugin::GetBroker()
 
 size_t CMapPlugin::GetDevicesCount()
 {
-	return m_Devices->size();
+	return GetDevices()->size();
 }
 
 CReader *CMapPlugin::GetReader(size_t idx)
 {
-	if(idx > m_Devices->size())
+	if(idx > GetDevices()->size())
 		return NULL;
 	else
-		return (CReader*)m_Devices->Item(idx);
+		return (CReader*)GetDevices()->Item(idx);
 }
 
 
@@ -790,9 +794,9 @@ void CMapPlugin::StopDevice(CReader *ptr)
 
 void CMapPlugin::RemoveDevice(CReader *ptr)
 {
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *_ptr = (CReader*)m_Devices->Item(i);
+		CReader *_ptr = (CReader*)GetDevices()->Item(i);
 		if(_ptr == ptr)
 		{
 			_ptr->Stop();
@@ -801,7 +805,7 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 				wxMilliSleep(10);
 
 			delete _ptr;
-			m_Devices->Remove(_ptr);
+			GetDevices()->Remove(_ptr);
 			SendSignal(REMOVE_DEVICE,_ptr);
 		}
 	}
@@ -811,19 +815,24 @@ void CMapPlugin::RemoveDevice(CReader *ptr)
 
 void CMapPlugin::ReindexDevices()
 {
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		ptr->SetDeviceId(i);
 	}
 }
 
 void CMapPlugin::AddDevice(CReader *ptr)
 {
-	m_Devices->Add(ptr);
+	GetDevices()->Add(ptr);
 
 	ptr->SetBroker(m_Broker);
-	ptr->SetDeviceId(m_Devices->size() - 1);
+	ptr->SetDeviceId(GetDevices()->size() - 1);
+
+	if(ptr->GetDeviceType() == DEVICE_TYPE_AIS)
+	{
+		ptr->SetAisStatePtr(ais_state_init(ptr));
+	}
 			
 	if(ptr->RunOnStart())
 		ptr->Start();
@@ -832,9 +841,9 @@ void CMapPlugin::AddDevice(CReader *ptr)
 
 void CMapPlugin::DeleteDevice(size_t idx)
 {
-	CReader *ptr = (CReader*)m_Devices->Item(idx);
+	CReader *ptr = (CReader*)GetDevices()->Item(idx);
 	ptr->Stop();
-	m_Devices->Remove(ptr);
+	GetDevices()->Remove(ptr);
 }
 
 wxArrayString CMapPlugin::GetConfigItems(wxString path)
@@ -877,7 +886,7 @@ bool CMapPlugin::GetEnableControlsFlag()
 
 wxArrayPtrVoid *CMapPlugin::GetDevicesList()
 {
-	return m_Devices;
+	return GetDevices();
 }
 
 void CMapPlugin::Run(void *Params)
@@ -908,9 +917,9 @@ void CMapPlugin::Kill(void)
 		
 	SendSignal(CLEAR_AIS_LIST,NULL);
 
-	for(size_t i = 0; i < m_Devices->size(); i++)
+	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
-		CReader *ptr = (CReader*)m_Devices->Item(i);
+		CReader *ptr = (CReader*)GetDevices()->Item(i);
 		ptr->Stop();
 		delete ptr;
 	}
@@ -918,13 +927,14 @@ void CMapPlugin::Kill(void)
 	if(m_FileConfig != NULL)
         delete m_FileConfig;
 
-	ais_save_file();
+	ais_save_file(GetAisFile().char_str());
 	ais_free_list();
 	ais_free_buffer();
 	ais_free_track();
-	ais_free_collision();
+	ais_free_collision(); 
 	ais_free_collision_CPA();
 	ais_free_collision_TCPA();
+	ais_state_free();
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
@@ -1534,14 +1544,18 @@ void CMapPlugin::SetBuffers()
 			SetAngle(ptr);
 			PreparePointsBuffer(ptr);
 			
+			bool size = false;
 			bool ship = false;
+			if(GetShipWidth(ptr) > 0.0 && GetShipHeight(ptr) > 0.0)
+				size = true;
+			
 			if(GetShipWidth(ptr) > (GetTriangleWidth(GetSmoothScaleFactor()) * TRIANGLE_WIDTH_FACTOR))
 				ship = true;
 			
 			if(GetShipHeight(ptr) > (GetTriangleHeight(GetSmoothScaleFactor()) * TRIANGLE_HEIGHT_FACTOR))
 				ship = true;
 			
-			if(ship)
+			if(ship && size)
 				PrepareShipBuffer(ptr);
 			else
 				PrepareTriangleBuffer(ptr);
@@ -1669,9 +1683,10 @@ void CMapPlugin::PrepareSearchBuffer()
 	int counter = 0;
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-		
-	ais_set_search_buffer(GetSearchText());
-		
+	
+	ais_set_search_buffer(GetSearchText(),GetFilter());
+	ais_sort((void**)ais_get_search_buffer()->GetRawData(),0,ais_get_search_item_count()-1);		
+	
 	GetMutex()->Unlock();
 	
 	SendSignal(SIGNAL_UPDATE_LIST,0);
@@ -1846,11 +1861,7 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 {
 	if(!ptr->valid_dim || !ptr->valid_pos)
 		return;
-	if(GetShipWidth(ptr) == 0)
-		return;
-	if(GetShipHeight(ptr) == 0)
-		return;
-
+	
 	PrepareShipVerticesBuffer(ptr);
 	PrepareShipTriangleIndicesBuffer(ptr);
 	PrepareShipLineIndicesBuffer(ptr);
@@ -1865,7 +1876,7 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 
 void CMapPlugin::PrepareTriangleBuffer(SAisData *ptr)
 {
-	if(ptr->valid[AIS_MSG_5] || ptr->valid[AIS_MSG_24])
+	if(ptr->valid_dim)
 	{
 		// jako male statki
 		if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
@@ -3762,7 +3773,7 @@ void CMapPlugin::_RenderShipLights()
 {
 	m_Light0->Render();
 	m_Light1->Render();
-	m_Light2->Render();
+	//m_Light2->Render();
 	
 }
 

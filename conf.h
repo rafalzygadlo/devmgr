@@ -15,6 +15,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 	#define DIR_SEPARATOR "/"
 #endif
 
+
 #define TIMER
 #define nvPI 3.1415926535897932384626433832795
 #define PRODUCT_NAME "Device Manager"
@@ -63,6 +64,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_CPA "cpa"
 #define KEY_TCPA "tcpa"
 #define DIR_WORKDIR "workdir"
+#define KEY_DEVICE_ID "device_id"
+
 #define ICON_STOP 0
 #define ICON_START 1
 #define MAX_BAD_CRC					2
@@ -287,6 +290,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_CPA							189
 #define MSG_TCPA						190
 #define MSG_CLEAR						191
+#define MSG_SLOT						192
+#define MSG_CHANNEL						193
+#define MSG_MID							194
+#define MSG_AGE							195
 
 #define MAX_DATA_POSITIONS	10
 
@@ -317,7 +324,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MAX_VALUE_LENGTH		82 //NMEA 0183’s 82 dla AIS
 #define DEFAULT_FREQUENCY		1	// ile razy w ciagu sekundy
 #define DEFAULT_MAX_FREQUENCY	1000	// sekunda			
-#define AIS_BUFFER_INTERVAL		2000	//zbuduj bufory do renderu AIS
+#define AIS_BUFFER_INTERVAL		1000	//zbuduj bufory do renderu AIS
 #define DEFAULT_FACTOR			1000.0
 #define DEFAULT_FONT_FACTOR		50.0
 #define DISPLAY_REFRESH			1000	//odswiez display
@@ -427,7 +434,9 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SHIP_SOG	3
 #define SHIP_COG	4
 #define SHIP_HDT	5
- 
+
+//typy urzadzen
+#define DEVICE_TYPE_AIS 1
 
 typedef struct SData
 {
@@ -446,39 +455,6 @@ typedef struct SFunctionData
 
 }SFunctionData;
 
-typedef struct
-{
-	bool valid[28];  //zaczynamy od 1 (czy komunikat wystepuje)
-	unsigned int mmsi;
-	double lon;			//pozycja lon,lat
-	double lat;
-	float cog;
-	float hdg;
-	float sog;
-	int draught;
-	int turn;
-	int to_bow;
-	int to_stern;
-	int to_port;
-	int to_starboard;
-	char name[64 + 1];	// shipname, aton name itp
-	char callsign[AIS_CALLSIGN_MAXLEN];
-	unsigned int imo;
-	int _class;			// klasa komunikatu
-	bool valid_dim;		// czy wystapil wymiar
-	bool valid_pos;		// czy wystapila pozycja
-	bool valid_cog;		// czy cog
-	bool valid_hdg;
-	bool valid_sog;
-	bool valid_name;
-	bool valid_draught;
-	bool valid_turn;
-	bool valid_callsign;
-	bool valid_imo;
-	void *ais_ptr;
-
-}SAisData;
-
 typedef struct 
 {
 	int id0;
@@ -493,13 +469,6 @@ typedef struct
 
 }SFrequency;
 
-typedef struct
-{
-	double lon;			//pozycja lon,lat
-	double lat;
-	wchar_t name[128];
-
-}SAisNames;
 
 // globalne identyfikatory eventów
 enum

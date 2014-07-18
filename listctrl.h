@@ -28,6 +28,7 @@ class CListCtrl: public wxListCtrl
 	CDisplayPlugin *Plugin;	
 	bool m_FromSearch;
 	long m_From, m_To;
+	wxImageList *ImageListSmall;
 
 	void PrintMsg(ais_t *ais, int type);
 	wxString CatalogPath;
@@ -50,8 +51,8 @@ class CListCtrl: public wxListCtrl
 	
 	wxString OnGetItemText(long item, long column) const;
 	//wxListItemAttr *OnGetItemAttr(long item) const;
-	//int OnGetItemColumnImage(long item, long column) const; 
-	//int OnGetItemImage(long item) const;
+	int OnGetItemColumnImage(long item, long column) const; 
+	int OnGetItemImage(long item) const;
 
 public:
 	

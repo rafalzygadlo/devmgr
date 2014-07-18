@@ -15,12 +15,10 @@ CNaviArray <double> vAisCollisionD2;
 CNaviArray <nvPoint2d> vAisPoints;
 CNaviArray <SAisData*> vAisShipCollision;
 CNaviArray <CNaviArray <SAisData>*> vAisTrack;
-bool SlotA[2250]={false};
-bool SlotB[2250]={false};
-int SlotAMID[2250]={0};
-int SlotBMID[2250]={0};
+CNaviArray <SAisState*> vAisState;
 int m_Type = 0; // last message type
 char m_Channel;
+void *m_Device;
 
 int option = 0;
 bool m_SearchReady = false;
@@ -1062,55 +1060,97 @@ ais_t *ais_binary_decode(unsigned char *bits, size_t bitlen)
 	return ais;
 }
 
-void ais_unset_communication_state()
+size_t ais_get_state_length()
 {
-	memset(SlotA,0,2250);
-	memset(SlotB,0,2250);
-	memset(SlotAMID,0,2250);
-	memset(SlotBMID,0,2250);
+	return vAisState.Length();
 }
 
-void ais_communication_state(ais_t *ais)
+SAisState *ais_get_state_item(int id)
 {
-	switch(m_Type)
+	return vAisState.Get(id);
+}
+
+void ais_state_unset(SAisState *ptr)
+{
+	memset(ptr->slot_a,0,2250);
+	memset(ptr->slot_b,0,2250);
+	memset(ptr->slot_a_mid,0,2250*sizeof(int));
+	memset(ptr->slot_b_mid,0,2250*sizeof(int));
+	memset(ptr->slot_a_mmsi,0,2250*sizeof(int));
+	memset(ptr->slot_b_mmsi,0,2250*sizeof(int));
+
+}
+
+SAisState *ais_state_init(void *device)
+{
+	SAisState *ptr = (SAisState*)malloc(sizeof(SAisState));
+	ptr->reader_ptr = device;
+	ais_state_unset(ptr);
+	vAisState.Append(ptr);
+
+	return ptr;
+}
+
+void ais_state_free()
+{
+	for(size_t i = 0; i < vAisState.Length(); i++)
 	{
-		case AIS_MSG_1: 
-		case AIS_MSG_2:		ais_state(ais->type1.radio,AIS_SOTDMA); 			break;
-		case AIS_MSG_3:		ais_state(ais->type1.radio,AIS_ITDMA); 				break;
-		case AIS_MSG_4:		
-		case AIS_MSG_11:	ais_state(ais->type4.radio,AIS_SOTDMA);				break;
-		case AIS_MSG_9:		ais_state(ais->type9.radio,AIS_SOTDMA);				break;
-		case AIS_MSG_18:	ais_state(ais->type18.radio,ais->type18.cstate); 	break;
+		free(vAisState.Get(i));
 	}
 }
 
-void ais_state(unsigned int bits, int state)
+SAisState *ais_state_exists(CReader *device)
 {
+	for(size_t i = 0; i < vAisState.Length(); i++)
+	{
+		SAisState *ptr = vAisState.Get(i);
+		
+		if(ptr->reader_ptr == device)
+			return ptr;
+	}
+
+	return NULL;
+}
+
+
+void ais_state(unsigned char *bits, int state, ais_t *ais)
+{
+	
+	SAisState *ptr = ais_state_exists((CReader*)m_Device);
+
+	if(ptr == NULL)
+	{	
+		ptr = (SAisState*)malloc(sizeof(SAisState));
+		ptr->reader_ptr = m_Device;
+		ais_state_unset(ptr);
+		vAisState.Append(ptr);
+	}
+		
 	switch(state)
 	{
-		case	AIS_SOTDMA:	ais_sotdma(bits);		break;
-		case	AIS_ITDMA:	ais_itdma(bits);		break;
+		case	AIS_SOTDMA:	ais_sotdma(bits,ptr,ais);	break;
+		case	AIS_ITDMA:	ais_itdma(bits);			break;
 	}
 
 }
 
-void ais_sotdma(unsigned int bits)
+void ais_sotdma(unsigned char *bits, SAisState *ptr, ais_t *ais) 
 {
 	
-	int sync_state = ubits(bits,0,1);
-	int slot_timeout = ubits(bits,0,2);
-	
+	int sync_state = (int)UBITS(149, 2);
+	int slot_timeout = (int)UBITS(151, 3);
+				
 	int val = 0;
 	int n = 0;
 	
 	switch(slot_timeout)
 	{
 		case AIS_SLOT_OFFSET:
-			val = ubits(bits,0,14);		//slot offset
+			val = UBITS(154, 14);		//slot offset
 		break;
 
 		case AIS_UTC_HOUR_AND_MINUTE:
-			val = ubits(bits,0,14);		//utc hour/miunte
+			val = UBITS(154, 14);		//utc hour/miunte
 			ais_sotdma_hour(val);
 			ais_sotdma_minute(val);
 		break;
@@ -1118,43 +1158,90 @@ void ais_sotdma(unsigned int bits)
 		case AIS_SLOT_NUMBER1:
 		case AIS_SLOT_NUMBER2:
 		case AIS_SLOT_NUMBER3:
-			val = ubits(bits,0,14);		//slot number
-			ais_set_slot(val);
-			ais_set_message_id(val,m_Type);
+			val = UBITS(154, 14);		//slot number
+			ais_set_slot(val,ptr);
+			ais_set_mmsi(val,ais,ptr);
+			ais_set_message_id(val,m_Type,ptr);
 		break;
 		
 		case AIS_RECEIVED_STATIONS1:
 		case AIS_RECEIVED_STATIONS2:
 		case AIS_RECEIVED_STATIONS3:
-			val = ubits(bits,0,14);		//received stations
+			val = UBITS(154, 14);		//received stations
 		break;
 	
 	}
 	
 }
-
-void ais_set_slot(int val)
+void ais_set_mmsi(int val, ais_t *ais, SAisState *ptr)
 {
 	if(val > 2249)
 		return;
 		
 	switch (m_Channel)
 	{
-		case 'A':	SlotA[val] = true;	break;
-		case 'B':	SlotB[val] = true;	break;
+		case 'A':	ptr->slot_a_mmsi[val] = ais->mmsi;	break;
+		case 'B':	ptr->slot_b_mmsi[val] = ais->mmsi;	break;
+	}
+
+}
+
+void ais_set_slot(int val, SAisState *ptr)
+{
+	if(val > 2249)
+		return;
+		
+	switch (m_Channel)
+	{
+		case 'A':	ptr->slot_a[val] = true;	break;
+		case 'B':	ptr->slot_b[val] = true;	break;
 	
 	}
+	
 }
 
 bool ais_get_slot(int id, char channel)
 {
+	/*
 	switch (channel)
 	{
 		case 'A':	return SlotA[id];	break;
 		case 'B':	return SlotB[id];	break;
+		default: return false;
+	}
+	*/
+	return false;
+}
+
+
+void ais_set_message_id(int id,int mid,SAisState *ptr)
+{
+	if(id > 2249)
+		return;
+		
+	
+	switch (m_Channel)
+	{
+		case 'A':	ptr->slot_a_mid[id] = mid;	break;
+		case 'B':	ptr->slot_b_mid[id] = mid;	break;
+	}
+	
+}
+
+int ais_get_message_id(int id, char channel,SAisState *ptr)
+{
+	switch (channel)
+	{
+		case 'A':	return ptr->slot_a_mid[id];
+		case 'B':	return ptr->slot_b_mid[id];
+		default:	return -1;
 	}
 
 }
+
+
+
+
 
 int ais_sotdma_hour(unsigned int bits)
 {
@@ -1172,37 +1259,18 @@ int ais_sotdma_minute(unsigned int bits)
 	return bits;
 }
 
-void ais_itdma(unsigned int bits)
+void ais_itdma(unsigned char *bits)
 {
-	int sync_state = ubits(bits,0,2);
-	int slot_increment = ubits(bits,0,13);
-	int number_of_slots = ubits(bits,0,3);
-	int keep_flag = ubits(bits,0,1);
+	//int sync_state = ubits(bits,0,2);
+	//int slot_increment = ubits(bits,0,13);
+	//int number_of_slots = ubits(bits,0,3);
+	//int keep_flag = ubits(bits,0,1);
 
 	//fprintf(stdout,"ITDMA %d %d %d %d\n",sync_state,slot_increment,number_of_slots,keep_flag);
 }
 
-void ais_set_message_id(int id,int mid)
-{
-	if(id > 2249)
-		return;
-		
-	switch (m_Channel)
-	{
-		case 'A':	SlotAMID[id] = mid;	break;
-		case 'B':	SlotBMID[id] = mid;	break;
-	}
-}
 
-int ais_get_message_id(int id, char channel)
-{
-	switch (channel)
-	{
-		case 'A':	return SlotAMID[id];
-		case 'B':	return SlotBMID[id];
-	}
 
-}
 
 char ais_get_channel(int id)
 {
@@ -1213,6 +1281,11 @@ char ais_get_channel(int id)
 	}
 }
 
+void ais_set_device( void *id )
+{
+	m_Device = id;
+}
+
 bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 {
 	bool result = false;
@@ -1221,29 +1294,95 @@ bool ais_decode(unsigned char *bits, size_t bitlen, ais_t *ais, int type)
 	{
 		case AIS_MSG_1:		
 		case AIS_MSG_2:		
-		case AIS_MSG_3:		ais_message_1(bits,ais);			result = true;	break;
+		case AIS_MSG_3:		
+			ais_message_1(bits,ais);	
+			ais_state(bits,AIS_SOTDMA,ais);		
+			result = true;	
+		break;
 		case AIS_MSG_4:		
-		case AIS_MSG_11:	ais_message_4(bits,ais);			result = true;	break;
-		case AIS_MSG_5:		ais_message_5(bits,bitlen,ais);		result = true;	break;
-		case AIS_MSG_6:		ais_message_6(bits,bitlen,ais);		result = true;	break;
+		case AIS_MSG_11:	
+			ais_message_4(bits,ais);	
+			ais_state(bits,AIS_SOTDMA,ais);		
+			result = true;	
+		break;
+		case AIS_MSG_5:		
+			ais_message_5(bits,bitlen,ais);									
+			result = true;	
+		break;
+		case AIS_MSG_6:		
+			ais_message_6(bits,bitlen,ais);	
+			result = true;	
+		break;
 		case AIS_MSG_13:
-		case AIS_MSG_7:		ais_message_7(bits,bitlen,ais);		result = true;	break;
-		case AIS_MSG_8:		ais_message_8(bits,bitlen,ais);		result = true;	break;
-		case AIS_MSG_9:		ais_message_9(bits,ais);			result = true;	break;
-		case AIS_MSG_10:	ais_message_10(bits,ais);			result = true;	break;
-		case AIS_MSG_12:	ais_message_12(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_14:	ais_message_14(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_15:	ais_message_15(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_16:	ais_message_16(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_17:	ais_message_17(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_18:	ais_message_18(bits,ais);			result = true;	break;
-		case AIS_MSG_19:	ais_message_19(bits,ais);			result = true;	break;
-		case AIS_MSG_20:	ais_message_20(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_21:	ais_message_21(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_22:	ais_message_22(bits,ais);			result = true;	break;
-		case AIS_MSG_23:	ais_message_23(bits,ais);			result = true;	break;
-		case AIS_MSG_24:	ais_message_24(bits,bitlen,ais);	result = true;	break;
-		case AIS_MSG_25:	ais_message_25(bits,bitlen,ais);	result = true;	break;
+		case AIS_MSG_7:		
+			ais_message_7(bits,bitlen,ais);									
+			result = true;	
+		break;
+		case AIS_MSG_8:		
+			ais_message_8(bits,bitlen,ais);									
+			result = true;	
+		break;
+		case AIS_MSG_9:		
+			ais_message_9(bits,ais);										
+			result = true;	
+		break;
+		case AIS_MSG_10:	
+			ais_message_10(bits,ais);										
+			result = true;	
+		break;
+		case AIS_MSG_12:	
+			ais_message_12(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_14:	
+			ais_message_14(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_15:	
+			ais_message_15(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_16:	
+			ais_message_16(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_17:	
+			ais_message_17(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_18:	
+			ais_message_18(bits,ais);		
+			ais_state(bits,ais->type18.cstate,ais);		
+			result = true;	
+			break;
+		case AIS_MSG_19:	
+			ais_message_19(bits,ais);										
+			result = true;	
+		break;
+		case AIS_MSG_20:	
+			ais_message_20(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_21:	
+			ais_message_21(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_22:	
+			ais_message_22(bits,ais);										
+			result = true;	
+		break;
+		case AIS_MSG_23:	
+			ais_message_23(bits,ais);										
+			result = true;	
+		break;
+		case AIS_MSG_24:	
+			ais_message_24(bits,bitlen,ais);								
+			result = true;	
+		break;
+		case AIS_MSG_25:	
+			ais_message_25(bits,bitlen,ais);								
+			result = true;	
+		break;
 
 		default:
 			fprintf(stdout,"UNKNOWN %d\n",type);
@@ -1694,17 +1833,6 @@ void ais_message_1(unsigned char *bits, ais_t *ais)
 	//ais->type1.spare	= UBITS(145, 3);
 	ais->type1.raim = UBITS(148, 1)!=0;
 	ais->type1.radio = (int)UBITS(149, 19);
-	
-	unsigned int a = (int)UBITS(149, 2);
-	unsigned int b = (int)UBITS(151, 3);
-	unsigned int slot = 0;
-	if(b == 2 || b == 4 || b == 6)
-	{
-		slot = (int)UBITS(154, 14);
-
-	fprintf(stdout,"SLOT: %d\n",slot);
-	}
-
 }
 
 /* Base Station Report */

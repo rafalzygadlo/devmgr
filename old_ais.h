@@ -1134,19 +1134,24 @@ double ais_get_D2_item(int id);
 bool  ais_circle_collision(SAisData *ship, SAisData *target);
 
 //communication state
-void ais_communication_state(ais_t *ais);
-void ais_state(unsigned int bits, int state);
-void ais_sotdma(unsigned int bits);
-void ais_itdma(unsigned int bits);
+void ais_state(unsigned char *bits, int state, ais_t *ais);
+size_t ais_get_state_length();
+SAisState *ais_get_state_item(int id);
+void ais_sotdma(unsigned char *bits, SAisState *ptr,ais_t *ais);
+void ais_itdma(unsigned char *bits);
 int ais_sotdma_hour(unsigned int bits);
 int ais_sotdma_minute(unsigned int bits);
 bool ais_get_slot(int id, char channel);
-void ais_set_slot(int val);
-void ais_set_message_id(int id,int mid);
-int ais_get_message_id(int id, char channel);
-char ais_get_channel(int id);
-void ais_unset_communication_state();
+void ais_set_slot(int val,SAisState *ptr);
+void ais_set_message_id(int id,int mid,SAisState *ptr);
+int ais_get_message_id(int id, char channel,SAisState *ptr);
+void ais_set_mmsi(int id, ais_t *ais, SAisState *ptr);
 
+char ais_get_channel(int id);
+void ais_state_unset(SAisState *ptr);
+void ais_set_device(void *ptr);
+SAisState *ais_state_init(void *device);
+void ais_state_free();
 
 void ais_set_channel(char val);
 

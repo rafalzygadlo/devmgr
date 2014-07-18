@@ -2,18 +2,26 @@
 #define __AIS_MONITOR_H
 
 #include <wx/wx.h>
+#include "reader.h"
 
-class CAisMonitor : public wxDialog
+class CAisMonitor : public wxPanel
 {
 	wxStaticText *m_Slot, *m_Channel, *m_MID;
+	wxArrayPtrVoid m_Channels;
+	int m_DeviceId;
+	wxComboBox *m_Devices;
+	CReader *m_Reader;
 
 	void OnClear(wxCommandEvent &event);
 	void OnClose(wxCommandEvent &event);
+	void OnDevice(wxCommandEvent &event);
 
 public:
 	
-	CAisMonitor();
+	CAisMonitor(wxWindow *parent);
 	~CAisMonitor();
+	int GetDeviceId();
+	void SetDeviceId(int device_id);
 	
 	void SetValues();
 
@@ -21,6 +29,7 @@ public:
 	{
 		ID_CLEAR = 4552,
 		ID_CLOSE,
+		ID_DEVICE,
 	};
 	
 	DECLARE_EVENT_TABLE();
@@ -35,6 +44,7 @@ class CAisChannel : public wxPanel
 	int m_Col,m_Row;
 	bool m_Selected;
 	CAisMonitor *m_Parent;
+	CReader *m_Device;
 	float m_CellWidth,m_CellHeight;
 	void OnPaint(wxPaintEvent &event);
 	void OnSize(wxSizeEvent &event);
@@ -47,8 +57,9 @@ class CAisChannel : public wxPanel
 
 public:
 	
-	CAisChannel(CAisMonitor *parent, int id);
+	CAisChannel(wxWindow *parent, CAisMonitor *monitor, int id);
 	~CAisChannel();
+	void SetDevice(void *device);
 		
 	enum
 	{

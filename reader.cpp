@@ -16,12 +16,14 @@ CReader::CReader()
 	m_SignalType = -1;
 	m_Broker = NULL;
 	m_Parser = new CParser();
+	m_Parser->SetDevice(this);
 	TreeCtrl = NULL;
 	m_DeviceType = -1;
 	SerialPtr = (CSerial*)this;
 	SocketPtr = (CClient*)this;
 	m_LineEvent = false;
 	m_ConnectionType = CONNECTION_TYPE_SERIAL;
+	m_AisState = NULL;
 	
 }
 
@@ -49,6 +51,7 @@ void CReader::SetBroker(CNaviBroker *broker)
 void CReader::SetDeviceId(size_t id)
 {
 	m_DeviceId = id;
+	
 }
 
 size_t CReader::GetDeviceId()
@@ -326,4 +329,14 @@ void CReader::OnNoSignal()
 void CReader::OnData( char *buffer, int length)
 {
 	//fprintf(stdout,"%s",buffer);
+}
+
+SAisState *CReader::GetAisStatePtr()
+{
+	return m_AisState;
+}
+
+void CReader::SetAisStatePtr(SAisState * ptr)
+{
+	m_AisState = ptr;
 }

@@ -76,6 +76,7 @@ class CAisList : public wxPanel
 	void OnCPA(wxSpinDoubleEvent &event);
 	void OnTCPA(wxSpinDoubleEvent &event);
 	
+		
 public:
 	
 	CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display);
@@ -87,6 +88,7 @@ public:
 	void ThreadBegin();
 	void ThreadEnd();
 	void Synchro();
+	void OnEraseBackground(wxEraseEvent &event);
 
 	enum 
 	{
