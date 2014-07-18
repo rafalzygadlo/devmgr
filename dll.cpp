@@ -1685,7 +1685,7 @@ void CMapPlugin::PrepareSearchBuffer()
 		return;
 	
 	ais_set_search_buffer(GetSearchText(),GetFilter());
-	ais_sort();		
+	ais_sort((void**)ais_get_search_buffer()->GetRawData(),0,ais_get_search_item_count()-1);		
 	
 	GetMutex()->Unlock();
 	
@@ -3847,7 +3847,7 @@ void CMapPlugin::RenderNormalScale()
 	_RenderAtons();
 	_RenderBS();
 	//_RenderSAR();				//moze niestabilne
-	_RenderShipLights();
+	//_RenderShipLights();
 	RenderROT();
 	RenderCOG();
 	RenderHDT();

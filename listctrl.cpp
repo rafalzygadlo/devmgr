@@ -6,7 +6,8 @@
 #include <wx/mstream.h>
 #include "ais_html.h"
 #include "options.h"
-
+#include "images/up_sort.img"
+#include "images/down_sort.img"
 
 DEFINE_EVENT_TYPE(EVT_SET_ITEM)
 
@@ -22,7 +23,7 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 END_EVENT_TABLE()
  
 CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
-:wxListCtrl( Parent, ID_LIST, wxDefaultPosition, wxDefaultSize, style |wxFULL_REPAINT_ON_RESIZE )
+:wxListCtrl( Parent, ID_LIST, wxDefaultPosition, wxDefaultSize, style )
 {
 	
 	//SetBackgroundStyle(wxBG_STYLE_SYSTEM);
@@ -43,30 +44,28 @@ CListCtrl::CListCtrl( wxWindow *Parent,CAisList *AisList, int style )
 
 	selected_and_queued.SetBackgroundColour(wxColor(100,200,0));
 	selected_and_queued.SetTextColour(*wxWHITE);
-
-	
+		
 	last_selected_item = -1;
 	
 	SetItemCount(0);
 	m_FromSearch = false;
-	//ImageListSmall = new wxImageList(20, 20, true);
+	ImageListSmall = new wxImageList(10, 10, true);
 		
-	
-	//wxMemoryInputStream in_1((const unsigned char*)up_sort,up_sort_size);
-    //wxImage myImage_1(in_1, wxBITMAP_TYPE_PNG);
-    //ImageListSmall->Add(myImage_1);
+	wxMemoryInputStream in_1((const unsigned char*)up_sort,up_sort_size);
+    wxImage myImage_1(in_1, wxBITMAP_TYPE_PNG);
+    ImageListSmall->Add(myImage_1);
 
-	//wxMemoryInputStream in_2((const unsigned char*)down_sort,down_sort_size);
-    //wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
-    //ImageListSmall->Add(myImage_2);
+	wxMemoryInputStream in_2((const unsigned char*)down_sort,down_sort_size);
+    wxImage myImage_2(in_2, wxBITMAP_TYPE_PNG);
+    ImageListSmall->Add(myImage_2);
 		
-	//SetImageList(ImageListSmall, wxIMAGE_LIST_SMALL);
+	SetImageList(ImageListSmall, wxIMAGE_LIST_SMALL);
 	
 }
 
 CListCtrl::~CListCtrl()
 {
-	//delete ImageListSmall;
+	delete ImageListSmall;
 }
 
 
@@ -439,25 +438,19 @@ void CListCtrl::OnColClick(wxListEvent& event)
 	static bool x = false;
     x = !x;
 
-	//for(size_t i = 0; i < GetColumnCount(); i++)
-	//{
-		//int col = event.GetColumn();
+	for(size_t i = 0; i < GetColumnCount(); i++)
+	{
+		int col = event.GetColumn();
 		//if(event.GetColumn() == i)
-			//SetColumnImage(i, x ? 0 : 1);
+			SetColumnImage(1, x ? 0 : 1);
 		//else
 			//SetColumnImage(i, -1 );
-	//}			
+	}			
 	
-	Order = x;
-	switch(event.GetColumn())
-	{
-		//case 0:	SelectedColumn = GEOMETRY_ATTRIBUTE_1; break;
-		//case 1:	SelectedColumn = GEOMETRY_ATTRIBUTE_2; break;
-		//case 2: SelectedColumn = GEOMETRY_ATTRIBUTE_13; break;
-	}
+		
+	ais_set_sort_order(x);
+	ais_set_sort_column(event.GetColumn());
 	
-	Sort();
-
 }
 
 void CListCtrl::SetColumnImage(int col, int image)
@@ -500,7 +493,7 @@ void CListCtrl::Sort()
 //	std::sort(it->begin(),it->end(),a);
 	Refresh();
 }
-/*
+
 int CListCtrl::OnGetItemColumnImage(long item, long column) const
 {
 	//CNaviGeometry *Geometry = CatalogGeometryGroup->GetGeometry(item);
@@ -513,13 +506,13 @@ int CListCtrl::OnGetItemColumnImage(long item, long column) const
 	
 	return -1;
 }
-*/
-/*
+
+
 int CListCtrl::OnGetItemImage(long item) const
 {
 	return -1;
 }
-*/
+
  myCompareClass::myCompareClass(CListCtrl *parent) 
 {
 	Parent = parent;
