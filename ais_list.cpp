@@ -46,7 +46,7 @@ CAisList::CAisList(wxWindow *parent, CMapPlugin *plugin, CDisplayPlugin *display
 	m_OldCount = 0;
 	m_Working = false;
 	SetList();
-	SetBackgroundStyle(wxBG_STYLE_SYSTEM);
+	//SetBackgroundStyle(wxBG_STYLE_SYSTEM);
 	
 	//SetDoubleBuffered(true);
 }
@@ -124,8 +124,7 @@ void CAisList::SetList()
 	{
 		count = ais_get_search_item_count();
 		m_List->SetItemCount(count);
-		//m_List->RefreshItems(m_List->_GetFrom(),m_List->_GetTo());
-		m_List->Refresh();
+		m_List->Refresh(false);
 		m_List->SetSearch(true);
 		
 		if(m_OldCount != count)
@@ -373,7 +372,7 @@ wxPanel *CAisList::GetPage1()
 
 	//m_SearchText->SetValue(m_SearchText);
 	
-	m_List = new CListCtrl(Panel,this,wxLC_REPORT |  wxLC_VIRTUAL );
+	m_List = new CListCtrl(Panel,this,wxLC_REPORT |  wxLC_VIRTUAL | wxLC_HRULES );
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(wxEmptyString);			m_List->InsertColumn(0,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));			m_List->InsertColumn(1,item);

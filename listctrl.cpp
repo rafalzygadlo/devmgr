@@ -92,6 +92,7 @@ void CListCtrl::OnEraseBackground(wxEraseEvent &event)
 {
 	// to prevent flickering, erase only content *outside* of the 
    // actual list items stuff
+
    if(GetItemCount() > 0) {
        wxDC * dc = event.GetDC();
        assert(dc);
@@ -134,7 +135,9 @@ void CListCtrl::OnEraseBackground(wxEraseEvent &event)
        dc->SetClippingRegion(wxRegion(x, y, w, h));
    } else {
        event.Skip();
-   }
+  
+  }
+  
 }
 
 /*
@@ -432,6 +435,19 @@ wxListItemAttr *CListCtrl::OnGetItemAttr(long item) const
     return NULL;
 }
 */
+
+int wxCALLBACK
+MyCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr WXUNUSED(sortData))
+{
+    // inverse the order
+    if (item1 < item2)
+        return 1;
+    if (item1 > item2)
+        return -1;
+
+    return 0;
+}
+
 void CListCtrl::OnColClick(wxListEvent& event)
 {
 	
@@ -447,9 +463,10 @@ void CListCtrl::OnColClick(wxListEvent& event)
 			//SetColumnImage(i, -1 );
 	}			
 	
+	this->SortItems(MyCompareFunction, 0);
 		
-	ais_set_sort_order(x);
-	ais_set_sort_column(event.GetColumn());
+	//ais_set_sort_order(x);
+	//ais_set_sort_column(event.GetColumn());
 	
 }
 
