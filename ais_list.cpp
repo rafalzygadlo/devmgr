@@ -372,7 +372,7 @@ wxPanel *CAisList::GetPage1()
 
 	//m_SearchText->SetValue(m_SearchText);
 	
-	m_List = new CListCtrl(Panel,this,wxLC_REPORT |  wxLC_VIRTUAL | wxLC_HRULES );
+	m_List = new CListCtrl(Panel,this,wxLC_REPORT |  wxLC_VIRTUAL  );
 	wxListItem item;
 	item.SetWidth(65);	item.SetText(wxEmptyString);			m_List->InsertColumn(0,item);
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_MMSI));			m_List->InsertColumn(1,item);

@@ -16,7 +16,7 @@ BEGIN_EVENT_TABLE(CListCtrl,wxListCtrl)
 	EVT_CONTEXT_MENU(CListCtrl::OnContextMenu)
 	EVT_LIST_ITEM_SELECTED(ID_LIST,CListCtrl::OnSelected)
 	//EVT_PAINT(CListCtrl::OnPaint)
-	EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
+	//EVT_ERASE_BACKGROUND(CListCtrl::OnEraseBackground)
 	EVT_COMMAND(ID_SET_ITEM,EVT_SET_ITEM,CListCtrl::OnSetItem)
 	EVT_LIST_COL_CLICK(ID_LIST,CListCtrl::OnColClick)
 	//EVT_LIST_CACHE_HINT(ID_LIST, CListCtrl::OnCacheHint)
@@ -457,16 +457,14 @@ void CListCtrl::OnColClick(wxListEvent& event)
 	for(size_t i = 0; i < GetColumnCount(); i++)
 	{
 		int col = event.GetColumn();
-		//if(event.GetColumn() == i)
-			SetColumnImage(1, x ? 0 : 1);
-		//else
-			//SetColumnImage(i, -1 );
+		if(event.GetColumn() == i)
+			SetColumnImage(i, x ? 0 : 1);
+		else
+			SetColumnImage(i, -1 );
 	}			
-	
-	this->SortItems(MyCompareFunction, 0);
-		
-	//ais_set_sort_order(x);
-	//ais_set_sort_column(event.GetColumn());
+			
+	ais_set_sort_order(x);
+	ais_set_sort_column(event.GetColumn());
 	
 }
 
