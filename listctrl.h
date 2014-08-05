@@ -44,9 +44,7 @@ class CListCtrl: public wxListCtrl
 	void OnPaint(wxPaintEvent &event);
 	void OnCacheHint(wxListEvent &event);
 	long GetLastSelectedItem();
-	void SetColumnImage(int col, int image);
-
-	
+		
 	void Sort();
 	
 	wxString OnGetItemText(long item, long column) const;
@@ -69,6 +67,7 @@ public:
 	void SetSearch(bool val);
 	long _GetFrom();
 	long _GetTo();
+	void SetColumnImage(int col, int image);
 
 	DECLARE_EVENT_TABLE();
 

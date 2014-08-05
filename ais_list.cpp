@@ -109,7 +109,7 @@ void CAisList::Synchro()
 	//color.Set(GetColor(SHIP_COLOR_2B).R,GetColor(SHIP_COLOR_2B).G,GetColor(SHIP_COLOR_2B).B,GetColor(SHIP_COLOR_2B).A);
 	//m_ShipColor2B->SetColour(color);
 
-
+	m_SearchText->SetValue(GetSearchText());
 }
 
 void CAisList::ClearList()
@@ -164,7 +164,12 @@ void CAisList::OnSearchEnter(wxCommandEvent &event)
 
 void CAisList::OnSearchText(wxCommandEvent &event)
 {
-	SetSearchText(m_SearchText->GetValue().char_str());
+	if(m_SearchText->GetValue().CmpNoCase(GetSearchText()) != 0)
+	{
+		SetSearchText(m_SearchText->GetValue().char_str());
+		Signal();
+	}
+	
 	SetSearchTextChanged(true);
 }
 
@@ -365,6 +370,9 @@ wxPanel *CAisList::GetPage1()
 	m_Page1Sizer->Add(hSizer,0,wxALL|wxEXPAND,0);
 
 	m_SearchText = new wxSearchCtrl(Panel,ID_SEARCH,wxEmptyString,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
+
+	wxString str(GetSearchText(),wxConvUTF8);
+	m_SearchText->SetValue(str);
 	hSizer->Add(m_SearchText,1,wxALL|wxEXPAND,0);
 
 	wxButton *BFilter = new wxButton(Panel,ID_FILTER,GetMsg(MSG_FILTER),wxDefaultPosition,wxSize(20,-1));
@@ -382,6 +390,8 @@ wxPanel *CAisList::GetPage1()
 	item.SetWidth(80);	item.SetText(GetMsg(MSG_AGE));			m_List->InsertColumn(6,item);
 	m_Page1Sizer->Add(m_List,1,wxALL|wxEXPAND,0);
 	
+	m_List->SetColumnImage(ais_get_sort_column(), ais_get_sort_order());
+
 	m_Html = new wxHtmlWindow(Panel,wxID_ANY,wxDefaultPosition,wxDefaultSize);
 	m_Page1Sizer->Add(m_Html,1,wxALL|wxEXPAND,0);
 	m_Html->Hide();
