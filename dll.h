@@ -271,7 +271,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void PrepareHDGVerticesBuffer(SAisData *ptr);
 	
 	// bufor ROT
-	void PrepareROTVerticesBuffer(SAisData *ptr, bool right);
+	void PrepareROTVerticesBuffer(SAisData *ptr,double angle, bool right);
 	//void PrepareROTLineIndicesBuffer(SAisData *ptr, bool right);
 
 	//bufor CPA

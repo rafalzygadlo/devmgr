@@ -1942,23 +1942,24 @@ void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
 
 	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3])
 	{
-		if (ptr->turn == AIS_TURN_HARD_RIGHT || ptr->turn == AIS_TURN_RIGHT)
-		{
-			PrepareROTVerticesBuffer(ptr,true);	
-			//PrepareROTLineIndicesBuffer(ptr,true);
-		}	
-
-		if (ptr->turn == AIS_TURN_HARD_LEFT || ptr->turn == AIS_TURN_LEFT)
-		{
-			PrepareROTVerticesBuffer(ptr,false);
-			//PrepareROTLineIndicesBuffer(ptr,false);
-		}
+		if (ptr->turn == AIS_TURN_HARD_RIGHT)
+			PrepareROTVerticesBuffer(ptr,90,true);
+				
+		if (ptr->turn_direction == AIS_TURN_LEFT)
+			PrepareROTVerticesBuffer(ptr, -ptr->turn ,true);
+		
+		if (ptr->turn == AIS_TURN_HARD_LEFT)
+			PrepareROTVerticesBuffer(ptr,-90,false);
+		
+		if (ptr->turn_direction ==  AIS_TURN_RIGHT)
+			PrepareROTVerticesBuffer(ptr,ptr->turn, false);
+	
 	}
 
 }
 
 //rot
-void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
+void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr,double angle, bool right)
 {
 	nvPoint2d p1,p2;	
 	double width = ROT_WIDTH/GetSmoothScaleFactor();
@@ -1969,12 +1970,12 @@ void CMapPlugin::PrepareROTVerticesBuffer(SAisData *ptr, bool right)
 	p1.x = m_HdtLastPoint.x;
 	p1.y = m_HdtLastPoint.y;
 	double ship_angle = m_Angle - 90; // opengl -90
-	double angle = 0;
+	//double angle = 0;
 	
-	if(right)
-		angle = 90;
-	else
-		angle = -90;
+	//if(right)
+		//angle = 90;
+	//else
+		//angle = -90;
 		
 	double x = (width) * cos((ship_angle + angle) * nvPI/180) + p1.x;
 	double y = (width) * sin((ship_angle + angle) * nvPI/180) + p1.y;
@@ -3535,17 +3536,20 @@ void  CMapPlugin::RenderSelection()
 	if(ptr->valid_cog)
 	{
 		wchar_t cog[16];
-		swprintf(cog,L"%4.2f", ptr->cog);
+		swprintf(cog,L"COG:%4.2f", ptr->cog);
 		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,cog,0.5,4.3);
 	}
 	
 	if(ptr->valid_sog)
 	{
 		wchar_t sog[16];
-		swprintf(sog,L"%4.2f", ptr->sog);
+		swprintf(sog,L"SOG:%4.2f", ptr->sog);
 		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,sog,0.5,5.4);
 	}
 
+	if(ptr->valid_turn)
+		m_MMSIFont->Print(to_x,to_y,GetFontSize()/GetSmoothScaleFactor()/DEFAULT_FONT_FACTOR,0.0,GetTurn(ptr->turn,ptr->turn_direction),0.5,6.5);
+		
 
 	// quad selection
 	double width =  SHIP_QUAD_WIDTH/GetSmoothScaleFactor();
