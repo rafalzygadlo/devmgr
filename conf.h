@@ -371,7 +371,6 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define SAR_VERTICES_LENGTH			4
 #define SAR_INDICES_LENGTH			6
 
-#define AIS_TIMEOUT				10*60*1000 // timeout 1 minut w milisekundach
 #define AIS_FILE				"ais.data"
 
 #define TRIANGLE_WIDTH_FACTOR	1.6

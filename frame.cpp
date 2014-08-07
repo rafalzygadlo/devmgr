@@ -163,6 +163,7 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	//MainSizer->Add(ButtonClose,0,wxALL|wxALIGN_RIGHT,5);
 		
 	m_Time = new wxStaticText(this,wxID_ANY,wxEmptyString);
+	m_Time->SetDoubleBuffered(true);
 	MainSizer->Add(m_Time,0,wxALL|wxALIGN_LEFT,5);
 
 	this->SetSizer(MainSizer);
@@ -301,7 +302,7 @@ void CMyFrame::SetReportTime()
 		
 	int minutes = m_Seconds/60;
 	div_t _div = div(m_Seconds,60);
-	m_Time->SetLabel(wxString::Format(_("Last Report Timeout: %02d:%02d"),minutes,_div.rem));
+	m_Time->SetLabel(wxString::Format(_("%s: %02d:%02d"),GetMsg(MSG_AGE), minutes,_div.rem));
 
 	if(m_Seconds == 0)
 	{

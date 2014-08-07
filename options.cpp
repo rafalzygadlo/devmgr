@@ -24,8 +24,7 @@ bool m_SearchTextChanged = true;
 bool m_FilterChanged = true;
 bool m_AisDataChanged = true;
 bool m_StartAnimation = false;
-SAisData *m_SelectedPtr = NULL;
-SAisData *m_SelectedAnimPtr = NULL;
+
 float m_CPA = DEFAULT_CPA;
 float m_TCPA = DEFAULT_TCPA;
 bool m_VTSMode = false;
@@ -52,26 +51,6 @@ void SetTCPA(float val)
 float GetTCPA()
 {
 	return m_TCPA;
-}
-
-void SetSelectedPtr(SAisData *ptr)
-{
-	m_SelectedPtr = ptr;
-}
-
-SAisData *GetSelectedPtr()
-{
-	return m_SelectedPtr;
-}
-
-void SetSelectedAnimPtr(SAisData *ptr)
-{
-	m_SelectedAnimPtr = ptr;
-}
-
-SAisData *GetSelectedAnimPtr()
-{
-	return m_SelectedAnimPtr;
 }
 
 void SetHDTLineStyle(int value)
