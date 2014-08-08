@@ -703,9 +703,9 @@ void CMapPlugin::OnTicker2Tick()
 	PrepareAisBuffer();
 	PrepareBuffer();
 	PrepareSearchBuffer();
-	//CheckCollision();
+	CheckCollision();
 	//CheckShipCollision();
-	//PrepareCPABuffer();
+	PrepareCPABuffer();
 	//PrepareShipCPABuffer();
 	
 	if(GetStartAnimation() && !m_AnimStarted)

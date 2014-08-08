@@ -60,6 +60,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_HDT_LINE_WIDTH "hdt_line_width"
 #define KEY_COG_LINE_STYLE "cog_line_style"
 #define KEY_HDT_LINE_STYLE "hdt_line_style"
+#define KEY_AIS_TIMEOUT "ais_timeout"
+#define KEY_AIS_TIMEOUT_REMOVE "ais_timeout_remove"
 #define KEY_BS_COLOR "bs_color"
 #define KEY_CPA "cpa"
 #define KEY_TCPA "tcpa"
@@ -294,6 +296,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_CHANNEL						193
 #define MSG_MID							194
 #define MSG_AGE							195
+#define MSG_AIS_TIMEOUT					196
+#define MSG_AIS_TIMEOUT_REMOVE			197
 
 #define MAX_DATA_POSITIONS	10
 

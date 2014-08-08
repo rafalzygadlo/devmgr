@@ -54,5 +54,9 @@ void SetTCPA(float v);
 float GetTCPA();
 bool GetVTSMode();
 void SetVTSMode(bool val);
+int GetAisTimeout();
+void SetAisTimeout(int val);
+int GetAisTimeoutRemove();
+void SetAisTimeoutRemove(int val);
 
 #endif

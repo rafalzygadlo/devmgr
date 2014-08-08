@@ -24,6 +24,8 @@ bool m_SearchTextChanged = true;
 bool m_FilterChanged = true;
 bool m_AisDataChanged = true;
 bool m_StartAnimation = false;
+int m_AisTimeout = AIS_TIMEOUT;
+int m_AisTimeoutRemove = AIS_TIMEOUT_REMOVE;
 
 float m_CPA = DEFAULT_CPA;
 float m_TCPA = DEFAULT_TCPA;
@@ -378,6 +380,26 @@ void SetVTSMode(bool val)
 	m_VTSMode = val;
 }
 
+int GetAisTimeout()
+{
+	return m_AisTimeout;
+}
+
+void SetAisTimeout(int val)
+{
+	m_AisTimeout = val;
+}
+
+int GetAisTimeoutRemove()
+{
+	return m_AisTimeoutRemove;
+}
+
+void SetAisTimeoutRemove(int val)
+{
+	m_AisTimeoutRemove = val;
+}
+
 void ReadOptionsConfig()
 {
 
@@ -397,6 +419,9 @@ void ReadOptionsConfig()
 	FileConfig->Read(_(KEY_HDT_LINE_WIDTH),&m_HDTLineWidth, DEFAULT_HDT_LINE_WIDTH);
 	FileConfig->Read(_(KEY_COG_LINE_STYLE),&m_COGLineStyle, DEFAULT_COG_LINE_STYLE);
 	FileConfig->Read(_(KEY_HDT_LINE_STYLE),&m_HDTLineStyle, DEFAULT_HDT_LINE_STYLE);
+	FileConfig->Read(_(KEY_AIS_TIMEOUT),&m_AisTimeout, AIS_TIMEOUT);
+	FileConfig->Read(_(KEY_AIS_TIMEOUT_REMOVE),&m_AisTimeoutRemove, AIS_TIMEOUT_REMOVE);
+
 
 	FileConfig->Read(_(KEY_CPA),&m_CPA,DEFAULT_CPA);
 	FileConfig->Read(_(KEY_TCPA),&m_TCPA,DEFAULT_TCPA);
@@ -477,6 +502,11 @@ void WriteOptionsConfig()
 	FileConfig->Write(_(KEY_GPS_COLOR),RGBAToStr(&GetColor(GPS_COLOR)));
 	FileConfig->Write(_(KEY_BS_COLOR),RGBAToStr(&GetColor(BASE_STATION_COLOR)));
 	FileConfig->Write(_(KEY_ATON_COLOR),RGBAToStr(&GetColor(ATON_COLOR)));
+
+	FileConfig->Write(_(KEY_AIS_TIMEOUT),m_AisTimeout);
+	FileConfig->Write(_(KEY_AIS_TIMEOUT_REMOVE),m_AisTimeoutRemove);
+
+
 
 	FileConfig->Write(_(KEY_COG_TIME),m_COGTime);
 	FileConfig->Write(_(KEY_HDT_TIME),m_HDTTime);

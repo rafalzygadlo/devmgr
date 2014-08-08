@@ -695,7 +695,26 @@ wxPanel *CAisList::GetPage2()
 	color.Set(GetColor(GPS_COLOR).R,GetColor(GPS_COLOR).G,GetColor(GPS_COLOR).B,GetColor(GPS_COLOR).A);
 	m_GPSColor->SetColour(color);
 	FlexSizer->Add(m_GPSColor,0,wxALL,2);
-
+	FlexSizer->AddSpacer(1);
+	
+	wxStaticText *TextAisTimeout = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_AIS_TIMEOUT),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextAisTimeout,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_AisTimeout = new wxSpinCtrl(Scroll,ID_HDT_TIME,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	m_AisTimeout->SetMin(1);
+	m_AisTimeout->SetMax(3600);
+	m_AisTimeout->SetValue(GetAisTimeout()/60/1000);
+	FlexSizer->Add(m_AisTimeout,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	FlexSizer->AddSpacer(1);
+	
+	wxStaticText *TextAisTimeoutRemove = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_AIS_TIMEOUT_REMOVE),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextAisTimeoutRemove,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	m_AisTimeoutRemove = new wxSpinCtrl(Scroll,ID_HDT_TIME,wxEmptyString,wxDefaultPosition,wxDefaultSize);
+	m_AisTimeoutRemove->SetMin(1);
+	m_AisTimeoutRemove->SetMax(3600);
+	m_AisTimeoutRemove->SetValue(GetAisTimeoutRemove()/60/1000);
+	FlexSizer->Add(m_AisTimeoutRemove,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
+	FlexSizer->AddSpacer(1);
+	
 	Scroll->SetScrollbars(20, 20, 20, 20);
 
 	return Panel;

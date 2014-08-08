@@ -32,7 +32,10 @@ class CAisList : public wxPanel
 	wxSlider *m_ShipBorderAlphaA,*m_ShipAlpha0A,*m_ShipAlpha1A,*m_ShipAlpha2A;
 	wxSlider *m_ShipBorderAlphaB,*m_ShipAlpha0B,*m_ShipAlpha1B,*m_ShipAlpha2B;
 	wxSlider *m_AtonAlpha,*m_BaseStationAlpha;
-	
+	wxSpinCtrl *m_AisTimeout;
+	wxSpinCtrl *m_AisTimeoutRemove;
+
+
 	//page2
 	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
 	wxSlider *m_ViewNameScale;

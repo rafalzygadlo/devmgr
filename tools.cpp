@@ -225,6 +225,8 @@ const wchar_t *nvLanguage[2][285] =
 		_("Channel"),
 		_("MID"),
 		_("Age"),
+		_("Target timeout"),
+		_("Target timeout remove"),
 	},
 	
 	/*PL*/
