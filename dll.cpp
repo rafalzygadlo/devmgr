@@ -1673,7 +1673,7 @@ void CMapPlugin::PrepareAisBuffer()
 {
 	if(GetMutex()->TryLock() != wxMUTEX_NO_ERROR)
 		return;
-	ais_prepare_buffer(false);
+	ais_prepare_buffer(true);
 
 	GetMutex()->Unlock();
 }
@@ -3640,17 +3640,31 @@ void  CMapPlugin::RenderSelection()
 void CMapPlugin::RenderCPA()
 {
 	glLineWidth(1);
-	m_CPA->Render();
-	glPointSize(10);
-	glBegin(GL_POINT);
-	for(size_t i = 0; i < ais_get_P_count(),i=+2)
+	//m_CPA->Render();
+	glPointSize(30);
+	
+	for(size_t i = 0; i < ais_get_P_count();i+=4)
 	{
 		double p1 = ais_get_P_item(i);
-		double p2 = ais_get_P_item(i+1);
-		glVertex2d(p1,p2);
+			double p2 = ais_get_P_item(i+1);
+			double to_x1,to_y1;
+			double to_x2,to_y2;
+			m_Broker->Unproject(p1,-p2,&to_x1,&to_y1);
+			p1 = ais_get_P_item(i+2);
+			p2 = ais_get_P_item(i+3);
+			m_Broker->Unproject(p1,-p2,&to_x2,&to_y2);
 
+		glBegin(GL_POINTS);
+			glVertex2d(to_x1,to_y1);
+			glVertex2d(to_x2,to_y2);
+		glEnd();
+
+		glBegin(GL_LINES);
+			glVertex2d(to_x1,to_y1);
+			glVertex2d(to_x2,to_y2);
+		glEnd();
 	}
-	glEnd();
+	
 	glPointSize(1);
 	glLineWidth(1);
 }
