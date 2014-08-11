@@ -6,9 +6,11 @@
 
 CObject::CObject()
 {
+	m_FirstTime = true;
 	m_IndicesLength = 0;
 	m_CurrentVerticesBufferPtr = NULL;
 	m_CurrentIndicesBufferPtr = NULL;
+	m_CurrentFontBufferPtr = NULL;
 	m_Width = 0;
 	m_Height = 0;
 	m_Color.R = 255;

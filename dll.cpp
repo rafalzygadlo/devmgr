@@ -1946,13 +1946,13 @@ void CMapPlugin::PrepareROTBuffer(SAisData *ptr)
 			PrepareROTVerticesBuffer(ptr,90,true);
 				
 		if (ptr->turn_direction == AIS_TURN_LEFT)
-			PrepareROTVerticesBuffer(ptr, -ptr->turn ,true);
+			PrepareROTVerticesBuffer(ptr, -90 ,true);
 		
 		if (ptr->turn == AIS_TURN_HARD_LEFT)
 			PrepareROTVerticesBuffer(ptr,-90,false);
 		
 		if (ptr->turn_direction ==  AIS_TURN_RIGHT)
-			PrepareROTVerticesBuffer(ptr,ptr->turn, false);
+			PrepareROTVerticesBuffer(ptr,90, false);
 	
 	}
 
@@ -3641,6 +3641,17 @@ void CMapPlugin::RenderCPA()
 {
 	glLineWidth(1);
 	m_CPA->Render();
+	glPointSize(10);
+	glBegin(GL_POINT);
+	for(size_t i = 0; i < ais_get_P_count(),i=+2)
+	{
+		double p1 = ais_get_P_item(i);
+		double p2 = ais_get_P_item(i+1);
+		glVertex2d(p1,p2);
+
+	}
+	glEnd();
+	glPointSize(1);
 	glLineWidth(1);
 }
 
