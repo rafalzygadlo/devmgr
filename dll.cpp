@@ -190,7 +190,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	
 
 	m_Ticker1 = new CTicker(this,TICK_FREQUENCY);	//frequency
-	//m_Ticker1->Start(1);
+	m_Ticker1->Start(1);
 	
 	m_Ticker2 = new CTicker(this,TICK_AIS_BUFFER);	//ais buffer
 	m_Ticker2->Start(AIS_BUFFER_INTERVAL);
@@ -3640,8 +3640,8 @@ void  CMapPlugin::RenderSelection()
 void CMapPlugin::RenderCPA()
 {
 	glLineWidth(1);
-	//m_CPA->Render();
-	glPointSize(30);
+	m_CPA->Render();
+	glPointSize(20);
 	
 	for(size_t i = 0; i < ais_get_P_count();i+=4)
 	{
@@ -4014,13 +4014,15 @@ bool CMapPlugin::GetNeedExit(void)
 	return m_NeedExit;
 }
 
+/*
 void CMapPlugin::CreateApiMenu(void) 
 {
 
-//	NaviApiMenu = new CNaviApiMenu( L"Settings" );	// nie u¿uwaæ delete - klasa zwalnia obiejt automatycznie
-//	NaviApiMenu->AddItem( L"Device Manager",this, MenuConfig );
+	NaviApiMenu = new CNaviApiMenu( L"Settings" );	// nie u¿uwaæ delete - klasa zwalnia obiejt automatycznie
+	NaviApiMenu->AddItem( L"Device Manager",this, MenuConfig );
 	
 }
+*/
 
 void CMapPlugin::Config()
 {

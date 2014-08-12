@@ -50,6 +50,7 @@ class CDevicesList : public wxPanel
 	wxString m_Caption;
 	CReader *m_Reader;
 	wxSlider *m_Frequency;
+	wxSlider *m_SOG,*m_COG;
 	CStatus *m_Status;
 		
 	int GetControlType();
@@ -123,6 +124,7 @@ public:
 		ID_TEXT,
 		ID_DEVICE_WIZARD,
 		ID_FREQUENCY,
+		ID_SOG,
 	};
 
 
