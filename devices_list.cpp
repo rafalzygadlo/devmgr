@@ -188,9 +188,7 @@ void CDevicesList::GetPanel()
 
 	//opcje
 	wxPanel *Page2 = new wxPanel(Notebook);
-
-	
-	
+		
 	wxBoxSizer *m_Page2Sizer = new wxBoxSizer(wxVERTICAL);
 	Page2->SetSizer(m_Page2Sizer);
 	Notebook->AddPage(Page2,GetMsg(MSG_DEVICE_OPTIONS));
@@ -201,37 +199,32 @@ void CDevicesList::GetPanel()
 	Scroll->SetFocusIgnoringChildren();
 	Scroll->SetSizer(ScrollSizer);
 	Scroll->SetScrollbars(20, 20, 20, 20);
-	
-	wxStaticBox *Box = new wxStaticBox(Scroll,wxID_ANY,_("Ship options"));
-	ScrollSizer->Add(Box,0,wxALL|wxEXPAND,2);
-
+		
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
 	FlexSizer->AddGrowableCol(1,1);
-	Box->SetSizer(FlexSizer);
-	
-	wxStaticText *TextFrequency = new wxStaticText(Box,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,2);
-	
-	m_Frequency = new wxSlider(Box,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
-	
-	FlexSizer->Add(m_Frequency,0,wxALL,5);
+	ScrollSizer->Add(FlexSizer);
+		
+	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,5);
+	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_Frequency->SetMin(1);
 	m_Frequency->SetMax(DEFAULT_MAX_FREQUENCY/10);
 	m_Frequency->SetValue(GetControlFrequency());
-	//m_Frequency->SetValue(GetFontSize() * 10);
+	FlexSizer->Add(m_Frequency,0,wxALL,2);
+	m_Frequency->SetValue(GetFontSize() * 10);
 
-	wxStaticText *TextSOG = new wxStaticText(Box,wxID_ANY,GetMsg(MSG_SPEED),wxDefaultPosition,wxDefaultSize);
+	wxStaticText *TextSOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SPEED),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextSOG,0,wxALL|wxALIGN_CENTER,2);
-	m_SOG = new wxSlider(Box,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
+	m_SOG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_SOG->SetMin(0);
-	FlexSizer->Add(m_SOG,0,wxALL,5);
+	FlexSizer->Add(m_SOG,0,wxALL,2);
 
-	wxStaticText *TextCOG = new wxStaticText(Box,wxID_ANY,GetMsg(MSG_COG),wxDefaultPosition,wxDefaultSize);
+	wxStaticText *TextCOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextCOG,0,wxALL|wxALIGN_CENTER,2);
-	m_COG = new wxSlider(Box,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
+	m_COG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_COG->SetMin(0);
 	m_COG->SetMax(359);
-	FlexSizer->Add(m_COG,0,wxALL,5);
+	FlexSizer->Add(m_COG,0,wxALL,2);
 	
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
