@@ -58,5 +58,18 @@ int GetAisTimeout();
 void SetAisTimeout(int val);
 int GetAisTimeoutRemove();
 void SetAisTimeoutRemove(int val);
+void SetShipStateFlag(bool val);
+bool GetShipStateFlag();
+
+// stat
+void SetShipState(int id,double val);
+double *GetShipState();
+double GetShipState(int id);
+
+//global ship state
+void SetShipGlobalState(int id,double val);
+double *GetShipGlobalState();
+double GetShipGlobalState(int id);
+
 
 #endif

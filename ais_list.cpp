@@ -714,7 +714,7 @@ wxPanel *CAisList::GetPage2()
 	m_AisTimeoutRemove->SetValue(GetAisTimeoutRemove()/60/1000);
 	FlexSizer->Add(m_AisTimeoutRemove,0,wxALL|wxALIGN_CENTER_VERTICAL,2);
 	FlexSizer->AddSpacer(1);
-	
+	 
 	Scroll->SetScrollbars(20, 20, 20, 20);
 
 	return Panel;

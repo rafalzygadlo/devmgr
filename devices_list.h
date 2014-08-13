@@ -88,6 +88,7 @@ class CDevicesList : public wxPanel
 	void OnUninstall(wxCommandEvent &event);
 	void OnConfigureDevice(wxCommandEvent &event);
 	void OnMonitor(wxHyperlinkEvent &event);
+	void OnShipPosition(wxHyperlinkEvent &event);
 	void OnConfigureData(wxCommandEvent &event);
 	void OnNewDevice(wxCommandEvent &event);
 	void OnNewMarker(wxCommandEvent &event);
@@ -96,10 +97,13 @@ class CDevicesList : public wxPanel
 	void OnSetIcon(wxCommandEvent &event);
 	void OnSetText(wxCommandEvent &event);
 	void OnFrequency(wxCommandEvent &event);
+	void OnShipSOG(wxCommandEvent &event);
+	void OnShipCOG(wxCommandEvent &event);
 	void OnConnected();
 	void OnNoSignal();
 	void OnReconnect();
 	void OnNMEALine(CReader *reader);
+	void OnShipPosition();
 
 
 public:
@@ -125,6 +129,8 @@ public:
 		ID_DEVICE_WIZARD,
 		ID_FREQUENCY,
 		ID_SOG,
+		ID_COG,
+		ID_SHIP_POSITION,
 	};
 
 

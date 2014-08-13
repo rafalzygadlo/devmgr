@@ -10,6 +10,7 @@
 #include <wx/fileconf.h>
 #include "GeometryConfig.h"
 #include "nvFastFont.h"
+#include "positiondialog.h"
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -32,10 +33,10 @@ class CMapPlugin :public CNaviMapIOApi
 {
 	bool m_Position_0_Exists,m_Position_1_Exists,m_HDT_Exists,m_COG_Exists,m_ROT_Exists,m_SOG_Exists;
 	bool m_OtherData;
-	double m_ShipState[MAX_SHIP_VALUES_LEN];
+	//double m_ShipState[MAX_SHIP_VALUES_LEN];
 	double m_ShipStaticState[MAX_SHIP_VALUES_LEN];
 	double m_ShipOldStaticState[MAX_SHIP_VALUES_LEN]; // dane starsze o jeden tick
-	double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
+	//double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
 	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
 	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
 	bool m_ShipValidFrequencyTable[MAX_SHIP_VALUES_LEN];
@@ -112,6 +113,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_ShowFrameWindow;
 	nvPoint2d m_HdtPoint,m_HdtLastPoint;
 	nvPoint2d m_ShipPoint;
+	CPositionDialog *m_PositionDialog;
 
 
 	// bufory punktów
@@ -152,7 +154,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <nvRGBA> m_BSColorBuffer0;					CNaviArray <nvRGBA> m_BSColorBuffer1;					CNaviArray <nvRGBA> *m_CurrentBSColorBufferPtr;
 
 	// bufor œwiate³
-	//CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentShipLightsVerticesBufferPtr;
+	//CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer0;	CNaviArray <nvPoint2d> m_ShipLightsVerticesBuffer1;		CNaviArray <nvPoint2d> *m_CurrentShipLightsVerticesBufferPtr;
 	//CNaviArray <int> m_ShipLightsTriangleIndicesBuffer0;	CNaviArray <int> m_ShipLightsTriangleIndicesBuffer1;	CNaviArray <int> *m_CurrentShipLightsTriangleIndicesBufferPtr;
 	
 	// bufor track
@@ -343,6 +345,8 @@ class CMapPlugin :public CNaviMapIOApi
 	void SetAngle(SAisData *ptr);
 	void CheckCollision();
 	void CheckShipCollision();
+	void _SetShipPosition();
+	
 
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);
@@ -398,6 +402,8 @@ public:
 	void StartDevice(CReader *ptr);
 	void StopDevice(CReader *ptr);
 	void ReindexDevices();
+	void SetPosition();
+	void SetShip(int id,double value);
 		
 	SData *GetData();
 	wxArrayPtrVoid *GetDevicesList();

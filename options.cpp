@@ -26,6 +26,9 @@ bool m_AisDataChanged = true;
 bool m_StartAnimation = false;
 int m_AisTimeout = AIS_TIMEOUT;
 int m_AisTimeoutRemove = AIS_TIMEOUT_REMOVE;
+bool m_SetShipPosition = false;
+double m_ShipState[MAX_SHIP_VALUES_LEN];
+double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
 
 float m_CPA = DEFAULT_CPA;
 float m_TCPA = DEFAULT_TCPA;
@@ -399,6 +402,47 @@ void SetAisTimeoutRemove(int val)
 {
 	m_AisTimeoutRemove = val;
 }
+
+void SetShipStateFlag(bool val)
+{
+	m_SetShipPosition = val;
+}
+
+bool GetShipStateFlag()
+{
+	return m_SetShipPosition;
+}
+void SetShipState(int id, double val)
+{
+	m_ShipState[id] = val;
+}
+
+double *GetShipState()
+{
+	return m_ShipState;
+}
+
+double GetShipState(int id)
+{
+	return m_ShipState[id];
+}
+
+// global state
+void SetShipGlobalState(int id, double val)
+{
+	m_ShipGlobalState[id] = val;
+}
+
+double *GetShipGlobalState()
+{
+	return m_ShipGlobalState;
+}
+
+double GetShipGlobalState(int id)
+{
+	return m_ShipGlobalState[id];
+}
+
 
 void ReadOptionsConfig()
 {

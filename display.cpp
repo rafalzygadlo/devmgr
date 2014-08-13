@@ -53,8 +53,8 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 	CProtocol Protocol;
 	int counter = 0;
 
+	/*
 	CDevices devices;
-	
 	size_t dcount = devices.GetLen();
 	
 	for(size_t i = 0; i < dcount; i++)
@@ -74,6 +74,7 @@ CDisplayPlugin::CDisplayPlugin(wxWindow* parent, wxWindowID id, const wxPoint& p
 
 		delete Definition;
 	}
+	*/
 
 	Name = parent->GetLabel();
 	wxFileConfig *m_FileConfig = new wxFileConfig(_(PRODUCT_NAME),wxEmptyString,GetPluginConfigPath(),wxEmptyString);

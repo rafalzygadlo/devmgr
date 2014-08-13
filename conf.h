@@ -90,6 +90,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define CLEAR_AIS_LIST				15	// set item count na 0
 #define	SIGNAL_SYNCHRO_OPTIONS		16
 #define SIGNAL_UPDATE_LIST			17	//aktualizacja listy ais w kontrolce
+#define SIGNAL_SET_SHIP_POSITION	18	//ustawienie pozycji statku z device managera
 
 #define TEXT_OK		0 // kolory tekstow w kontrolce
 #define TEXT_ERROR	1 // kolory tekstow w kontrolce
@@ -440,6 +441,10 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 
 //typy urzadzen
 #define DEVICE_TYPE_AIS 1
+
+
+// funkcje ustawiajace z parsera (definicja w protokole)
+#define SET_SHIP 0
 
 typedef struct SData
 {

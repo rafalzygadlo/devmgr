@@ -39,6 +39,10 @@ BEGIN_EVENT_TABLE(CDevicesList,wxPanel)
 	EVT_HYPERLINK(ID_START,CDevicesList::OnStart)
 //	EVT_HYPERLINK(ID_CONFIGURE_DEVICE,CDisplayPlugin::OnConfigureDevice)
 	EVT_HYPERLINK(ID_MONITOR,CDevicesList::OnMonitor)
+	
+	EVT_HYPERLINK(ID_SHIP_POSITION,CDevicesList::OnShipPosition)
+	EVT_SLIDER(ID_SOG,CDevicesList::OnShipSOG)
+	EVT_SLIDER(ID_COG,CDevicesList::OnShipCOG)
 
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDevicesList::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDevicesList::OnSetIcon)
@@ -214,17 +218,22 @@ void CDevicesList::GetPanel()
 	m_Frequency->SetValue(GetFontSize() * 10);
 
 	wxStaticText *TextSOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SPEED),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextSOG,0,wxALL|wxALIGN_CENTER,2);
+	FlexSizer->Add(TextSOG,0,wxALL,2);
 	m_SOG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_SOG->SetMin(0);
+	m_SOG->SetMax(50);
 	FlexSizer->Add(m_SOG,0,wxALL,2);
 
 	wxStaticText *TextCOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextCOG,0,wxALL|wxALIGN_CENTER,2);
-	m_COG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextCOG,0,wxALL,2);
+	m_COG = new wxSlider(Scroll,ID_COG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_COG->SetMin(0);
 	m_COG->SetMax(359);
 	FlexSizer->Add(m_COG,0,wxALL,2);
+	
+	wxHyperlinkCtrl *m_Button = new wxHyperlinkCtrl(Scroll,ID_SHIP_POSITION,_("Set ship position"),wxEmptyString);
+	m_Button->SetFont(font);
+	ScrollSizer->Add(m_Button,0,wxALL,5);
 	
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
@@ -248,6 +257,7 @@ void CDevicesList::SetSignal(int stype, CReader* reader)
 		case SIGNAL_NO_SIGNAL:			OnNoSignal();		break;
 		case SIGNAL_CONNECTED:			OnConnected();		break;
 		case SIGNAL_NMEA_LINE:			OnNMEALine(reader);	break;
+		case SIGNAL_SET_SHIP_POSITION:	OnShipPosition();	break;
 		//case DATA_SIGNAL:				OnData();			break;
 	}
 
@@ -392,6 +402,26 @@ void CDevicesList::OnMonitor(wxHyperlinkEvent &event)
 	m_InfoPanelSizer->Layout();
 	Page1Sizer->Layout();
 
+}
+
+void CDevicesList::OnShipSOG(wxCommandEvent &event)
+{
+	m_MapPlugin->SetShip(SHIP_SOG,event.GetInt());
+}
+
+void CDevicesList::OnShipCOG(wxCommandEvent &event)
+{
+	//fprintf(stdout," %f\n%f\n%f\n%f\n%f\n%f",GetShipState(0),GetShipState(1),GetShipState(2),GetShipState(3),GetShipState(4),GetShipState(5),GetShipState(6));
+	m_MapPlugin->SetShip(SHIP_COG,event.GetInt());
+	m_MapPlugin->SetShip(SHIP_HDT,event.GetInt()+5);
+	m_MapPlugin->SetShip(SHIP_ROT,1);
+
+	//fprintf(stdout,"\n\n %f\n%f\n%f\n%f\n%f\n%f",GetShipState(0),GetShipState(1),GetShipState(2),GetShipState(3),GetShipState(4),GetShipState(5),GetShipState(6));
+}
+
+void CDevicesList::OnShipPosition(wxHyperlinkEvent &event)
+{
+	SetShipStateFlag(true);
 }
 
 void CDevicesList::ConfigureDevice()
@@ -606,6 +636,23 @@ void CDevicesList::OnNMEALine(CReader *reader)
 		
 	wxString str(reader->GetLineBuffer(),wxConvUTF8);
 	m_Status->AppendText(str);
+	
+}
+
+void CDevicesList::OnShipPosition()
+{
+	SetShipStateFlag(false);
+	//SFunctionData Function;
+	//Function.id_function = SET_SHIP;
+	//double values[MAX_SHIP_VALUES_LEN];
+	//Reset(values);
+	//values[SHIP_LON] = GetShipState(SHIP_LON);
+	//values[SHIP_LAT] = GetShipState(SHIP_LAT);
+	//SetShipGlobalState();
+	
+	//memcpy(Function.values,values,sizeof(double)*MAX_SHIP_VALUES_LEN);
+	//memcpy(Function.frequency,frequency,sizeof(int) * MAX_SHIP_VALUES_LEN);
+	//m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 	
 }
 
