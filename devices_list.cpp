@@ -43,6 +43,8 @@ BEGIN_EVENT_TABLE(CDevicesList,wxPanel)
 	EVT_HYPERLINK(ID_SHIP_POSITION,CDevicesList::OnShipPosition)
 	EVT_SLIDER(ID_SOG,CDevicesList::OnShipSOG)
 	EVT_SLIDER(ID_COG,CDevicesList::OnShipCOG)
+	EVT_SLIDER(ID_HDT,CDevicesList::OnShipHDT)
+	EVT_SLIDER(ID_ROT,CDevicesList::OnShipROT)
 
 	EVT_COMMAND(ID_LOGGER,EVT_SET_LOGGER,CDevicesList::OnSetLogger)
 	EVT_COMMAND(ID_ICON,EVT_SET_ICON,CDevicesList::OnSetIcon)
@@ -204,9 +206,9 @@ void CDevicesList::GetPanel()
 	Scroll->SetSizer(ScrollSizer);
 	Scroll->SetScrollbars(20, 20, 20, 20);
 		
-	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
-	FlexSizer->AddGrowableCol(1,1);
-	ScrollSizer->Add(FlexSizer);
+	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(1);
+	FlexSizer->AddGrowableCol(0,1);
+	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,5);
 		
 	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,5);
@@ -222,18 +224,32 @@ void CDevicesList::GetPanel()
 	m_SOG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_SOG->SetMin(0);
 	m_SOG->SetMax(50);
-	FlexSizer->Add(m_SOG,0,wxALL,2);
+	FlexSizer->Add(m_SOG,0,wxALL|wxEXPAND,2);
 
 	wxStaticText *TextCOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextCOG,0,wxALL,2);
 	m_COG = new wxSlider(Scroll,ID_COG,0,0,1,wxDefaultPosition,wxDefaultSize);
 	m_COG->SetMin(0);
 	m_COG->SetMax(359);
-	FlexSizer->Add(m_COG,0,wxALL,2);
+	FlexSizer->Add(m_COG,0,wxALL|wxEXPAND,2);
 	
+	wxStaticText *TextHDT = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextHDT,0,wxALL,2);
+	m_HDT = new wxSlider(Scroll,ID_HDT,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_HDT->SetMin(0);
+	m_HDT->SetMax(359);
+	FlexSizer->Add(m_HDT,0,wxALL|wxEXPAND,2);
+	
+	wxStaticText *TextROT = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ROT),wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextROT,0,wxALL,2);
+	m_ROT = new wxSlider(Scroll,ID_ROT,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_ROT->SetMin(0);
+	m_ROT->SetMax(359);
+	FlexSizer->Add(m_ROT,0,wxALL|wxEXPAND,2);
+
 	wxHyperlinkCtrl *m_Button = new wxHyperlinkCtrl(Scroll,ID_SHIP_POSITION,_("Set ship position"),wxEmptyString);
 	m_Button->SetFont(font);
-	ScrollSizer->Add(m_Button,0,wxALL,5);
+	ScrollSizer->Add(m_Button,0,wxALL|wxEXPAND,5);
 	
 	this->SetSizer(m_Sizer);
 	m_FirstTime = true;
@@ -411,13 +427,19 @@ void CDevicesList::OnShipSOG(wxCommandEvent &event)
 
 void CDevicesList::OnShipCOG(wxCommandEvent &event)
 {
-	//fprintf(stdout," %f\n%f\n%f\n%f\n%f\n%f",GetShipState(0),GetShipState(1),GetShipState(2),GetShipState(3),GetShipState(4),GetShipState(5),GetShipState(6));
 	m_MapPlugin->SetShip(SHIP_COG,event.GetInt());
-	m_MapPlugin->SetShip(SHIP_HDT,event.GetInt()+5);
-	m_MapPlugin->SetShip(SHIP_ROT,1);
-
-	//fprintf(stdout,"\n\n %f\n%f\n%f\n%f\n%f\n%f",GetShipState(0),GetShipState(1),GetShipState(2),GetShipState(3),GetShipState(4),GetShipState(5),GetShipState(6));
 }
+
+void CDevicesList::OnShipHDT(wxCommandEvent &event)
+{
+	m_MapPlugin->SetShip(SHIP_HDT,event.GetInt());
+}
+
+void CDevicesList::OnShipROT(wxCommandEvent &event)
+{
+	m_MapPlugin->SetShip(SHIP_ROT,event.GetInt());
+}
+
 
 void CDevicesList::OnShipPosition(wxHyperlinkEvent &event)
 {

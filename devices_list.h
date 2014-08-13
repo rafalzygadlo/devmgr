@@ -50,7 +50,7 @@ class CDevicesList : public wxPanel
 	wxString m_Caption;
 	CReader *m_Reader;
 	wxSlider *m_Frequency;
-	wxSlider *m_SOG,*m_COG;
+	wxSlider *m_SOG,*m_COG,*m_HDT,*m_ROT;
 	CStatus *m_Status;
 		
 	int GetControlType();
@@ -99,6 +99,8 @@ class CDevicesList : public wxPanel
 	void OnFrequency(wxCommandEvent &event);
 	void OnShipSOG(wxCommandEvent &event);
 	void OnShipCOG(wxCommandEvent &event);
+	void OnShipHDT(wxCommandEvent &event);
+	void OnShipROT(wxCommandEvent &event);
 	void OnConnected();
 	void OnNoSignal();
 	void OnReconnect();
@@ -130,6 +132,8 @@ public:
 		ID_FREQUENCY,
 		ID_SOG,
 		ID_COG,
+		ID_HDT,
+		ID_ROT,
 		ID_SHIP_POSITION,
 	};
 

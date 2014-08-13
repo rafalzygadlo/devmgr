@@ -299,6 +299,8 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_AGE							195
 #define MSG_AIS_TIMEOUT					196
 #define MSG_AIS_TIMEOUT_REMOVE			197
+#define MSG_HDT							198
+#define MSG_ROT							199
 
 #define MAX_DATA_POSITIONS	10
 
