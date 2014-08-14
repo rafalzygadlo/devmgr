@@ -211,38 +211,37 @@ void CDevicesList::GetPanel()
 	ScrollSizer->Add(FlexSizer,0,wxALL|wxEXPAND,5);
 		
 	wxStaticText *TextFrequency = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_DEVICE_FREQUENCY),wxDefaultPosition,wxDefaultSize);
-	FlexSizer->Add(TextFrequency,0,wxALL|wxALIGN_CENTER,5);
-	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize);
+	FlexSizer->Add(TextFrequency,0,wxALL,5);
+	m_Frequency = new wxSlider(Scroll,ID_FREQUENCY,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	m_Frequency->SetMin(1);
-	m_Frequency->SetMax(DEFAULT_MAX_FREQUENCY/10);
+	m_Frequency->SetMax(DEFAULT_MAX_FREQUENCY/20);
 	m_Frequency->SetValue(GetControlFrequency());
-	FlexSizer->Add(m_Frequency,0,wxALL,2);
-	m_Frequency->SetValue(GetFontSize() * 10);
-
+	FlexSizer->Add(m_Frequency,0,wxALL|wxEXPAND,2);
+	
 	wxStaticText *TextSOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_SPEED),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextSOG,0,wxALL,2);
-	m_SOG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_SOG = new wxSlider(Scroll,ID_SOG,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	m_SOG->SetMin(0);
 	m_SOG->SetMax(50);
 	FlexSizer->Add(m_SOG,0,wxALL|wxEXPAND,2);
 
 	wxStaticText *TextCOG = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_COG),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextCOG,0,wxALL,2);
-	m_COG = new wxSlider(Scroll,ID_COG,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_COG = new wxSlider(Scroll,ID_COG,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	m_COG->SetMin(0);
 	m_COG->SetMax(359);
 	FlexSizer->Add(m_COG,0,wxALL|wxEXPAND,2);
 	
 	wxStaticText *TextHDT = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_HDT),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextHDT,0,wxALL,2);
-	m_HDT = new wxSlider(Scroll,ID_HDT,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_HDT = new wxSlider(Scroll,ID_HDT,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	m_HDT->SetMin(0);
 	m_HDT->SetMax(359);
 	FlexSizer->Add(m_HDT,0,wxALL|wxEXPAND,2);
 	
 	wxStaticText *TextROT = new wxStaticText(Scroll,wxID_ANY,GetMsg(MSG_ROT),wxDefaultPosition,wxDefaultSize);
 	FlexSizer->Add(TextROT,0,wxALL,2);
-	m_ROT = new wxSlider(Scroll,ID_ROT,0,0,1,wxDefaultPosition,wxDefaultSize);
+	m_ROT = new wxSlider(Scroll,ID_ROT,0,0,1,wxDefaultPosition,wxDefaultSize,wxSL_LABELS);
 	m_ROT->SetMin(0);
 	m_ROT->SetMax(359);
 	FlexSizer->Add(m_ROT,0,wxALL|wxEXPAND,2);

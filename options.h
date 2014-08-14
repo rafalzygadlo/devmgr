@@ -23,7 +23,7 @@ void SetSearchText(char *txt);
 char *GetSearchText();
 bool GetSearchTextChanged();
 void SetSearchTextChanged(bool value);
-int GetFrequency();
+int GetControlFrequency();
 void SetControlFrequency(int value);
 int GetControlFrequency();
 int GetViewFontScale();

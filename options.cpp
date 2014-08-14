@@ -318,7 +318,7 @@ char *GetSearchText()
 	return m_SearchText;
 }
 
-int GetFrequency()
+int GetControlFrequency()
 {
 	return  m_Frequency;
 }
@@ -326,11 +326,6 @@ int GetFrequency()
 void SetControlFrequency(int value)
 {
 	m_Frequency = value;
-}
-
-int GetControlFrequency()
-{
-	return m_Frequency;
 }
 
 int GetViewFontScale()

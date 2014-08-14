@@ -166,10 +166,10 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <int> m_SARLineIndicesBuffer0;				CNaviArray <int> m_SARLineIndicesBuffer1;				CNaviArray <int> *m_CurrentSARLineIndicesBufferPtr;
 
 	// bufor kolizyjnych punktów statkow CPA
-	CNaviArray <nvPoint2d> m_CPAVerticesBuffer0;			CNaviArray <nvPoint2d> m_CPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCPAVerticesBufferPtr;			// CPA linie
+	//CNaviArray <nvPoint2d> m_CPAVerticesBuffer0;			CNaviArray <nvPoint2d> m_CPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentCPAVerticesBufferPtr;			// CPA linie
 
 	// bufor kolizyjnych punktów SHIP CPA
-	CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipCPAVerticesBufferPtr;			// Ship CPA linie
+	//CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipCPAVerticesBufferPtr;			// Ship CPA linie
 
 
 	CObject *m_Light0, *m_Light1, *m_Light2;
@@ -362,6 +362,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderHDT();
 	void RenderROT();
 	void RenderCPA();
+	void RenderShipCPA();
 	void RenderTracks();
 	void RenderBS();
 	void RenderSmallScale();

@@ -395,8 +395,9 @@ void CMyFrame::SetImage()
 	
 	if(GetShipImage(ptr->mmsi,buffer,&size))
 	{
-		if(buffer == NULL)
+		if(buffer == NULL || size == 0)
 			return;
+				
 		wxMemoryInputStream in_0(buffer, size);
 		wxImage img_0(in_0,wxBITMAP_TYPE_ANY);
 
