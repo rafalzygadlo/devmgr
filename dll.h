@@ -112,7 +112,6 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_ShipRender;
 	bool m_ShowFrameWindow;
 	nvPoint2d m_HdtPoint,m_HdtLastPoint;
-	nvPoint2d m_ShipPoint;
 	CPositionDialog *m_PositionDialog;
 
 
@@ -171,10 +170,10 @@ class CMapPlugin :public CNaviMapIOApi
 	// bufor kolizyjnych punktów SHIP CPA
 	//CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer0;		CNaviArray <nvPoint2d> m_ShipCPAVerticesBuffer1;			CNaviArray <nvPoint2d> *m_CurrentShipCPAVerticesBufferPtr;			// Ship CPA linie
 
-
+	//Swiat³a
 	CObject *m_Light0, *m_Light1, *m_Light2;
 
-	CObject *m_CPA,*m_ShipCPA;
+	CObject *m_CPA,*m_ShipCPA,*m_FakeShip;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
@@ -346,6 +345,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void CheckCollision();
 	void CheckShipCollision();
 	void _SetShipPosition();
+	void OnSetShip();		//ustawia ship danymi z urzadzenia
 	
 
 	void PrepareShipBuffer(SAisData *ptr);
@@ -363,6 +363,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void RenderROT();
 	void RenderCPA();
 	void RenderShipCPA();
+	void RenderFakeShip();
 	void RenderTracks();
 	void RenderBS();
 	void RenderSmallScale();

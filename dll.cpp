@@ -188,6 +188,13 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	color.R = 255;color.G = 0;color.B = 0;color.A = 255;
 	m_CPA->SetColor(color);
 
+	//Fake Ship
+	m_FakeShip = new CObject();
+	m_FakeShip->SetRenderMode(GL_LINES);
+	color.R = 255;color.G = 0;color.B = 0;color.A = 255;
+	m_FakeShip->SetColor(color);
+
+
 	InitMutex();
 	InitSearchMutex();
 	ais_load_file(GetAisFile().char_str());
@@ -235,6 +242,9 @@ CMapPlugin::~CMapPlugin()
 	m_ShipCPA->ClearBuffers();
 	delete m_ShipCPA;
 
+	m_FakeShip->ClearBuffers();
+	delete m_FakeShip;
+
 }
 
 void CMapPlugin::WriteConfig()
@@ -246,7 +256,7 @@ void CMapPlugin::WriteConfig()
 	for(size_t i = 0; i < GetDevices()->size(); i++)
 	{
 		CReader *ptr = (CReader*)GetDevices()->Item(i);
-		type = ptr->GetConnectionType();		
+		type = ptr->GetConnectionType();
 		
 		switch(type)
 		{
@@ -399,6 +409,119 @@ void CMapPlugin::OnInitGL()
 		m_CPA->InitGL();
 	if(m_ShipCPA)
 		m_ShipCPA->InitGL();
+	if(m_FakeShip)
+		m_FakeShip->InitGL();
+}
+
+void CMapPlugin::OnSetShip()
+{
+	//if(!m_PositionExists && !m_HDT_Exists)
+//		return;
+
+	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
+		return;
+	
+	m_FakeShip->SetCurrentPtr(true);
+	//m_FakeShip->ClearBuffers();
+
+	SAisData ptr;
+	ptr.lon = GetShipState(SHIP_LON);
+	ptr.lat = GetShipState(SHIP_LAT);
+	ptr.hdg = GetShipState(SHIP_HDT);
+	
+	ptr.to_bow = 100;
+	ptr.to_port = 20;
+	ptr.to_starboard = 20;
+	ptr.to_stern = 100;
+
+	nvPoint2d pt;
+	pt.x = ptr.lon;
+	pt.y = -ptr.lat;
+	nvPoint2d p1, p2, p3, p4, p5, p6, p7;
+	double width = GetShipWidth(&ptr);
+	double height = GetShipHeight(&ptr);
+		
+	//wymiary rzeczywiste
+	p1.x = -0.5 * width;	p1.y =  0.5    * height;
+	p2.x =  0.5 * width;	p2.y =  0.5    * height;
+	p3.x =  0.5 * width;	p3.y = -0.3    * height;
+	p4.x =  0.3 * width;	p4.y = -0.425  * height;
+	p5.x =  0.0;			p5.y = -0.5    * height;
+	p6.x = -0.3 * width;	p6.y = -0.425  * height;
+	p7.x = -0.5 * width;	p7.y = -0.3    * height;
+	
+	
+	//pozycja GPSa
+	double vx = (ToPort(&ptr) - ToStarboard(&ptr))/2;
+	double vy = (ToBow(&ptr) - ToStern(&ptr))/2;
+			
+	p1.x -= vx; p1.y -= vy;
+	p2.x -= vx; p2.y -= vy;
+	p3.x -= vx; p3.y -= vy;
+	p4.x -= vx; p4.y -= vy;
+	p5.x -= vx; p5.y -= vy;
+	p6.x -= vx; p6.y -= vy;
+	p7.x -= vx; p7.y -= vy;
+
+	
+#ifdef ROTATE
+	double out_x,out_y;
+	RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr.hdg));	p1.x = out_x;	p1.y = out_y;
+	RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr.hdg));	p2.x = out_x;	p2.y = out_y;
+	RotateZ(p3.x,p3.y,out_x,out_y,nvToRad(ptr.hdg));	p3.x = out_x;	p3.y = out_y;
+	RotateZ(p4.x,p4.y,out_x,out_y,nvToRad(ptr.hdg));	p4.x = out_x;	p4.y = out_y;
+	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(ptr.hdg));	p5.x = out_x;	p5.y = out_y;
+	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(ptr.hdg));	p6.x = out_x;	p6.y = out_y;
+	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(ptr.hdg));	p7.x = out_x;	p7.y = out_y;
+#endif
+
+	double to_x, to_y;
+	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
+	pt.x = to_x;
+	pt.y = to_y;
+
+	// translate
+	p1.x += pt.x; p1.y += pt.y;
+	p2.x += pt.x; p2.y += pt.y;
+	p3.x += pt.x; p3.y += pt.y;
+	p4.x += pt.x; p4.y += pt.y;
+	p5.x += pt.x; p5.y += pt.y;
+	p6.x += pt.x; p6.y += pt.y;
+	p7.x += pt.x; p7.y += pt.y;
+	
+		
+	m_FakeShip->AddPoint(p1);
+	m_FakeShip->AddPoint(p2);
+	m_FakeShip->AddPoint(p3);
+	m_FakeShip->AddPoint(p4);
+	m_FakeShip->AddPoint(p5);
+	m_FakeShip->AddPoint(p6);
+	m_FakeShip->AddPoint(p7);
+
+
+	int id = m_FakeShip->GetVertexLength();
+		
+	m_FakeShip->AddIndice(id - 7); //0
+	m_FakeShip->AddIndice(id - 6); //1
+	m_FakeShip->AddIndice(id - 6); //1
+	m_FakeShip->AddIndice(id - 5); //2
+	m_FakeShip->AddIndice(id - 5); //2
+	m_FakeShip->AddIndice(id - 4); //3
+	m_FakeShip->AddIndice(id - 4); //3
+	m_FakeShip->AddIndice(id - 3); //4
+	m_FakeShip->AddIndice(id - 3); //4
+	m_FakeShip->AddIndice(id - 2); //5
+	m_FakeShip->AddIndice(id - 2); //5
+	m_FakeShip->AddIndice(id - 1); //6
+	m_FakeShip->AddIndice(id - 1); //6
+	m_FakeShip->AddIndice(id - 7); //0
+	m_FakeShip->CopyBuffers();
+	m_FakeShip->SetCurrentPtr(false);
+
+	//Reset(GetShipState());
+	//Reset(GetShipGlobalState());
+	GetMutex()->Unlock();
+
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -406,6 +529,7 @@ void CMapPlugin::SetShip(SFunctionData *data)
 	memcpy(GetShipGlobalState(),data->values,sizeof(data->values));
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 	Prepare();
+	OnSetShip();
 }
 
 void CMapPlugin::SetShip(int id, double value)
@@ -566,7 +690,7 @@ bool CMapPlugin::InterpolatePosition()
 		
 	m_OldPositionTick = m_GlobalTick;
 	//time = m_MaxFrequency;
-	fprintf(stdout,"Interpolowanie pozycji:[%d][%d] %d\n",m_ShipTicks[0],m_ShipTicks[1],time);
+	//fprintf(stdout,"Interpolowanie pozycji:[%d][%d] %d\n",m_ShipTicks[0],m_ShipTicks[1],time);
 	NewPosition(time);
 	
 	//m_OldGlobalPositionTick = m_GlobalTick;
@@ -1566,6 +1690,7 @@ void CMapPlugin::SetBuffers()
 			if(GetShipHeight(ptr) > (GetTriangleHeight(GetSmoothScaleFactor()) * TRIANGLE_HEIGHT_FACTOR))
 				ship = true;
 			
+			
 			if(ship && size)
 				PrepareShipBuffer(ptr);
 			else
@@ -1873,15 +1998,19 @@ void CMapPlugin::PrepareShipBuffer(SAisData *ptr)
 	if(!ptr->valid_dim || !ptr->valid_pos)
 		return;
 	
-	PrepareShipVerticesBuffer(ptr);
-	PrepareShipTriangleIndicesBuffer(ptr);
-	PrepareShipLineIndicesBuffer(ptr);
-	PrepareShipColorBuffer(ptr);
+	if(ptr->valid[AIS_MSG_1] || ptr->valid[AIS_MSG_2] || ptr->valid[AIS_MSG_3] || ptr->valid[AIS_MSG_18] || ptr->valid[AIS_MSG_19])
+	{
 
-	SIdToId id;
-	id.id0 = m_CurrentId;
-	id.id1 = m_ShipVerticesBuffer0.Length() - SHIP_VERTICES_LENGTH;
-	m_IdToShipId.Append(id);
+		PrepareShipVerticesBuffer(ptr);
+		PrepareShipTriangleIndicesBuffer(ptr);
+		PrepareShipLineIndicesBuffer(ptr);
+		PrepareShipColorBuffer(ptr);
+
+		SIdToId id;
+		id.id0 = m_CurrentId;
+		id.id1 = m_ShipVerticesBuffer0.Length() - SHIP_VERTICES_LENGTH;
+		m_IdToShipId.Append(id);
+	}
 	
 }
 
@@ -2336,8 +2465,6 @@ void CMapPlugin::PrepareTriangleVerticesBuffer(SAisData *ptr)
 	p2.x =  0.0 * width;	p2.y = -0.8 * height;
 	p3.x =  0.5 * width;	p3.y =  0.8 * height;
 	
-	m_ShipPoint	= p2;			
-	
 	double out_x,out_y;
 
 #ifdef ROTATE
@@ -2469,8 +2596,6 @@ void CMapPlugin::PrepareSmallShipVerticesBuffer(SAisData *ptr)
 	p5.x =  0.0;			p5.y = -0.5    * height;
 	p6.x = -0.3 * width;	p6.y = -0.425  * height;
 	p7.x = -0.5 * width;	p7.y = -0.3    * height;
-	
-	m_ShipPoint = p5;		
 		
 	double out_x,out_y;
 
@@ -2652,9 +2777,7 @@ void CMapPlugin::PrepareShipVerticesBuffer(SAisData *ptr)
 	//pozycja GPSa
 	double vx = (ToPort(ptr) - ToStarboard(ptr))/2;
 	double vy = (ToBow(ptr) - ToStern(ptr))/2;
-		
-	m_ShipPoint = p5;
-	
+			
 	p1.x -= vx; p1.y -= vy;
 	p2.x -= vx; p2.y -= vy;
 	p3.x -= vx; p3.y -= vy;
@@ -3664,6 +3787,13 @@ void  CMapPlugin::RenderSelection()
 	
 }
 
+void CMapPlugin::RenderFakeShip()
+{
+	glPointSize(10);
+	m_FakeShip->Render();
+	glPointSize(1);
+}
+
 void CMapPlugin::RenderShipCPA()
 {
 	glPointSize(10);
@@ -3920,7 +4050,8 @@ void CMapPlugin::RenderNormalScale()
 	RenderShipNames();
 	RenderSelection();
 	RenderTracks();
-	
+	RenderFakeShip();
+		
 
 	if(m_MapScale > GetViewFontScale())
 	{
