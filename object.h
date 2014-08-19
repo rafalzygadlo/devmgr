@@ -42,6 +42,9 @@ public:
 	void SetSize(int width, int height);
 	size_t GetVertexLength();
 	nvPoint2d *GetVertexArray();
+	nvPoint2d GetVertex(int id);
+	void RemoveVertex(int id);
+	void RemoveIndice(int id);
 	void ClearBuffers();
 	void CopyBuffers();
 	void SetCurrentPtr(bool buffer);

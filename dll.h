@@ -113,6 +113,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_ShowFrameWindow;
 	nvPoint2d m_HdtPoint,m_HdtLastPoint;
 	CPositionDialog *m_PositionDialog;
+	int m_FakeCounter;
 
 
 	// bufory punktów
@@ -173,7 +174,10 @@ class CMapPlugin :public CNaviMapIOApi
 	//Swiat³a
 	CObject *m_Light0, *m_Light1, *m_Light2;
 
-	CObject *m_CPA,*m_ShipCPA,*m_FakeShip;
+	CObject *m_CPA,*m_ShipCPA;
+	CObject	*m_FakeShip,*m_FakeHDT;
+
+	CNaviArray <CObject*> m_ObjectArray;
 
 	CNaviArray <SIdToId> m_IdToTriangleId;
 	CNaviArray <SIdToId> m_IdToShipId;
@@ -194,6 +198,8 @@ class CMapPlugin :public CNaviMapIOApi
 	// pointer na aktualny bufor
 	CNaviArray <SAisNames*> *m_CurrentShipNamesBufferPtr;
 	
+	CNaviArray <SAisData> m_FakeShips;
+
 	void Prepare();
 	void CreateApiMenu(void);
 	void WriteConfig();

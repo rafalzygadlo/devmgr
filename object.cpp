@@ -112,7 +112,6 @@ int *CObject::GetIndiceArray()
 	return m_IndicesBuffer0.GetRawData();
 }
 
-
 void CObject::AddVertex(nvPoint2d pt)
 {
 	m_VerticesBuffer0.Append(pt);
@@ -126,6 +125,21 @@ size_t CObject::GetVertexLength()
 nvPoint2d *CObject::GetVertexArray()
 {
 	return m_VerticesBuffer0.GetRawData();
+}
+
+nvPoint2d CObject::GetVertex(int id)
+{
+	return m_VerticesBuffer0.Get(id);
+}
+
+void CObject::RemoveVertex(int id)
+{
+	return m_VerticesBuffer0.Remove(id);
+}
+
+void CObject::RemoveIndice(int id)
+{
+	m_IndicesBuffer0.Remove(id);
 }
 
 void CObject::ClearBuffers()
