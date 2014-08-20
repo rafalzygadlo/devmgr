@@ -35,7 +35,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_OtherData;
 	//double m_ShipState[MAX_SHIP_VALUES_LEN];
 	double m_ShipStaticState[MAX_SHIP_VALUES_LEN];
-	double m_ShipOldStaticState[MAX_SHIP_VALUES_LEN]; // dane starsze o jeden tick
+	//double m_ShipOldStaticState[MAX_SHIP_VALUES_LEN]; // dane starsze o jeden tick
 	//double m_ShipGlobalState[MAX_SHIP_VALUES_LEN];
 	int m_ShipTicks[MAX_SHIP_VALUES_LEN];
 	int m_ShipTimes[MAX_SHIP_VALUES_LEN];
