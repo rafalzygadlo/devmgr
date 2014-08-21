@@ -424,19 +424,22 @@ void CMapPlugin::OnInitGL()
 void CMapPlugin::OnSetShip()
 {
 		
-	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
-		return;
+	while(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
+	{
+		Sleep(50);
+		//return;
+	}
 	
-	if(!m_PositionExists || !m_HDT_Exists)
+	if(!m_PositionExists)
 	{
 		GetMutex()->Unlock();
 		return;
 	}
 	
-	m_Position_0_Exists = false;
-	m_Position_1_Exists = false;
-	m_PositionExists = false;
-	m_HDT_Exists = false;
+	//m_Position_0_Exists = false;
+	//m_Position_1_Exists = false;
+	//m_PositionExists = false;
+	//m_HDT_Exists = false;
 
 	m_FakeShip->SetCurrentPtr(true);
 	m_FakeShip->ClearBuffers();
@@ -444,18 +447,42 @@ void CMapPlugin::OnSetShip()
 	m_FakeHDT->ClearBuffers();
 		
 	SAisData ptr;
-	ptr.lon = GetShipState(SHIP_LON);
-	ptr.lat = GetShipState(SHIP_LAT);
-	ptr.hdg = GetShipState(SHIP_HDT);
+	ptr.lon = m_ShipStaticState[SHIP_LON];
+	ptr.lat = m_ShipStaticState[SHIP_LAT];
+	ptr.hdg = m_ShipStaticState[SHIP_HDT];
 	
-	ptr.to_bow = 100;
+	ptr.to_bow = 120;
 	ptr.to_port = 20;
 	ptr.to_starboard = 20;
-	ptr.to_stern = 100;
+	ptr.to_stern = 120;
 	
+	m_FakeShips.Clear();
+
 	m_FakeShips.Append(ptr);
 
-	for(size_t i = m_FakeShips.Length() - 1; i > m_FakeShips.Length() - 3  ; i--)
+	double v;
+	
+	for(size_t i = 0; i < 10; i++)
+	{
+		double n1,n2;
+		NewHDT(1000*1,&v); // w milisekundach
+		NewLonLat(10*i,m_ShipStaticState[SHIP_LON],m_ShipStaticState[SHIP_LAT],m_ShipStaticState[SHIP_SOG],v,&n1,&n2);
+		ptr.lon = n1;
+		ptr.lat = n2;
+		
+		ptr.hdg = v;
+		m_FakeShips.Append(ptr);
+		
+	}
+	
+	//if(m_FakeShips.Length() > 20)
+	//{
+		//for(size_t i = 0; i <= 11;i++)
+			//m_FakeShips.Remove(i);
+	//}
+
+
+	for(size_t i = 0; i < m_FakeShips.Length(); i++)
 	{
 		ptr = m_FakeShips.Get(i);
 		nvPoint2d pt;
@@ -520,7 +547,7 @@ void CMapPlugin::OnSetShip()
 		m_FakeShip->AddPoint(p6);
 		m_FakeShip->AddPoint(p7);
 
-		m_FakeHDT->AddPoint(p5);
+		//m_FakeHDT->AddPoint(p5);
 
 		int id = m_FakeShip->GetVertexLength();
 		
@@ -540,7 +567,7 @@ void CMapPlugin::OnSetShip()
 		m_FakeShip->AddIndice(id - 7); //0
 		
 		id = m_FakeHDT->GetVertexLength();
-		m_FakeHDT->AddIndice(id - 1);
+		//m_FakeHDT->AddIndice(id - 1);
 						
 
 		m_FakeShip->CopyBuffers();
@@ -555,7 +582,7 @@ void CMapPlugin::OnSetShip()
 
 	GetMutex()->Unlock();
 
-	m_Broker->Refresh(m_Broker->GetParentPtr());
+	//m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -563,7 +590,6 @@ void CMapPlugin::SetShip(SFunctionData *data)
 	memcpy(GetShipGlobalState(),data->values,sizeof(data->values));
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 	Prepare();
-	fprintf(stdout,"Real data\n");
 	OnSetShip();
 }
 
@@ -628,7 +654,7 @@ void CMapPlugin::Prepare()
 	{
 		if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_LON)))
 		{
-			//m_ShipOldStaticState[SHIP_LON] = m_ShipStaticState[SHIP_LON];
+			m_ShipOldStaticState[SHIP_LON] = m_ShipStaticState[SHIP_LON];
 			SetShipState(SHIP_LON, GetShipGlobalState(SHIP_LON)); 
 			m_ShipStaticState[SHIP_LON] = GetShipGlobalState(SHIP_LON);
 			SetFrequency(SHIP_LON);
@@ -638,7 +664,7 @@ void CMapPlugin::Prepare()
 		
 		if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_LAT)))
 		{	
-			//m_ShipOldStaticState[SHIP_LAT] = m_ShipStaticState[SHIP_LAT];
+			m_ShipOldStaticState[SHIP_LAT] = m_ShipStaticState[SHIP_LAT];
 			SetShipState(SHIP_LAT, GetShipGlobalState(SHIP_LAT));
 			m_ShipStaticState[SHIP_LAT] = GetShipGlobalState(SHIP_LAT);
 			SetFrequency(SHIP_LAT);
@@ -649,7 +675,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_ROT)))
 	{
-		//m_ShipOldStaticState[SHIP_ROT] = m_ShipStaticState[SHIP_ROT];
+		m_ShipOldStaticState[SHIP_ROT] = m_ShipStaticState[SHIP_ROT];
 		SetShipState(SHIP_ROT, GetShipGlobalState(SHIP_ROT)); 
 		m_ShipStaticState[SHIP_ROT] = GetShipGlobalState(SHIP_ROT);
 		SetFrequency(SHIP_ROT);
@@ -659,7 +685,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_SOG)))
 	{
-		//m_ShipOldStaticState[SHIP_SOG] = m_ShipStaticState[SHIP_SOG];
+		m_ShipOldStaticState[SHIP_SOG] = m_ShipStaticState[SHIP_SOG];
 		SetShipState(SHIP_SOG, GetShipGlobalState(SHIP_SOG)); 
 		m_ShipStaticState[SHIP_SOG] = GetShipGlobalState(SHIP_SOG);
 		SetFrequency(SHIP_SOG);
@@ -669,7 +695,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_COG)))
 	{
-		//m_ShipOldStaticState[SHIP_COG] = m_ShipStaticState[SHIP_COG];
+		m_ShipOldStaticState[SHIP_COG] = m_ShipStaticState[SHIP_COG];
 		SetShipState(SHIP_COG, GetShipGlobalState(SHIP_COG)); 
 		m_ShipStaticState[SHIP_COG] = GetShipGlobalState(SHIP_COG);
 		SetFrequency(SHIP_COG);
@@ -679,7 +705,7 @@ void CMapPlugin::Prepare()
 	
 	if(!UNDEFINED_VAL(GetShipGlobalState(SHIP_HDT)))
 	{
-		//m_ShipOldStaticState[SHIP_HDT] = m_ShipStaticState[SHIP_HDT];
+		m_ShipOldStaticState[SHIP_HDT] = m_ShipStaticState[SHIP_HDT];
 		SetShipState(SHIP_HDT, GetShipGlobalState(SHIP_HDT)); 
 		m_ShipStaticState[SHIP_HDT] = GetShipGlobalState(SHIP_HDT);
 		SetFrequency(SHIP_HDT);
@@ -699,7 +725,7 @@ void CMapPlugin::Interpolate()
 	m_GlobalTick = GetTickCount();
 	//Reset(m_ShipState);
 	result = InterpolatePosition();
-	result = InterpolateHDT();
+	//result = InterpolateHDT();
 	m_OldGlobalTick = m_GlobalTick;
 		
 }
@@ -708,8 +734,8 @@ bool CMapPlugin::InterpolatePosition()
 {
 	if(m_PositionExists)
 	{
-		//double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LAT],GetShipState(SHIP_LON),GetShipState(SHIP_LAT),nvMeter);
-		//fprintf(stdout,"distance KM%d\n",distance);
+		double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LAT],GetShipState(SHIP_LON),GetShipState(SHIP_LAT),nvMeter);
+		fprintf(stdout,"distance m%f\n",distance);
 		m_OldPositionTick = 0;
 		return false;
 	}
@@ -761,7 +787,8 @@ bool CMapPlugin::InterpolateHDT()
 	
 	m_OldHDTTick = m_GlobalTick;
 	//fprintf(stdout,"HDT Time %d\n",time);
-	NewHDT(time);
+	double a;
+	NewHDT(time,&a);
 		
 	return true;
 }
@@ -779,51 +806,47 @@ bool CMapPlugin::NewPosition(int time)
 	double cog = m_ShipStaticState[SHIP_COG];
 	double sec = (double)time/1000.0;
 	
-	//sec = sec/1000/GetControlFrequency();
-	//fprintf(stdout,"%f\n",sec);
-	//double rad360 = 2 * nvPI / 360.0;
+	
 	double sogm = sog / 3600; 
-	//double sogm = sogs*sec;
 	double dlatm = sogm * cos(ToRad(cog)) * sec;
 	double dlonm = sogm * sin(ToRad(cog)) * sec;
 	double lonDistance = nvDistance( lon, lat, lon + 1.0 , lat);
 	double latDistance = nvDistance( lon, lat, lon , lat + 1.0);
 		
-	double nlon = lon + (dlonm / (lonDistance));	// sta³a iloœæ km na 1 stopien
-	double nlat = lat + (dlatm / (latDistance));	// sta³a iloœæ km na 1 stopien
-			
+	double nlon = lon + (dlonm / lonDistance);	// sta³a iloœæ km na 1 stopien
+	double nlat = lat + (dlatm / latDistance);	// sta³a iloœæ km na 1 stopien
+		
+	double dist = nvDistance(m_ShipStaticState[SHIP_LON],m_ShipStaticState[SHIP_LAT],nlon,nlat,nvMeter);
+	
+	fprintf(stdout,"distance %f\n",dist);
+
 	// przypisz nowe wartosci 
 	SetShipState(SHIP_LON,nlon);
 	SetShipState(SHIP_LAT,nlat);
 	
-	SetShipGlobalState(SHIP_LON,nlon);
-	SetShipGlobalState(SHIP_LAT,nlat);
-	
-	//m_ShipStaticState[SHIP_LON] = nlon; 
-	//m_ShipStaticState[SHIP_LAT] = nlat;
-	
-	//fprintf(stdout,"NEW LON LAT:%4.10f %4.10f\n",nlon,nlat);
-	
+	//SetShipGlobalState(SHIP_LON,nlon);
+	//SetShipGlobalState(SHIP_LAT,nlat);
+			
 	return true;
 }
 
-bool CMapPlugin::NewHDT(int time)
+bool CMapPlugin::NewHDT(int time, double *va)
 {
 	double v[2] = {m_ShipStaticState[SHIP_ROT],m_ShipStaticState[SHIP_HDT]}; // rot
 	if(IsUndefined(v,2))
 		return false;
-
+	
 	double rot = m_ShipStaticState[SHIP_ROT];
 	double min = (double)time/1000.0/60.0;
 	double a = rot * min;
 	double hdt = m_ShipStaticState[SHIP_HDT] + a;
 	
 	m_OldHDT = hdt;
-	//fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[5] - hdt);
+	fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[SHIP_HDT] - hdt);
 	m_ShipStaticState[SHIP_HDT] = hdt;
 	SetShipState(SHIP_HDT,hdt);
 	SetShipGlobalState(SHIP_HDT,hdt);
-		
+	*va = hdt;
 	return true;
 }
 
@@ -921,6 +944,7 @@ void CMapPlugin::OnTicker1Start(){}
 void CMapPlugin::OnTicker1Stop(){}
 void CMapPlugin::OnTicker1Tick()
 {
+	OnSetShip();
 	Interpolate();
 	SendShipData();
 	m_ShipInterval = GetControlFrequency();
@@ -3021,7 +3045,7 @@ void CMapPlugin::PrepareCOGVerticesBuffer(SAisData *ptr)
 		
 	nvPoint2d pt;
 	pt.x = ptr->lon;
-	pt.y = -ptr->lat;
+	pt.y = ptr->lat;
 	
 	nvPoint2d p1, p2;
 		
@@ -3031,13 +3055,14 @@ void CMapPlugin::PrepareCOGVerticesBuffer(SAisData *ptr)
 	
 	double to_x, to_y;
 	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
-	p1.x = to_x;p1.y = to_y;
+	p1.x = to_x;p1.y = -to_y;
 	
 	double new_lon, new_lat;
 	NewLonLat(GetCOGTime(),pt.x,pt.y,sog,cog,&new_lon,&new_lat);
 	p2.x = new_lon; p2.y = new_lat;
+	
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
-	p2.x = to_x; p2.y = to_y;
+	p2.x = to_x; p2.y = -to_y;
 		
 	m_COGVerticesBuffer0.Append(p1);
 	m_COGVerticesBuffer0.Append(p2);
@@ -3051,7 +3076,7 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 		
 	nvPoint2d pt;
 	pt.x = ptr->lon;
-	pt.y = -ptr->lat;
+	pt.y = ptr->lat;
 	
 	nvPoint2d p1, p2, pn;
 		
@@ -3061,32 +3086,22 @@ void CMapPlugin::PrepareHDGVerticesBuffer(SAisData *ptr)
 	
 	double to_x, to_y;
 	m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
-	p1.x = to_x;p1.y = to_y;
+	p1.x = to_x;p1.y = -to_y;
 	
+	// od dziobu dlatego ten kod potrzebny
 	p1 = m_HdtPoint;
 	m_Broker->Project(p1.x, p1.y,&to_x,&to_y);
-	
 	pn.x = to_x;
-	pn.y = to_y;
+	pn.y = -to_y;
 	
 	double new_lon, new_lat;
 	NewLonLat(GetHDTTime(),pn.x,pn.y,sog,hdg,&new_lon,&new_lat);
 	p2.x = new_lon; p2.y = new_lat;
-	
-	
-	
+		
 	m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
-	p2.x = to_x; p2.y = to_y;
+	p2.x = to_x; p2.y = -to_y;
 	m_HdtLastPoint = p2;
 	
-	//nvPoint2d npt;
-
-	//npt.x = p1.x - p2.x;
-	//npt.y = p1.y - p2.y;
-	
-	
-	//p2.x = p2.x + npt.x;
-	//p2.y = p2.y + npt.x;
 
 	m_HDGVerticesBuffer0.Append(p1);
 	m_HDGVerticesBuffer0.Append(p2);
