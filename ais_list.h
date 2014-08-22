@@ -37,6 +37,7 @@ class CAisList : public wxPanel
 
 
 	//page2
+	wxScrolledWindow *m_Scroll;
 	wxColourPickerCtrl *m_COGColor,*m_HDTColor,*m_GPSColor;
 	wxSlider *m_ViewNameScale;
 	wxSpinCtrl *m_HDTTime,*m_COGTime,*m_COGLineWidth,*m_HDTLineWidth;
@@ -54,6 +55,13 @@ class CAisList : public wxPanel
 	void Signal();
 	wxPanel *GetPage1();
 	wxPanel *GetPage2();
+	wxPanel *GetShipNamesPanel();
+	wxPanel *GetTimeoutPanel();
+	wxPanel *GetShipOptionsPanel();
+	wxPanel *GetCOGPanel();
+	wxPanel *GetHDTPanel();
+	wxPanel *GetGPSPanel();
+
 	wxPanel *GetPage3();
 	//void StartThread();
 	void OnTimer(wxTimerEvent &event);
@@ -78,6 +86,7 @@ class CAisList : public wxPanel
 	void OnAlpha(wxCommandEvent &event);
 	void OnCPA(wxSpinDoubleEvent &event);
 	void OnTCPA(wxSpinDoubleEvent &event);
+	void OnAisClearBuffer(wxHyperlinkEvent &event);
 	
 		
 public:
@@ -142,6 +151,7 @@ public:
 		ID_ENABLE_VTS,
 		ID_CPA,
 		ID_TCPA,
+		ID_AIS_CLEAR,
 		
 	};
 

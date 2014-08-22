@@ -1888,12 +1888,13 @@ void CMapPlugin::PrepareBuffer()
 	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 		return;
 	
+	fprintf(stdout,"prepare BEGIN\n");
 	SetPtr0();
 	ClearBuffers();
 	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
-		
+	fprintf(stdout,"prepare END\n");	
 	GetMutex()->Unlock();
 
 	m_Ready = true;
@@ -4131,7 +4132,7 @@ void CMapPlugin::Render()
 {
 	if(!GetShowOBJECTS())
 		return;
-
+	fprintf(stdout,"Render BEGIN\n");
 	m_Render = true;
 	Generate();
 	SetValues(false);
@@ -4139,7 +4140,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	wxMutexLocker lock(*GetMutex());
+	//wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
@@ -4152,7 +4153,7 @@ void CMapPlugin::Render()
 	glLineWidth(1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-	
+	fprintf(stdout,"Render END\n");
 	m_Render = false;
 		
 }

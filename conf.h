@@ -301,6 +301,16 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define MSG_AIS_TIMEOUT_REMOVE			197
 #define MSG_HDT							198
 #define MSG_ROT							199
+#define MSG_AIS_CLEAR_BUFFER			200
+#define MSG_AIS_TIMEOUTS				201
+#define MSG_AIS_NAMES					202
+#define MSG_OBJECT_OPTIONS				203
+#define MSG_COG_OPTIONS					204
+#define MSG_HDT_OPTIONS					205
+#define MSG_GPS_OPTIONS					206
+
+
+
 
 #define MAX_DATA_POSITIONS	10
 

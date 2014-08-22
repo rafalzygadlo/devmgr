@@ -229,6 +229,13 @@ const wchar_t *nvLanguage[2][285] =
 		_("Target timeout remove"),
 		_("HDT"),
 		_("ROT"),
+		_("Clear AIS buffer"),
+		_("Target timeouts"),
+		_("Target names"),
+		_("Object options"),
+		_("COG Options"),
+		_("HDT Options"),
+		_("GPS Options"),
 	},
 	
 	/*PL*/
