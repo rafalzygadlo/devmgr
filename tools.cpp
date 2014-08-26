@@ -547,12 +547,17 @@ bool Set_RMC_COG()
 
 void Reset(double *tab)
 {
-	tab[0] = UNDEFINED_DOUBLE;
-	tab[1] = UNDEFINED_DOUBLE;
-	tab[2] = UNDEFINED_DOUBLE;
-	tab[3] = UNDEFINED_DOUBLE;
-	tab[4] = UNDEFINED_DOUBLE;
-	tab[5] = UNDEFINED_DOUBLE;
+	tab[SHIP_LON] = UNDEFINED_DOUBLE;
+	tab[SHIP_LAT] = UNDEFINED_DOUBLE;
+	tab[SHIP_ROT] = UNDEFINED_DOUBLE;
+	tab[SHIP_SOG] = UNDEFINED_DOUBLE;
+	tab[SHIP_COG] = UNDEFINED_DOUBLE;
+	tab[SHIP_HDT] = UNDEFINED_DOUBLE;
+}
+
+void Reset(int id,double *tab)
+{
+	tab[id] = UNDEFINED_DOUBLE;
 }
 
 bool IsUndefined(double *idx, size_t size)

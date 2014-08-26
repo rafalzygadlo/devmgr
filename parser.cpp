@@ -347,6 +347,7 @@ void CParser::SetValidData()
 				SetFrequencyTable(funcd->index);
 				funcs->frequency[funcd->index] = SetFrequency(funcs->time[funcd->index]);
 				funcs->time[funcd->index] = GetTickCount();
+				fprintf(stdout,"ID:[%d]\n",funcd->index);
 				SetFunction(funcd->id,funcs->values,funcs->frequency);
 			}
 

@@ -65,7 +65,7 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_MaxFrequency;
 	int m_ShipTick;
 	int m_ShipInterval,m_AisBufferInterval;
-	bool m_PositionExists;
+	bool m_PositionExists,m_NewHDT;
 	bool m_Interpolation;
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;

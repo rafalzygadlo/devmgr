@@ -55,6 +55,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_OtherData = false;
 	m_AnimMarkerSize = 5.0f;
 	m_PositionDialog = NULL;
+	m_NewHDT = false;
 	
 	//m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_ShipTick = 0;
@@ -160,7 +161,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	color.R = 255;color.G = 0;color.B = 0;color.A = 200;
 	m_Light0->SetColor(color);
 	m_Light0->SetOffset(-1.0,-1.0);
-	m_Light0->SetRenderMode(GL_QUADS);
+	m_Light0->SetRenderMode(GL_TRIANGLES);
 
 	color.R = 0;color.G = 255;color.B = 0;color.A = 200;
 	m_Light1 = new CObject();
@@ -423,23 +424,26 @@ void CMapPlugin::OnInitGL()
 
 void CMapPlugin::OnSetShip()
 {
-		
+			
 	while(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 	{
-		Sleep(50);
+		Sleep(10);
 		//return;
 	}
 	
-	if(!m_PositionExists)
+	//if(!m_PositionExists)
+	//{
+		//GetMutex()->Unlock();
+		//return;
+	//}
+		
+	if(m_SignalID != SHIP_HDT)
 	{
 		GetMutex()->Unlock();
 		return;
 	}
-	
-	//m_Position_0_Exists = false;
-	//m_Position_1_Exists = false;
-	//m_PositionExists = false;
-	//m_HDT_Exists = false;
+
+
 
 	m_FakeShip->SetCurrentPtr(true);
 	m_FakeShip->ClearBuffers();
@@ -456,12 +460,12 @@ void CMapPlugin::OnSetShip()
 	ptr.to_starboard = 20;
 	ptr.to_stern = 120;
 	
-	m_FakeShips.Clear();
+	//m_FakeShips.Clear();
 
 	m_FakeShips.Append(ptr);
-
 	double v;
 	
+	/*
 	for(size_t i = 0; i < 10; i++)
 	{
 		double n1,n2;
@@ -473,7 +477,7 @@ void CMapPlugin::OnSetShip()
 		ptr.hdg = v;
 		m_FakeShips.Append(ptr);
 		
-	}
+	}*/
 	
 	//if(m_FakeShips.Length() > 20)
 	//{
@@ -481,8 +485,13 @@ void CMapPlugin::OnSetShip()
 			//m_FakeShips.Remove(i);
 	//}
 
-
-	for(size_t i = 0; i < m_FakeShips.Length(); i++)
+	if(m_FakeShips.Length() < 2)
+	{
+		GetMutex()->Unlock();
+		return;
+	}
+	
+	for(size_t i = m_FakeShips.Length() - 1 ; i+1 > m_FakeShips.Length() - 2; i--)
 	{
 		ptr = m_FakeShips.Get(i);
 		nvPoint2d pt;
@@ -513,7 +522,7 @@ void CMapPlugin::OnSetShip()
 		p6.x -= vx; p6.y -= vy;
 		p7.x -= vx; p7.y -= vy;
 	
-	#ifdef ROTATE
+#ifdef ROTATE
 		double out_x,out_y;
 		RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(ptr.hdg));	p1.x = out_x;	p1.y = out_y;
 		RotateZ(p2.x,p2.y,out_x,out_y,nvToRad(ptr.hdg));	p2.x = out_x;	p2.y = out_y;
@@ -522,7 +531,7 @@ void CMapPlugin::OnSetShip()
 		RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(ptr.hdg));	p5.x = out_x;	p5.y = out_y;
 		RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(ptr.hdg));	p6.x = out_x;	p6.y = out_y;
 		RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(ptr.hdg));	p7.x = out_x;	p7.y = out_y;
-	#endif
+#endif
 
 		double to_x, to_y;
 		m_Broker->Unproject(pt.x, pt.y,&to_x,&to_y);
@@ -547,7 +556,15 @@ void CMapPlugin::OnSetShip()
 		m_FakeShip->AddPoint(p6);
 		m_FakeShip->AddPoint(p7);
 
-		//m_FakeHDT->AddPoint(p5);
+		m_FakeHDT->AddPoint(p5);
+		
+
+		//double new_lon, new_lat;
+//		NewLonLat(GetHDTTime(),p5.x,p5.y,sog,hdg,&new_lon,&new_lat);
+//		p2.x = new_lon; p2.y = new_lat;
+		
+//		m_Broker->Unproject(p2.x, p2.y,&to_x,&to_y);
+		
 
 		int id = m_FakeShip->GetVertexLength();
 		
@@ -567,7 +584,7 @@ void CMapPlugin::OnSetShip()
 		m_FakeShip->AddIndice(id - 7); //0
 		
 		id = m_FakeHDT->GetVertexLength();
-		//m_FakeHDT->AddIndice(id - 1);
+		m_FakeHDT->AddIndice(id - 1);
 						
 
 		m_FakeShip->CopyBuffers();
@@ -577,12 +594,19 @@ void CMapPlugin::OnSetShip()
 
 	}
 
+	int len = m_FakeShip->GetVertexLength();
+	nvPoint2d p1 = m_FakeShip->GetVertex(len - 2);
+	nvPoint2d p2 = m_FakeShip->GetVertex(len - 2 - 7);
+	
+	double a = GetLineAngle(p1.x,p1.y,p2.x,p2.y);
+	fprintf(stdout,"%f\n",a);
+
 	//Reset(GetShipState());
 	//Reset(GetShipGlobalState());
 
 	GetMutex()->Unlock();
 
-	//m_Broker->Refresh(m_Broker->GetParentPtr());
+	m_Broker->Refresh(m_Broker->GetParentPtr());
 }
 
 void CMapPlugin::SetShip(SFunctionData *data)
@@ -735,7 +759,6 @@ bool CMapPlugin::InterpolatePosition()
 	if(m_PositionExists)
 	{
 		double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LAT],GetShipState(SHIP_LON),GetShipState(SHIP_LAT),nvMeter);
-		fprintf(stdout,"distance m%f\n",distance);
 		m_OldPositionTick = 0;
 		return false;
 	}
@@ -818,7 +841,7 @@ bool CMapPlugin::NewPosition(int time)
 		
 	double dist = nvDistance(m_ShipStaticState[SHIP_LON],m_ShipStaticState[SHIP_LAT],nlon,nlat,nvMeter);
 	
-	fprintf(stdout,"distance %f\n",dist);
+	//fprintf(stdout,"distance %f\n",dist);
 
 	// przypisz nowe wartosci 
 	SetShipState(SHIP_LON,nlon);
@@ -842,7 +865,7 @@ bool CMapPlugin::NewHDT(int time, double *va)
 	double hdt = m_ShipStaticState[SHIP_HDT] + a;
 	
 	m_OldHDT = hdt;
-	fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[SHIP_HDT] - hdt);
+	//fprintf(stdout,"HDT wyliczone %4.4f %4.4f\n",hdt, m_ShipStaticState[SHIP_HDT] - hdt);
 	m_ShipStaticState[SHIP_HDT] = hdt;
 	SetShipState(SHIP_HDT,hdt);
 	SetShipGlobalState(SHIP_HDT,hdt);
@@ -945,7 +968,7 @@ void CMapPlugin::OnTicker1Stop(){}
 void CMapPlugin::OnTicker1Tick()
 {
 	OnSetShip();
-	Interpolate();
+	//Interpolate();
 	SendShipData();
 	m_ShipInterval = GetControlFrequency();
 }
@@ -1131,11 +1154,13 @@ void CMapPlugin::Kill(void)
 	ais_save_file(GetAisFile().char_str());
 	ais_free_list();
 	ais_free_buffer();
+	ais_free_search_buffer();
 	ais_free_track();
 	ais_free_collision(); 
 	ais_free_collision_CPA();
 	ais_free_collision_TCPA();
 	ais_state_free();
+	
 	SignalsFree();
 	SendSignal(CLEAR_DISPLAY,NULL);
 	// before myserial delete
@@ -1888,13 +1913,12 @@ void CMapPlugin::PrepareBuffer()
 	if(GetMutex()->TryLock()  != wxMUTEX_NO_ERROR)
 		return;
 	
-	fprintf(stdout,"prepare BEGIN\n");
 	SetPtr0();
 	ClearBuffers();
 	SetBuffers();
 	CopyBuffers();
 	SetPtr1();
-	fprintf(stdout,"prepare END\n");	
+	
 	GetMutex()->Unlock();
 
 	m_Ready = true;
@@ -4083,7 +4107,7 @@ void CMapPlugin::RenderNormalScale()
 	_RenderAtons();
 	_RenderBS();
 	//_RenderSAR();				//moze niestabilne
-	//_RenderShipLights();
+	_RenderShipLights();
 	RenderROT();
 	RenderCOG();
 	RenderHDT();
@@ -4130,9 +4154,10 @@ void CMapPlugin::RenderShip()
 */
 void CMapPlugin::Render()
 {
+	
 	if(!GetShowOBJECTS())
 		return;
-	fprintf(stdout,"Render BEGIN\n");
+	
 	m_Render = true;
 	Generate();
 	SetValues(false);
@@ -4140,7 +4165,7 @@ void CMapPlugin::Render()
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
 		
-	//wxMutexLocker lock(*GetMutex());
+	wxMutexLocker lock(*GetMutex());
 	if(m_MapScale < m_Factor/5)
 		RenderSmallScale();
 	else
@@ -4148,12 +4173,10 @@ void CMapPlugin::Render()
 		
 	RenderAnimation();
 	
-	
-
 	glLineWidth(1);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-	fprintf(stdout,"Render END\n");
+	
 	m_Render = false;
 		
 }

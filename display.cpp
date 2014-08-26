@@ -295,6 +295,20 @@ void CDisplayPlugin::ClearDisplay()
 		delete m_DevicesList;
 		m_DevicesList = NULL;
 	}
+
+	if(m_AisList != NULL)
+	{
+		delete m_AisList;
+		m_AisList = NULL;
+	}
+
+	if(m_AisMonitor != NULL)
+	{
+		delete m_AisMonitor;
+		m_AisMonitor = NULL;
+	}
+
+
 }
 
 void CDisplayPlugin::InitDisplay()
