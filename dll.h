@@ -65,7 +65,8 @@ class CMapPlugin :public CNaviMapIOApi
 	int m_MaxFrequency;
 	int m_ShipTick;
 	int m_ShipInterval,m_AisBufferInterval;
-	bool m_PositionExists,m_NewHDT;
+	bool m_Position_Exists,m_NewHDT;
+	bool m_HDTChanged,m_PositionChanged, m_LATChanged ,m_LONChanged;
 	bool m_Interpolation;
 	double m_OldHDT;
 	int m_GlobalTick, m_OldGlobalTick;
@@ -199,6 +200,7 @@ class CMapPlugin :public CNaviMapIOApi
 	CNaviArray <SAisNames*> *m_CurrentShipNamesBufferPtr;
 	
 	CNaviArray <SAisData> m_FakeShips;
+	nvPoint2d m_ShipBow;
 
 	void Prepare();
 	void CreateApiMenu(void);
@@ -351,7 +353,9 @@ class CMapPlugin :public CNaviMapIOApi
 	void CheckCollision();
 	void CheckShipCollision();
 	void _SetShipPosition();
+	
 	void OnSetShip();		//ustawia ship danymi z urzadzenia
+	void FakeShipBuffer(SAisData ptr);
 	
 
 	void PrepareShipBuffer(SAisData *ptr);

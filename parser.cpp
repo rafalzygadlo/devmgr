@@ -347,8 +347,7 @@ void CParser::SetValidData()
 				SetFrequencyTable(funcd->index);
 				funcs->frequency[funcd->index] = SetFrequency(funcs->time[funcd->index]);
 				funcs->time[funcd->index] = GetTickCount();
-				fprintf(stdout,"ID:[%d]\n",funcd->index);
-				SetFunction(funcd->id,funcs->values,funcs->frequency);
+				SetFunction(funcd->id,funcd->index, funcs->values,funcs->frequency);
 			}
 
 		}
@@ -362,11 +361,12 @@ int CParser::SetFrequency(int value)
 	return GetTickCount() - value;
 }
 
-void CParser::SetFunction(int id_function, double *values, int *frequency)
+void CParser::SetFunction(int id_function, int id_signal, double *values, int *frequency)
 {
 	SFunctionData Function;
 	Function.id_function = id_function;
-	memcpy(Function.values,values,sizeof(double)*MAX_SHIP_VALUES_LEN);
+	Function.id_signal = id_signal;
+	memcpy(Function.values,values,sizeof(double) * MAX_SHIP_VALUES_LEN);
 	memcpy(Function.frequency,frequency,sizeof(int) * MAX_SHIP_VALUES_LEN);
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnFuncData",&Function);
 }

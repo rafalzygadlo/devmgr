@@ -29,7 +29,7 @@ class CParser
 	double ConvertValue(int signal_id,double data);
 	void SetValidData();
 	int SetFrequency(int value);
-	void SetFunction(int id_function, double *values, int *frequency);
+	void SetFunction(int id_function, int id_signal, double *values, int *frequency);
 	double DD( float DM );
 	void AisParse(char *str);
 	bool Ais(char *str);

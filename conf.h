@@ -470,6 +470,7 @@ typedef struct SData
 typedef struct SFunctionData
 {
 	int		id_function;
+	int		id_signal;
 	double	values[MAX_SHIP_VALUES_LEN];
 	int		frequency[MAX_SHIP_VALUES_LEN];
 
