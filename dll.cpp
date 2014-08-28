@@ -195,20 +195,25 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_FakeShip->SetRenderMode(GL_LINES);
 	color.R = 255;color.G = 0;color.B = 0;color.A = 255;
 	m_FakeShip->SetColor(color);
-	m_FakeCounter = 0;
-	
-	m_FakeHDT = new CObject();
-	m_FakeHDT->SetRenderMode(GL_LINES);
+		
+	m_FakeBow = new CObject();
+	m_FakeBow->SetRenderMode(GL_LINES);
 	color.R = 0;color.G = 255;color.B = 0;color.A = 255;
-	m_FakeHDT->SetColor(color);
+	m_FakeBow->SetColor(color);
 	
+	m_FakeStern = new CObject();
+	m_FakeStern->SetRenderMode(GL_LINES);
+	color.R = 255;color.G = 0;color.B = 0;color.A = 255;
+	m_FakeStern->SetColor(color);
+
 	m_ObjectArray.Append(m_Light0);
 	m_ObjectArray.Append(m_Light1);
 	m_ObjectArray.Append(m_Light2);
 	m_ObjectArray.Append(m_ShipCPA);
 	m_ObjectArray.Append(m_CPA);
 	m_ObjectArray.Append(m_FakeShip);
-	m_ObjectArray.Append(m_FakeHDT);
+	m_ObjectArray.Append(m_FakeBow);
+	m_ObjectArray.Append(m_FakeStern);
 
 	InitMutex();
 	InitSearchMutex();
@@ -431,22 +436,22 @@ void CMapPlugin::OnSetShip()
 		
 	if(m_Position_Exists && m_HDT_Exists)
 	{
-		if(m_PositionChanged && m_HDTChanged)
+		if(m_PositionChanged || m_HDTChanged)
 		{
 			SAisData ptr;
 			ptr.lon = GetShipState(SHIP_LON);
 			ptr.lat = GetShipState(SHIP_LAT);
 			ptr.hdg = GetShipState(SHIP_HDT);
-	
-			ptr.to_bow = 210;
+
+			ptr.to_bow = 20;
 			ptr.to_port = 20;
 			ptr.to_starboard = 20;
 			ptr.to_stern = 170;
-	
+
 			m_FakeShips.Append(ptr);
-			
+
 			if(m_PositionChanged)
-			{	
+			{
 				m_LONChanged = false;
 				m_LATChanged = false;
 				m_PositionChanged = false;
@@ -456,7 +461,7 @@ void CMapPlugin::OnSetShip()
 				m_HDTChanged = false;
 		}
 	}
-	
+
 	
 	/*
 	for(size_t i = 0; i < 10; i++)
@@ -487,10 +492,12 @@ void CMapPlugin::OnSetShip()
 
 	m_FakeShip->SetCurrentPtr(true);
 	m_FakeShip->ClearBuffers();
-	m_FakeHDT->SetCurrentPtr(true);
-	m_FakeHDT->ClearBuffers();
-		
-	nvPoint2d p1,p2;
+	m_FakeBow->SetCurrentPtr(true);
+	m_FakeBow->ClearBuffers();
+	m_FakeStern->SetCurrentPtr(true);
+	m_FakeStern->ClearBuffers();
+
+	nvPoint2d p11,p12,p21,p22;
 	
 	SAisData ptr1,ptr2;
 	int idx = m_FakeShips.Length() - 1;
@@ -498,52 +505,80 @@ void CMapPlugin::OnSetShip()
 	ptr2 = m_FakeShips.Get(idx - 1);
 	
 	FakeShipBuffer(ptr1);
-	p1 = m_ShipBow;
-		
+	p11 = m_ShipBow;
+	p21 = m_ShipStern;
+
 	FakeShipBuffer(ptr2);
-	p2 = m_ShipBow;
+	p12 = m_ShipBow;
+	p22 = m_ShipStern;
+
+	FakeArrow(p11,p12,ptr1.hdg,ptr2.hdg,m_FakeBow);
+	FakeArrow(p21,p22,ptr1.hdg+180,ptr2.hdg+180,m_FakeStern);
+		
+	m_FakeShip->SetCurrentPtr(false);
+	m_FakeShip->CopyBuffers();
+	m_FakeBow->SetCurrentPtr(false);
+	m_FakeBow->CopyBuffers();
+	m_FakeStern->SetCurrentPtr(false);
+	m_FakeStern->CopyBuffers();	
+
+	GetMutex()->Unlock();
+
+
+}
+
+void CMapPlugin::FakeArrow(nvPoint2d p1, nvPoint2d p2, float hdg1, float hdg2, CObject *ptr)
+{
 	
 	double distance = nvDistance(p1.x,p1.y,p2.x,p2.y,nvMeter);
 
-	double angle = -90;
-	if((ptr1.hdg >= ptr2.hdg))
-		angle = angle + ptr1.hdg + 90;
-	else
-		angle = angle + ptr1.hdg - 90;
+	fprintf(stdout,"%4.2f\n",distance);
 
+	double angle = -90;
 	
-	double x = (distance/1852) * cos(nvToRad(angle)) + p1.x;
-	double y = (distance/1852) * sin(nvToRad(angle)) + p1.y;
+	if((hdg1 == hdg2))
+	{
+		angle = angle + hdg1;
+	
+	}else{
+	
+		if((hdg1 > hdg2))
+			angle = angle + hdg1 + 90;
+		else
+			angle = angle + hdg1 - 90;
+	}
+
+	//double out_x,out_y;
+	//RotateZ(p1.x,p1.y,out_x,out_y,nvToRad(180));	p1.x = out_x;	p1.y = out_y;
+	
+	
+	//double x = (distance) * cos(nvToRad(angle)) + p1.x;
+	//double y = (distance) * sin(nvToRad(angle)) + p1.y;
+	
+
+	double x = p1.x + ((p1.x - p2.x)*10);
+	double y = p1.y + ((p1.y - p2.y)*10);
 
 	double sog = distance;
 	
-	m_FakeHDT->AddPoint(p1);
-	int id = m_FakeHDT->GetVertexLength();
-	m_FakeHDT->AddIndice(id - 1);
+	ptr->AddPoint(p1);
+	int id = ptr->GetVertexLength();
+	ptr->AddIndice(id - 1);
 	
 	p2.x = x;
 	p2.y = y;
 
-	m_FakeHDT->AddPoint(p2);
-	id = m_FakeHDT->GetVertexLength();
-	m_FakeHDT->AddIndice(id - 1);
-	fprintf(stdout,"%4.2f\n",sog);
-
-
-	m_FakeShip->CopyBuffers();
-	m_FakeShip->SetCurrentPtr(false);
-	m_FakeHDT->CopyBuffers();
-	m_FakeHDT->SetCurrentPtr(false);
-
+	ptr->AddPoint(p2);
+	id = ptr->GetVertexLength();
+	ptr->AddIndice(id - 1);
 	
-	GetMutex()->Unlock();
 
 
 }
 
 void CMapPlugin::FakeShipBuffer(SAisData ptr)
 {
-	nvPoint2d p1, p2, p3, p4, p5, p6, p7;		
+	nvPoint2d p1, p2, p3, p4, p5, p6, p7,p8;		
 	double width = GetShipWidth(&ptr);
 	double height = GetShipHeight(&ptr);
 	
@@ -553,12 +588,13 @@ void CMapPlugin::FakeShipBuffer(SAisData ptr)
 	
 	//wymiary rzeczywiste
 	p1.x = -0.5 * width;	p1.y =  0.5    * height;
-	p2.x =  0.5 * width;	p2.y =  0.5    * height;
-	p3.x =  0.5 * width;	p3.y = -0.3    * height;
-	p4.x =  0.3 * width;	p4.y = -0.425  * height;
-	p5.x =  0.0;			p5.y = -0.5    * height;
-	p6.x = -0.3 * width;	p6.y = -0.425  * height;
-	p7.x = -0.5 * width;	p7.y = -0.3    * height;
+	p2.x =  0.0 * width;	p2.y =  0.6    * height;
+	p3.x =  0.5 * width;	p3.y =  0.5    * height;
+	p4.x =  0.5 * width;	p4.y = -0.3    * height;
+	p5.x =  0.3 * width;	p5.y = -0.425  * height;
+	p6.x =  0.0;			p6.y = -0.5    * height;
+	p7.x = -0.3 * width;	p7.y = -0.425  * height;
+	p8.x = -0.5 * width;	p8.y = -0.3    * height;
 	
 	//pozycja GPSa
 	double vx = (ToPort(&ptr) - ToStarboard(&ptr))/2; 
@@ -571,6 +607,7 @@ void CMapPlugin::FakeShipBuffer(SAisData ptr)
 	p5.x -= vx; p5.y -= vy;
 	p6.x -= vx; p6.y -= vy;
 	p7.x -= vx; p7.y -= vy;
+	p8.x -= vx; p8.y -= vy;
 	
 #ifdef ROTATE
 	double out_x,out_y;
@@ -581,6 +618,7 @@ void CMapPlugin::FakeShipBuffer(SAisData ptr)
 	RotateZ(p5.x,p5.y,out_x,out_y,nvToRad(ptr.hdg));	p5.x = out_x;	p5.y = out_y;
 	RotateZ(p6.x,p6.y,out_x,out_y,nvToRad(ptr.hdg));	p6.x = out_x;	p6.y = out_y;
 	RotateZ(p7.x,p7.y,out_x,out_y,nvToRad(ptr.hdg));	p7.x = out_x;	p7.y = out_y;
+	RotateZ(p8.x,p8.y,out_x,out_y,nvToRad(ptr.hdg));	p8.x = out_x;	p8.y = out_y;
 #endif
 
 	double to_x, to_y;
@@ -596,8 +634,10 @@ void CMapPlugin::FakeShipBuffer(SAisData ptr)
 	p5.x += pt.x; p5.y += pt.y;
 	p6.x += pt.x; p6.y += pt.y;
 	p7.x += pt.x; p7.y += pt.y;
+	p8.x += pt.x; p8.y += pt.y;
 	
-	m_ShipBow = p5;	
+	m_ShipBow = p6;
+	m_ShipStern = p2;
 
 	m_FakeShip->AddPoint(p1);
 	m_FakeShip->AddPoint(p2);
@@ -606,29 +646,27 @@ void CMapPlugin::FakeShipBuffer(SAisData ptr)
 	m_FakeShip->AddPoint(p5);
 	m_FakeShip->AddPoint(p6);
 	m_FakeShip->AddPoint(p7);
-	m_FakeHDT->AddPoint(p5);
-		
+	m_FakeShip->AddPoint(p8);
+	
 
 	int id = m_FakeShip->GetVertexLength();
-		
-	m_FakeShip->AddIndice(id - 7); //0
-	m_FakeShip->AddIndice(id - 6); //1
-	m_FakeShip->AddIndice(id - 6); //1
-	m_FakeShip->AddIndice(id - 5); //2
-	m_FakeShip->AddIndice(id - 5); //2
-	m_FakeShip->AddIndice(id - 4); //3
-	m_FakeShip->AddIndice(id - 4); //3
-	m_FakeShip->AddIndice(id - 3); //4
-	m_FakeShip->AddIndice(id - 3); //4
-	m_FakeShip->AddIndice(id - 2); //5
-	m_FakeShip->AddIndice(id - 2); //5
-	m_FakeShip->AddIndice(id - 1); //6
-	m_FakeShip->AddIndice(id - 1); //6
-	m_FakeShip->AddIndice(id - 7); //0
-	
-	id = m_FakeHDT->GetVertexLength();
-	m_FakeHDT->AddIndice(id - 1);
-						
+
+	m_FakeShip->AddIndice(id - 8);
+	m_FakeShip->AddIndice(id - 7);
+	m_FakeShip->AddIndice(id - 7);
+	m_FakeShip->AddIndice(id - 6);
+	m_FakeShip->AddIndice(id - 6);
+	m_FakeShip->AddIndice(id - 5);
+	m_FakeShip->AddIndice(id - 5);
+	m_FakeShip->AddIndice(id - 4);
+	m_FakeShip->AddIndice(id - 4);
+	m_FakeShip->AddIndice(id - 3);
+	m_FakeShip->AddIndice(id - 3);
+	m_FakeShip->AddIndice(id - 2);
+	m_FakeShip->AddIndice(id - 2);
+	m_FakeShip->AddIndice(id - 1);
+	m_FakeShip->AddIndice(id - 1);
+	m_FakeShip->AddIndice(id - 8);
 
 	
 	
@@ -3898,10 +3936,11 @@ void  CMapPlugin::RenderSelection()
 
 void CMapPlugin::RenderFakeShip()
 {
-	glPointSize(10);
+	glLineWidth(3);
 	m_FakeShip->Render();
-	m_FakeHDT->Render();
-	glPointSize(1);
+	m_FakeBow->Render();
+	m_FakeStern->Render();
+	glLineWidth(1);
 }
 
 void CMapPlugin::RenderShipCPA()
