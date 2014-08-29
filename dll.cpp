@@ -530,7 +530,12 @@ void CMapPlugin::OnSetShip()
 void CMapPlugin::FakeArrow(nvPoint2d p1, nvPoint2d p2, float hdg1, float hdg2, CObject *ptr)
 {
 	
-	double distance = nvDistance(p1.x,p1.y,p2.x,p2.y,nvMeter);
+	nvPoint2d d1,d2;
+
+	m_Broker->Project(p1.x,p1.y,&d1.x,&d1.y);
+	m_Broker->Project(p2.x,p2.y,&d2.x,&d2.y);
+	
+	double distance = nvDistance(d1.x,d1.y,d2.x,d2.y,nvMeter);
 
 	fprintf(stdout,"%4.2f\n",distance);
 
@@ -679,11 +684,8 @@ void CMapPlugin::SetShip(SFunctionData *data)
 	memcpy(m_GlobalFrequency,data->frequency,sizeof(data->frequency));
 
 	if(data->id_signal == SHIP_HDT)
-	{
 		m_HDTChanged = true;
-		fprintf(stdout,"%f\n",data->values[SHIP_HDT]);
-	}
-
+		
 	if(data->id_signal == SHIP_LON)
 		m_LONChanged = true;
 

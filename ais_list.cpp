@@ -425,21 +425,21 @@ wxPanel *CAisList::GetPage2()
 	m_Scroll->SetFocusIgnoringChildren();
 	m_Scroll->SetSizer(ScrollSizer);
 		
-	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
-	ScrollSizer->Add(FlexSizer,0,wxALL,5);
+	//wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
+	//ScrollSizer->Add(FlexSizer,0,wxALL,5);
 	
 	//fonty
-	ScrollSizer->Add( GetShipNamesPanel(),0,wxALL,2);
+	ScrollSizer->Add( GetShipNamesPanel(),0,wxALL|wxEXPAND,2);
 	// ship options
-	ScrollSizer->Add(GetShipOptionsPanel(),0,wxALL,2);
+	ScrollSizer->Add(GetShipOptionsPanel(),0,wxALL|wxEXPAND,2);
 	// COG
-	ScrollSizer->Add(GetCOGPanel(),0,wxALL,2);
+	ScrollSizer->Add(GetCOGPanel(),0,wxALL|wxEXPAND,2);
 	//HDT
-	ScrollSizer->Add(GetHDTPanel(),0,wxALL,2);
+	ScrollSizer->Add(GetHDTPanel(),0,wxALL|wxEXPAND,2);
 	//GPS
-	ScrollSizer->Add( GetGPSPanel(),0,wxALL,2);
+	ScrollSizer->Add( GetGPSPanel(),0,wxALL|wxEXPAND,2);
 	//Timeout	
-	ScrollSizer->Add( GetTimeoutPanel(),0,wxALL,2);
+	ScrollSizer->Add( GetTimeoutPanel(),0,wxALL|wxEXPAND,2);
 		
 	wxStaticBoxSizer *box_sizer = new wxStaticBoxSizer(wxVERTICAL,m_Scroll,_("test"));
 	ScrollSizer->Add(box_sizer,0,wxALL,5);
@@ -460,7 +460,7 @@ wxPanel *CAisList::GetShipNamesPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_AIS_NAMES));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
@@ -500,7 +500,7 @@ wxPanel *CAisList::GetShipOptionsPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_OBJECT_OPTIONS));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
@@ -648,7 +648,7 @@ wxPanel *CAisList::GetCOGPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_COG_OPTIONS));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
@@ -708,7 +708,7 @@ wxPanel *CAisList::GetHDTPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_HDT_OPTIONS));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
@@ -769,7 +769,7 @@ wxPanel *CAisList::GetGPSPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_GPS_OPTIONS));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(3);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
@@ -804,7 +804,7 @@ wxPanel *CAisList::GetTimeoutPanel()
 	Panel->SetSizer(PanelSizer);
 	
 	wxStaticBoxSizer *Box = new wxStaticBoxSizer(wxVERTICAL,Panel,GetMsg(MSG_AIS_TIMEOUTS));
-	PanelSizer->Add(Box,0,wxALL,0);
+	PanelSizer->Add(Box,0,wxALL|wxEXPAND,0);
 
 	wxFlexGridSizer *FlexSizer = new wxFlexGridSizer(2);
 	Box->Add(FlexSizer,1,wxALL|wxEXPAND,5);
