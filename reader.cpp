@@ -324,6 +324,12 @@ void CReader::OnNoSignal()
 {
 	m_SignalType = SIGNAL_NO_SIGNAL;
 	m_Broker->ExecuteFunction(m_Broker->GetParentPtr(),"devmgr_OnDevSignal",this);
+	switch(m_ConnectionType)
+	{
+		case CONNECTION_TYPE_SOCKET:	return SocketPtr->Disconnect();
+		case CONNECTION_TYPE_SERIAL:	return SerialPtr->Disconnect();
+	}
+
 }
 
 void CReader::OnData( char *buffer, int length)

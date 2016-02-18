@@ -57,7 +57,7 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_PositionDialog = NULL;
 	m_NewHDT = false;
 	m_HDTChanged = m_PositionChanged = m_LONChanged = m_LATChanged = false;
-	
+	m_BufferCount = 0;
 	//m_MilesPerDeg = nvDistance( 0.0f, 0.0f, 1.0f, 0.0f );
 	m_ShipTick = 0;
 	m_ShipInterval = 0;
@@ -110,32 +110,25 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	m_COGTime = DEFAULT_COG_TIME;
 	m_HDTTime = DEFAULT_HDT_TIME;
 
-
+	m_NameFont = NULL;
+	m_MMSIFont = NULL;
+	
 	m_NameFont = new nvFastFont();
 	m_NameFont->Assign( (nvFastFont*)NaviBroker->GetFont( 0 ) );	// 1 = nvAriali
-	//m_NameFont->SetEffect(0);
-	//m_NameFont->SetEffect( nvEFFECT_SMOOTH );
 	m_NameFont->SetEffect( nvEFFECT_GLOW );
     
 	m_NameFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
-	//m_NameFont->SetGlyphCenter(0.0001f);
-    m_NameFont->SetGlyphOffset( 4.0f );
+	m_NameFont->SetGlyphOffset( 4.0f );
 	m_NameFont->SetGlowColor(0.8f, 0.8f, 0.8f );
-	//m_NameFont->SetGlowCenter( 4.0f );
-	//m_NameFont->s
 	
 	m_MMSIFont = new nvFastFont();
 	m_MMSIFont->Assign( (nvFastFont*)NaviBroker->GetFont( 0 ) );	// 1 = nvAriali
-	//m_MMSIFont->SetEffect( nvEFFECT_SMOOTH );
 	m_MMSIFont->SetEffect( nvEFFECT_GLOW );
     
 	m_MMSIFont->SetGlyphColor(0.0f, 0.0f, 0.0f);
-	//m_MMSIFont->SetGlyphCenter(1.0001f);
-    m_MMSIFont->SetGlyphOffset( 4.0f );
+	m_MMSIFont->SetGlyphOffset( 4.0f );
 	m_MMSIFont->SetGlowColor(0.8f, 0.8f, 0.8f );
-	//m_MMSIFont->SetGlowCenter( 4.0f );
-	
-	
+		
 	m_Ready = true;
 	m_Render = false;
 	m_SearchTextChanged = m_FilterChanged = true;
@@ -155,6 +148,10 @@ CMapPlugin::CMapPlugin(CNaviBroker *NaviBroker):CNaviMapIOApi(NaviBroker)
 	AddExecuteFunction("devmgr_AddDevice",AddDevice);
 	AddExecuteFunction("devmgr_OnFuncData",OnFunctionData);
 	AddExecuteFunction("devmgr_OnSynchro",OnSynchro);
+	AddExecuteFunction("devmgr_GetAisCount",GetAisCount);
+	AddExecuteFunction("devmgr_GetAisItem",GetAisItem);
+	AddExecuteFunction("devmgr_MutexLock",MutexLock);
+	AddExecuteFunction("devmgr_MutexUnlock",MutexUnlock);
 
 	nvRGBA color;	
 	m_Light0 = new CObject();
@@ -436,8 +433,8 @@ void CMapPlugin::OnSetShip()
 		
 	if(m_Position_Exists && m_HDT_Exists)
 	{
-		if(m_PositionChanged || m_HDTChanged)
-		{
+		//if(m_PositionChanged || m_HDTChanged)
+		//{
 			SAisData ptr;
 			ptr.lon = GetShipState(SHIP_LON);
 			ptr.lat = GetShipState(SHIP_LAT);
@@ -459,7 +456,10 @@ void CMapPlugin::OnSetShip()
 
 			if(m_HDTChanged)
 				m_HDTChanged = false;
-		}
+		//}else{
+		
+			//fprintf(stdout,"not changed\n");
+		//}
 	}
 
 	
@@ -520,8 +520,8 @@ void CMapPlugin::OnSetShip()
 	m_FakeBow->SetCurrentPtr(false);
 	m_FakeBow->CopyBuffers();
 	m_FakeStern->SetCurrentPtr(false);
-	m_FakeStern->CopyBuffers();	
-
+	m_FakeStern->CopyBuffers();
+		
 	GetMutex()->Unlock();
 
 
@@ -537,7 +537,7 @@ void CMapPlugin::FakeArrow(nvPoint2d p1, nvPoint2d p2, float hdg1, float hdg2, C
 	
 	double distance = nvDistance(d1.x,d1.y,d2.x,d2.y,nvMeter);
 
-	fprintf(stdout,"%4.2f\n",distance);
+	//fprintf(stdout,"%4.2f\n",distance);
 
 	double angle = -90;
 	
@@ -839,12 +839,12 @@ void CMapPlugin::Interpolate()
 
 bool CMapPlugin::InterpolatePosition()
 {
-	if(m_Position_Exists)
-	{
-		double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LAT],GetShipState(SHIP_LON),GetShipState(SHIP_LAT),nvMeter);
-		m_OldPositionTick = 0;
-		return false;
-	}
+	//if(m_Position_Exists)
+	//{
+		//double distance = nvDistance(m_ShipOldStaticState[SHIP_LON],m_ShipOldStaticState[SHIP_LAT],GetShipState(SHIP_LON),GetShipState(SHIP_LAT),nvMeter);
+		//m_OldPositionTick = 0;
+		//return false;
+	//}
 
 	if(!m_ShipValidFrequency)
 		return false;
@@ -874,12 +874,12 @@ bool CMapPlugin::InterpolatePosition()
 
 bool CMapPlugin::InterpolateHDT()
 {
-	if(m_HDT_Exists)
-	{
+	//if(m_HDT_Exists)
+	//{
 		//fprintf(stdout,"HDT %4.4f %4.4f\n",m_ShipStaticState[5], m_OldHDT - m_ShipStaticState[5]);
-		m_OldHDTTick = 0;
-		return false;
-	}
+		//m_OldHDTTick = 0;
+		//return false;
+	//}
 	
 	if(!m_ShipValidFrequency)
 		return false;
@@ -1029,6 +1029,7 @@ void CMapPlugin::OnTicker2Tick()
 		m_AnimTick = 0;
 		m_AnimStarted = true;
 		m_TickerAnim->Start(50);
+		//m_Broker->StartAnimation(true,m_Broker->GetParentPtr());
 	}
 	
 	if(m_AnimTick > 10)
@@ -1036,6 +1037,7 @@ void CMapPlugin::OnTicker2Tick()
 		m_AnimStarted = false;
 		m_AnimTick = 0;
 		SetStartAnimation(false);
+		//m_Broker->StartAnimation(false,m_Broker->GetParentPtr());
 		m_TickerAnim->Stop();
 	}
 	
@@ -1050,8 +1052,8 @@ void CMapPlugin::OnTicker1Start(){}
 void CMapPlugin::OnTicker1Stop(){}
 void CMapPlugin::OnTicker1Tick()
 {
-	OnSetShip();
 	//Interpolate();
+	OnSetShip();
 	SendShipData();
 	m_ShipInterval = GetControlFrequency();
 }
@@ -1097,6 +1099,11 @@ void CMapPlugin::StartDevice(CReader *ptr)
 void CMapPlugin::StopDevice(CReader *ptr)
 {
 	SendSignal(STOP_DEVICE,ptr);
+}
+
+void CMapPlugin::SetLanguage(int LanguageID)
+{
+	SetLanguageId(LanguageID);
 }
 
 void CMapPlugin::RemoveDevice(CReader *ptr)
@@ -4264,6 +4271,7 @@ void CMapPlugin::Render()
 	m_Render = false;
 		
 }
+
 void CMapPlugin::Generate()
 {
 	if(m_FirstTime)
@@ -4554,13 +4562,30 @@ void CMapPlugin::SendSynchroSignal()
 	SendSignal(SIGNAL_SYNCHRO_OPTIONS,0);
 }
 
-void *CMapPlugin::GetAisBuffer(void *NaviMapIOApiPtr, void *Params)
+void *CMapPlugin::GetAisCount(void *NaviMapIOApiPtr, void *Params)
 {
 	CMapPlugin *ThisPtr = (CMapPlugin*)NaviMapIOApiPtr;
-	//Params = ais_get_buffer();
+	*((int*)Params) = ais_buffer_count();
 	return NULL;
 }
 
+void *CMapPlugin::GetAisItem(void *NaviMapIOApiPtr, void *Params)
+{
+	SAisData *ptr = ais_buffer_get_item(*(int*)Params);
+	return ptr;
+}
+
+void *CMapPlugin::MutexLock(void *NaviMapIOApiPtr, void *Params)
+{
+	GetMutex()->Lock();
+	return NULL;
+}
+
+void *CMapPlugin::MutexUnlock(void *NaviMapIOApiPtr, void *Params)
+{
+	GetMutex()->Unlock();
+	return NULL;
+}
 
 SData *CMapPlugin::GetData()
 {

@@ -1,7 +1,6 @@
 #ifndef __DLL_H
 #define __DLL_H
 
-#include "object.h"
 #include "NaviMapIOApi.h"
 #include <wx/fileconf.h>
 #include <vector>
@@ -11,12 +10,8 @@
 #include "GeometryConfig.h"
 #include "nvFastFont.h"
 #include "positiondialog.h"
-
-#ifdef _WIN32
-	#include <windows.h>
-	#include <crtdbg.h>
-#endif
 #include "reader.h"
+#include "object.h"
 #include "conf.h"
 #include "ticker.h"
 #include "frame.h"
@@ -88,6 +83,7 @@ class CMapPlugin :public CNaviMapIOApi
 	bool m_AnimStarted;
 	int	m_AnimTick;
 	double m_Angle;
+	int m_BufferCount;
 
 
 	TTexture *m_TextureTGA_0;
@@ -362,8 +358,7 @@ class CMapPlugin :public CNaviMapIOApi
 	void FakeShipBuffer(SAisData ptr);
 	void FakeArrow(nvPoint2d p1, nvPoint2d p2, float hdg1, float hdg2, CObject *ptr);
 	///................................
-
-
+		
 	void PrepareShipBuffer(SAisData *ptr);
 	void PrepareAtonBuffer(SAisData *ptr);
 	void PrepareBSBuffer(SAisData *ptr);
@@ -451,6 +446,7 @@ public:
 	virtual void MouseDBLClick(int x, int y);
 	virtual void OnInitGL();
 	virtual void OnZoom(double Scale);
+	virtual void SetLanguage(int LanguageID);
 		
 	// funkcje dostêpne dla innych pluginów
 	static void *OnDeviceSignal(void *NaviMapIOApiPtr, void *Params);	// serial signal (recnnec, on data etc...)
@@ -460,9 +456,12 @@ public:
 	static void *OnFunctionData(void *NaviMapIOApiPtr, void *Params);
 	static void *OnNewAisObject(void *NaviMapIOApiPtr, void *Params);	// nowe dane do tablicy ais
 	static void *OnData(void *NaviMapIOApiPtr, void *Params);			// dane
-	static void *GetAisBuffer(void *NaviMapIOApiPtr, void *Params);		// ais buffer
+	static void *GetAisCount(void *NaviMapIOApiPtr, void *Params);		// ais count
+	static void *GetAisItem(void *NaviMapIOApiPtr, void *Params);		// ais count
 	static void *OnSynchro(void *NaviMapIOApiPtr, void *Params);		// opcje
-	
+	static void *MutexLock(void *NaviMapIOApiPtr, void *Params);		// mutex lock
+	static void *MutexUnlock(void *NaviMapIOApiPtr, void *Params);		// mutex unlock
+		
 };	
 
 #ifdef __cplusplus

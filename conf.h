@@ -65,7 +65,7 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 #define KEY_BS_COLOR "bs_color"
 #define KEY_CPA "cpa"
 #define KEY_TCPA "tcpa"
-#define DIR_WORKDIR "workdir"
+#define DIR_WORKDIR "data"
 #define KEY_DEVICE_ID "device_id"
 
 #define ICON_STOP 0

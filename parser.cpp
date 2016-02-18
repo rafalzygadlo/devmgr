@@ -90,7 +90,7 @@ void CParser::Parse( char *line)
 				return;
 			
 			int Size;
-			char **StrList = ExplodeStr(ValidLine, ",", &Size);
+			char **StrList = ExplodeStr(ValidLine, ",", &Size);		
 			free( ValidLine );
 			
 			memset( &m_Data, 0, sizeof(SData) );
@@ -211,8 +211,7 @@ bool CParser::Ais(char *line)
 		}
 		
 		FreeStrList( last, last_size );
-		
-				
+					
 		if(fc == m_FragmentCount)
 		{
 			m_FragmentCount = 0;
@@ -222,7 +221,6 @@ bool CParser::Ais(char *line)
 		}
 				
 	}
-	
 	
 	to6bit(data,&m_OldLen,m_Bits,&m_Bitlen);
 	m_Bitlen -= pad;
@@ -248,8 +246,6 @@ bool CParser::Ais(char *line)
 		m_OldLen = 0;
 	}
 	
-	
-
 	return new_data;
 	
 }
@@ -293,14 +289,12 @@ char CParser::ConvertChar(char data)
 
 double CParser::DD( float DM ) 
 {
-
 	int ddeg = ( int )(DM / 100);
 	double min =  ( double )( DM / 100 - ddeg);
 	double x = double ( min / 60 ) * 100;
 	double a = ( double ) ddeg + x;
 
 	return a;
-
 }
 
 double CParser::ConvertValue(int signal_id,double data)

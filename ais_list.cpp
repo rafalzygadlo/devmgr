@@ -10,7 +10,6 @@
 #include "options.h"
 #include "filter.h"
 
-
 BEGIN_EVENT_TABLE(CAisList,wxPanel)
 	EVT_SEARCHCTRL_SEARCH_BTN(ID_SEARCH,OnSearchButton)
 	EVT_TEXT(ID_SEARCH,OnSearchText)
@@ -349,7 +348,7 @@ void CAisList::OnAisClearBuffer(wxHyperlinkEvent &event)
 	ais_free_list();
 	//ais_free_buffer();
 	//ais_free_track();
-	//ais_free_collision(); 
+	//ais_free_collision();
 	//ais_free_collision_CPA();
 	//ais_free_collision_TCPA();
 	//ais_state_free();
@@ -366,8 +365,8 @@ void CAisList::GetPanel()
 	
 	m_Notebook->AddPage(GetPage1(),GetMsg(MSG_AIS_TARGETS));
 	m_Notebook->AddPage(GetPage2(),GetMsg(MSG_AIS_OPTIONS));
-	m_Notebook->AddPage(GetPage3(),GetMsg(MSG_VTS_OPTIONS));
-	
+	//m_Notebook->AddPage(GetPage3(),GetMsg(MSG_VTS_OPTIONS));
+	 
 	this->SetSizer(m_Sizer);
 
 }
@@ -440,13 +439,14 @@ wxPanel *CAisList::GetPage2()
 	ScrollSizer->Add( GetGPSPanel(),0,wxALL|wxEXPAND,2);
 	//Timeout	
 	ScrollSizer->Add( GetTimeoutPanel(),0,wxALL|wxEXPAND,2);
-		
+	
+	/*
 	wxStaticBoxSizer *box_sizer = new wxStaticBoxSizer(wxVERTICAL,m_Scroll,_("test"));
 	ScrollSizer->Add(box_sizer,0,wxALL,5);
 	
 	wxHyperlinkCtrl *m_AisClearBuffer = new wxHyperlinkCtrl(m_Scroll,ID_AIS_CLEAR,GetMsg(MSG_AIS_CLEAR_BUFFER),wxEmptyString);
 	box_sizer->Add(m_AisClearBuffer,0,wxALL,5);
-
+	*/
 	m_Scroll->SetScrollbars(20, 20, 20, 20);
 
 	return Panel;

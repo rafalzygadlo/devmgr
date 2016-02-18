@@ -23,226 +23,215 @@ wxArrayPtrVoid *m_Devices = NULL;
 //bool m_ShowNames;
 
 
-const wchar_t *nvLanguage[2][285] = 
+const wchar_t *nvLanguage[][200] = 
 { 
-	/*EN*/
-	{
-		_("Name"),
-		_("Port"),
-		_("Baud"),
-		_("Port scanning on demand.\nWe do not check the available ports automatically because for some devices such as bluetooth,\nit takes a long time and it looks as if the program has crashed.\nThat's why we provide manual search for ports."),
-		_("Scan for available ports"),
-		_("Ok"),
-		_("Cancel"),
-		_("Scaning ports. Please wait."),
-		_("Devices"),
-		_("New Device..."),
-		_("Start"),
-		_("Stop"),
-		_("Configure Device"),
-		_("Configure Data"),
-		_("Status"),
-		_("Uninstall"),
-		_("Stop The Device"),
-		_("Stoping devices and freeing the resources.\nPlease wait this will take some time."),
-		_("Connected"),
-		_("Running"),
-		_("New"),
-		_("Delete"),
-		_("Device Types..."),
-		_("Device Type"),
-		_("Disconected"),
-		_("Device Wizard"),
-		_("Monitor"),
-		_("Close"),
-		_("Next >"),
-		_("< Prev"),
-		_("Finish"),
-		_("Scanning %s %d\n"),
-		_("No devices found"),
-		_("Found %d device(s)"),
-		_("Selected device(s) %d"),
-		_("Internet Connection"),
-		_("Serial Connection"),
-		_("Host"),
-		_("Ais Objects [%d]"),
-		_("MMSI"),
-		_("Name"),
-
-		_("Position Report"),								//1
-		_("Position Report"),								//2
-		_("Position Report"),								//3
-		_("Base Station Report UTC/Date Response "),		//4
-		_("Ship static and voyage related data"),			//5
-		_("Addressed Binary Message"),						//6
-		_("Binary acknowledge. Safety Related Acknowledge"),//7
-		_("Binary Broadcast Message"),						//8
-		_("Standard SAR Aircraft Position Report"),			//9
-		_("UTC/Date inquiry"),								//10
-		_("Base Station Report UTC/Date Response"),			//11
-		_("Safety Related Message"),						//12
-		_("Binary acknowledge. Safety Related Acknowledge"),//13
-		_("Safety Related Broadcast Message"),				//14
-		_("Interrogation"),									//15
-		_("Assigned Mode Command"),							//16
-		_("GNSS Broadcast Binary Message"),					//17
-		_("Standard Class B CS Position Report"),			//18
-		_("Extended Class B CS Position Report"),			//19
-		_("Data Link Management Message"),					//20
-		_("Aid-to-Navigation Report"),						//21
-		_("Channel Management"),							//22
-		_("Group Assignment Command"),						//23
-		_("Class B CS Static Data Report"),					//24
-		_("Binary Message, Single Slot"),					//25
-		_("Binary Message, Multiple Slot"),					//26
-		_("Long Range AIS Broadcast message"),				//27
-
-		_("Position Accuracy"),					
-		_("True"),						
-		_("False"),						
-		_("N/A"),							
-		_("COG"),
-		_("HDT"),
-		_("Latitude"),
-		_("Longitude"),
-		_("Maneuver Indicator"),
-		_("Radio status"),
-		_("RAIM flag"),
-		_("Second of UTC timestamp"),
-		_("SOG"),
-		_("Navigation Status"),
-		_("Turn"),
-		_("Turning left at more than 5deg/30s (No TI available)"),
-		_("Turning right at more than 5deg/30s (No TI available)"),
-		_("Turning left at up to 708 degrees per minute or higher"),
-		_("Turning right at up to 708 degrees per minute or higher"),
-		_("Year (UTC)"),
-		_("Month (UTC)"),
-		_("Day (UTC)"),
-		_("Hour (UTC)"),
-		_("Minute (UTC)"),        
-		_("Second (UTC)"),
-		_("EPFD Fix Types"),
-		_("Ais version"),
-		_("Callsign"),
-		_("ETA Month (UTC)"),
-		_("ETA Day (UTC)"),
-		_("ETA Hour (UTC)"),
-		_("ETA Minute (UTC)"),
-		_("Destination"),
-		_("Ship type"),
-		_("IMO"),
-		_("Dimension to Bow"),
-		_("Dimension to Stern"),
-		_("Dimension to Port"),
-		_("Dimension to Starboard"),
-		_("Draught"),
-		_("DTE"),
-		_("Length/Width"),
-		_("Messages"),
-		_("Top"),
-		_("Designated Area Code"),
-		_("Functional ID"),
-		_("European Vessel ID"),
-		_("Length of ship"),
-		_("Beam of ship"),
-		_("Ship/combination type"),
-		_("Hazardous cargo"),
-		_("Loaded/Unloaded"),
-		_("Speed inf. quality"),
-		_("Course inf. quality"),
-		_("Heading inf. quality"),
-		_("Average Wind Speed"),
-		_("Gust Speed"),
-		_("Wind Direction"),
-		_("Wind Gust Direction"),
-		_("Air Temperature"),
-		_("Relative Humidity"),
-		_("Dew Point"),
-		_("Air Pressure"),
-		_("Pressure Tendency"),
-		_("Horizontal Visibility"),
-		_("Water Level"),
-		_("Water Level Trend"),
-		_("Surface Current Speed"),
-		_("Surface Current Direction"),
-		_("Wave height"),
-		_("Wave period"),
-		_("Wave direction"),
-		_("AIS Options"),
-		_("Show names"),
-		_("Font size"),
-		_("Show COG"),
-		_("Show HDT"),
-		_("Ship color (moving)"),
-		_("Ship color (speed < 0.5kn)"),
-		_("Ship color (timeout)"),
-		_("Aton color"),
-		_(".."),
-		_("Simple"),
-		_("All"),
-		_("Options"),
-		_("Frequency"),
-		_("View Names Scale"),
-		_("COG Color"),
-		_("HDT Color"),
-		_("Show GPS"),
-		_("GPS Color"),
-		_("Show Objects"),
-		_("Flag"),
-		_("HDT Projection Time"),
-		_("COG Projection Time"),
-		_("COG Line Width"),
-		_("HDT Line Width"),
-		_("COG Line Style"),
-		_("HDT Line Style"),
-		_("Solid"),
-		_("Dash"),
-		_("Ship Border Color"),
-		_("Altitude"),
-		_("Assigned Mode"),
-		_("Regional"),
-		_("Select All"),
-		_("Deselect All"),
-		_("Base Station Color"),
-		_("Class A"),
-		_("Class B"),
-		_("Water Temperature"),
-		_("Visibility"),
-		_("Yes"),
-		_("No"),
-		_("Is Running"),
-		_("Is Connected"),
-		_("Bad CRC"),
-		_("Signal quality"),
-		_("Show log"),
-		_("VTS Options"),
-		_("Enable VTS Mode"),
-		_("CPA [nm]"),
-		_("TCPA [min]"),
-		_("Clear"),
-		_("Slot"),
-		_("Channel"),
-		_("MID"),
-		_("Age"),
-		_("Target timeout"),
-		_("Target timeout remove"),
-		_("HDT"),
-		_("ROT"),
-		_("Clear AIS buffer"),
-		_("Target timeouts"),
-		_("Target names"),
-		_("Object options"),
-		_("COG Options"),
-		_("HDT Options"),
-		_("GPS Options"),
-	},
-	
-	/*PL*/
-	{
-		_("Abc"),
-
-	}
+		{L"Name",L"Nazwa"},
+		{L"Port",L"Port"},
+		{L"Baud",L"Baud"},
+		{L"Port scanning on demand.",L"Skanowanie portu na ¿¹danie"},
+		{L"Scan for available ports",L"Skanuj w poszukiwaniu portów"},
+		{L"Ok",L"OK"},
+		{L"Cancel",L"Anuluj"},
+		{L"Scaning ports. Please wait.",L"Skanujê porty. Proszê czekaæ"},
+		{L"Devices",L"Urz¹dzenia"},
+		{L"New Device...",L"Nowe urz¹dzenie"},
+		{L"Start",L"Start"},
+		{L"Stop",L"Stop"},
+		{L"Configure Device",L"Konfiguruj urz¹dzenie"},
+		{L"Configure Data",L"Konfiguruje dane"},
+		{L"Status",L"Status"},
+		{L"Uninstall",L"Usuñ"},
+		{L"Stop The Device",L"Zatrzymaj"},
+		{L"Stoping devices and freeing the resources.\nPlease wait this will take some time.",L"Zatrzumujê urz¹dzenie i zwalniam zasoby.\nTo mo¿e potrwaæ kilka minut"},
+		{L"Connected",L"Po³¹czony"},
+		{L"Running",L"Uruchomiony"},
+		{L"New",L"Nowy"},
+		{L"Delete",L"Usuñ"},
+		{L"Device Types...",L"Typy urz¹dzeñ..."},
+		{L"Device Type",L"Typ urz¹dzenia"},
+		{L"Disconected",L"Od³¹czony"},
+		{L"Device Wizard",L"Menad¿er urz¹dzeñ"},
+		{L"Monitor",L"Monitoruj"},
+		{L"Close",L"Zamnkij"},
+		{L"Next >",L"Nastêpny >"},
+		{L"< Prev",L"< Poprzedni"},
+		{L"Finish",L"Zakoñcz"},
+		{L"Scanning %s %d\n",L"skanujê %s %d\n"},
+		{L"No devices found",L"Nie znaleziono urz¹dzeñ"},
+		{L"Found %d device(s)",L"Znaleziono %d urz¹dzeñ"},
+		{L"Selected device(s) %d",L"Wybrane urz¹dzenia"},
+		{L"Internet Connection",L"Po³¹czenie Internetowe"},
+		{L"Serial Connection",L"Po³¹czenie szeregowe"},
+		{L"Host",L"Host"},
+		{L"Ais Objects (%d)",L"Obiekty AIS (%d)"},
+		{L"MMSI",L"MMSI"},
+		{L"Name",L"Nazwa"},
+		{L"Position Report",L"Raport pozycji"},								//1
+		{L"Position Report",L"Raport pozycji"},					//2
+		{L"Position Report",L"Raport pozycji"},					//3
+		{L"Base Station Report UTC/Date Response",L"Raport stacji bazowej UTC/Data odpowiedzi"},		//4
+		{L"Ship static and voyage related data",L"Dane o statu i trasie"},			//5
+		{L"Addressed Binary Message",L"Zadresowana Wiadomoœæ Binarna (ABM)"},					//6
+		{L"Binary acknowledge. Safety Related Acknowledge",L"Potwierdzenie binarne. Safety Related Message"}, //7
+		{L"Binary Broadcast Message",L"BBM"},					//8
+		{L"Standard SAR Aircraft Position Report",L"Standard SAR Aircraft Position Report"},			//9
+		{L"UTC/Date inquiry",L"Czas UTC/Data zapytania"},							//10
+		{L"Base Station Report UTC/Date Response",L"Czas UTC/Data odpowiedŸ stacji bazowej"},			//11
+		{L"Safety Related Message",L"Safety Related Message"},					//12
+		{L"Binary acknowledge. Safety Related Acknowledge",L"Binary acknowledge. Safety Related Acknowledge"},//13
+		{L"Safety Related Broadcast Message",L"Safety Related Broadcast Message"},			//14
+		{L"Interrogation",L"Przes³uchanie"},									//15
+		{L"Assigned Mode Command",L"Assigned Mode Command"},						//16
+		{L"GNSS Broadcast Binary Message",L"GNSS Broadcast Binary Message"},				//17
+		{L"Standard Class B CS Position Report",L"Standard Class B CS Position Report"},			//18
+		{L"Extended Class B CS Position Report",L"Extended Class B CS Position Report"},			//19
+		{L"Data Link Management Message",L"Data Link Management Message"},					//20
+		{L"Aid-to-Navigation Report",L"Aid-to-Navigation Report"},						//21
+		{L"Channel Management",L"Channel Management"},							//22
+		{L"Group Assignment Command",L"Group Assignment Command"},					//23
+		{L"Class B CS Static Data Report",L"Class B CS Static Data Report"},					//24
+		{L"Binary Message, Single Slot",L"Binary Message, Single Slot"},					//25
+		{L"Binary Message, Multiple Slot",L"Binary Message, Multiple Slot"},					//26
+		{L"Long Range AIS Broadcast message",L"Long Range AIS Broadcast message"},			//27
+		{L"Position Accuracy",L"Dok³adnoœæ pozycji"},
+		{L"True",L"Prawda"},
+		{L"False",L"Fa³sz"},
+		{L"N/A",L"N/A"},
+		{L"COG",L"COG"},
+		{L"HDT",L"HDT"},
+		{L"Latitude",L"Szerokoœæ"},
+		{L"Longitude",L"D³ugoœæ"},
+		{L"Maneuver Indicator",L"Typ manewru"},
+		{L"Radio status",L"Status radia"},
+		{L"RAIM flag",L"Flaga RAIM"},
+		{L"Second of UTC timestamp",L"Drugi znacznik czasu UTC"},
+		{L"SOG",L"SOG"},
+		{L"Navigation Status",L"Status nawigacyjny"},
+		{L"Turn",L"W skrêcie"},
+		{L"Turning left at more than 5deg/30s (No TI available)",L"Turning left at more than 5deg/30s (No TI available)"},
+		{L"Turning right at more than 5deg/30s (No TI available)",L"Turning right at more than 5deg/30s (No TI available)"},
+		{L"Turning left at up to 708 degrees per minute or higher",L"Turning left at up to 708 degrees per minute or higher"},
+		{L"Turning right at up to 708 degrees per minute or higher",L"Turning right at up to 708 degrees per minute or higher"},
+		{L"Year (UTC)",L"Rok UTC"},
+		{L"Month (UTC)",L"Miesi¹c UTC"},
+		{L"Day (UTC)",L"Dzieñ UTC"},
+		{L"Hour (UTC)",L"Godzina UTC"},
+		{L"Minute (UTC)",L"Minuta UTC"},
+		{L"Second (UTC)",L"Sekunda UTC"},
+		{L"EPFD Fix Types",L"EPFD Fix Types"},
+		{L"Ais version",L"Wersja AIS"},
+		{L"Callsign",L"Callsign"},
+		{L"ETA Month (UTC)",L"ETA Miesi¹c UTC"},
+		{L"ETA Day (UTC)",L"ETA dzieñ UTC"},
+		{L"ETA Hour (UTC)",L"ETA godzina UTC"},
+		{L"ETA Minute (UTC)",L"ETA minuta UTC"},
+		{L"Destination",L"Port docelowy"},
+		{L"Ship type",L"Typ jednostki"},
+		{L"IMO",L"IMO"},
+		{L"Dimension to Bow",L"Odleg³oœæ do dziobu"},
+		{L"Dimension to Stern",L"Odleg³oœæ do rufy"},
+		{L"Dimension to Port",L"Odleg³oœæ do lewej burty"},
+		{L"Dimension to Starboard",L"Odleg³oœæ do prawej burty"},
+		{L"Draught",L"Zanu¿enie"},
+		{L"DTE",L"DTE"},
+		{L"Length/Width",L"D³ugoœæ/Szerokoœæ"},
+		{L"Messages",L"Wiadomoœci"},
+		{L"Top",L"Góra"},
+		{L"Designated Area Code",L"Designated Area Code"},
+		{L"Functional ID",L"Funkcjonalny ID"},
+		{L"European Vessel ID",L"Europejski ID"},
+		{L"Length of ship",L"D³ugoœæ jednostki"},
+		{L"Beam of ship",L"Szerokoœæ jednostki"},
+		{L"Ship/combination type",L"Typ jednostki"},
+		{L"Hazardous cargo",L"Niebezpieczny ³adunek"},
+		{L"Loaded/Unloaded",L"Za³adowany/Pusty"},
+		{L"Speed inf. quality",L"Speed inf. quality"},
+		{L"Course inf. quality",L"Course inf. quality"},
+		{L"Heading inf. quality",L"Heading inf. quality"},
+		{L"Average Wind Speed",L"Œrednia prêdkoœæ wiatru"},
+		{L"Gust Speed",L"Prêdkoœæ porywów"},
+		{L"Wind Direction",L"Kierunek wiatru"},
+		{L"Wind Gust Direction",L"Kierunke porywów"},
+		{L"Air Temperature",L"Temperatura powietrza"},
+		{L"Relative Humidity",L"Wilgotnoœæ wzglêdna"},
+		{L"Dew Point",L"Punkt rosy"},
+		{L"Air Pressure",L"Ciœnienie atmosferyczne"},
+		{L"Pressure Tendency",L"Tendencja ciœnienia"},
+		{L"Horizontal Visibility",L"Widzialnoœæ pozioma"},
+		{L"Water Level",L"Poziom wody"},
+		{L"Water Level Trend",L"Poziom wody - tendencja"},
+		{L"Surface Current Speed",L"Pr¹d powierzchniowy - prêdkoœæ"},
+		{L"Surface Current Direction",L"Pr¹d powierzchniowy - kierunek"},
+		{L"Wave height",L"Wysokoœæ fali"},
+		{L"Wave period",L"Okres fali"},
+		{L"Wave direction",L"Kierunek fali"},
+		{L"AIS Options",L"Opcje AIS"},
+		{L"Show names",L"Poka¿ nazwy"},
+		{L"Font size",L"Rozmiar czcionki"},
+		{L"Show COG",L"Poka¿ COG"},
+		{L"Show HDT",L"Poka¿ HDT"},
+		{L"Ship color (moving)",L"Kolor ikony jednsotki (w ruchu)"},
+		{L"Ship color (speed < 0.5kn)",L"Kolor ikony jednostki (w ruchu <0.5kts"},
+		{L"Ship color (timeout)",L"Kolor ikony jednostki (timeout)"},
+		{L"AtoN color",L"Kolor ikony AtoN"},
+		{L"..",L".."},
+		{L"Simple",L"Prosty"},
+		{L"All",L"Wszystko"},
+		{L"Options",L"Opjce"},
+		{L"Frequency",L"Czêstotliwoœæ"},
+		{L"View Names Scale",L"Skala czcionki"},
+		{L"COG Color",L"Kolor COG"},
+		{L"HDT Color",L"Kolor HDT"},
+		{L"Show GPS",L"Poka¿ GPS"},
+		{L"GPS Color",L"Kolor GPS"},
+		{L"Show Objects",L"Poka¿ obiekty"},
+		{L"Flag",L"Flaga"},
+		{L"HDT Projection Time",L"Predykcja HDT"},
+		{L"COG Projection Time",L"Predykcja COG"},
+		{L"COG Line Width",L"Gruboœæ linii COG"},
+		{L"HDT Line Width",L"Gruboœæ linii HDT"},
+		{L"COG Line Style",L"Styl linii COG"},
+		{L"HDT Line Style",L"Styl linii "},
+		{L"Solid",L"Ci¹g³a"},
+		{L"Dash",L"Przerywana"},
+		{L"Ship Border Color",L"Kolor obwiedni jednostki"},
+		{L"Altitude",L"Wysokoœæ"},
+		{L"Assigned Mode",L"Przypisany tryb"},
+		{L"Regional",L"Regionalny"},
+		{L"Select All",L"Zaznacz wszystkie"},
+		{L"Deselect All",L"Odznacz wszystki"},
+		{L"Base Station Color",L"Kolor stacji bazowej"},
+		{L"Class A",L"Klasa A"},
+		{L"Class B",L"Klasa B"},
+		{L"Water Temperature",L"Temperatura wody"},
+		{L"Visibility",L"Widzialnoœæ"},
+		{L"Yes",L"Tak"},
+		{L"No",L"Nie"},
+		{L"Is Running",L"Dzia³a"},
+		{L"Is Connected",L"Pod³¹czony"},
+		{L"Bad CRC",L"Nieprawid³owy CRC"},
+		{L"Signal quality",L"Jakoœæ sygna³u"},
+		{L"Show log",L"Poka¿ log"},
+		{L"VTS Options",L"Opcje VTS"},
+		{L"Enable VTS Mode",L"W³¹cze tryb VTS"},
+		{L"CPA [nm]",L"CPA [nm]"},
+		{L"TCPA [min]",L"TCPA [min]"},
+		{L"Clear",L"Wyczyœæ"},
+		{L"Slot",L"Slot"},
+		{L"Channel",L"Kana³"},
+		{L"MID",L"MID"},
+		{L"Age",L"Wiek"},
+		{L"Target timeout",L"Target timout"},
+		{L"Target timeout remove",L"Target timeout remove"},
+		{L"HDT",L"HDT"},
+		{L"ROT",L"ROT"},
+		{L"Clear AIS buffer",L"Wyczyœæ bufor AIS"},
+		{L"Target timeouts",L"Target timeouts"},
+		{L"Target names",L"Nazwy obiektów"},
+		{L"Object options",L"Opcje obiektu"},
+		{L"COG Options",L"Opcje COG"},
+		{L"HDT Options",L"Opcje HDT"},
+		{L"GPS Options",L"Opcje GPS"},
 
 };
 
@@ -268,7 +257,7 @@ wxString GetProductName()
 
 const wchar_t *GetMsg(int id)
 {
-	return nvLanguage[GlobalLanguageID][id];
+	return nvLanguage[id][GlobalLanguageID];
 }
 
 wxString GetPluginConfigPath()
@@ -294,7 +283,7 @@ wxString GetWorkDir(void)
 	static wxString buffer;
 	//wxStandardPaths *Paths = new wxStandardPaths();
 	wxStandardPaths Paths = wxStandardPaths::Get();
- 	buffer.Printf(wxT("%s%s%s"), Paths.GetUserDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
+ 	buffer.Printf(wxT("%s%s%s"), Paths.GetDataDir().wc_str(),  wxT(DIR_SEPARATOR), wxT(DIR_WORKDIR) );
 	//delete Paths;
 	return buffer;
 }
@@ -853,4 +842,9 @@ void SetSelectedMID(int id)
 int GetSelectedMID()
 {
 	return m_SelectedMID;
+}
+
+void SetLanguageId(int id)
+{
+	GlobalLanguageID = id;
 }

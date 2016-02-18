@@ -3,12 +3,11 @@
 
 #include <wx/wx.h>
 #include "serial_port.h"
+#include "sclient.h"
 #include "conf.h"
 #include "NaviMapIOApi.h"
 #include "protocol.h"
 #include "parser.h"
-#include "sclient.h"
-#include <Windows.h>
 #include <wx/treectrl.h>
 #include "ais.h"
 

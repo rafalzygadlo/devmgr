@@ -67,5 +67,6 @@ int GetSelectedMID();
 void InitDevices();
 wxArrayPtrVoid *GetDevices();
 void FreeDevices();
+void SetLanguageId(int id);
 
 #endif

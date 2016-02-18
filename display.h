@@ -28,7 +28,6 @@ class NAVIDISPLAYAPI CDisplayPlugin: public CNaviDiaplayApi
 	CNaviBroker *m_Broker;
 	CMapPlugin *m_MapPlugin;
 	CAisMonitor *m_AisMonitor;
-	wxString m_Name;
 	int m_SignalType;
 	bool m_GUI;
 	int m_DeviceId;

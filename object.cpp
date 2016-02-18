@@ -3,7 +3,6 @@
 #include "tools.h"
 #include "options.h"
 
-
 CObject::CObject()
 {
 	m_FirstTime = true;
@@ -20,23 +19,23 @@ CObject::CObject()
 	m_OffsetX = 0;
 	m_OffsetY = 0;
 	m_RenderMode = GL_TRIANGLES;
-	m_Font = new nvFastFont();
-	m_Font->Assign((nvFastFont*)GetBroker()->GetFont(0) );
-	m_Font->SetEffect( nvEFFECT_GLOW );
-    m_Font->SetGlyphColor(0.0f, 0.0f, 0.0f);
-	m_Font->SetGlyphOffset( 4.0f );
-	m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
+	//m_Font = new nvFastFont();
+	//m_Font->Assign((nvFastFont*)GetBroker()->GetFont(0) );
+	//m_Font->SetEffect( nvEFFECT_GLOW );
+    //m_Font->SetGlyphColor(0.0f, 0.0f, 0.0f);
+	//m_Font->SetGlyphOffset( 4.0f );
+	//m_Font->SetGlowColor(0.8f, 0.8f, 0.8f );
 	
 }	
 
 CObject::~CObject(void)
 {
-	delete m_Font;
+	//delete m_Font;
 }
 
 void CObject::InitGL()
 {
-	m_Font->InitGL();	
+	//m_Font->InitGL();	
 }
 
 void CObject::SetOffset(float vx, float vy)
@@ -255,7 +254,7 @@ void CObject::RenderFont()
 	size_t size = m_CurrentFontBufferPtr->Length();
 	if(size == 0)
 	{
-		m_Font->Clear();
+		//m_Font->Clear();
 		return;
 	}
 		
@@ -281,11 +280,11 @@ void CObject::RenderFont()
 		Angle[i] = GetBroker()->GetAngle();
     }
 
-	m_Font->Clear();
-    m_Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
-	m_Font->ClearBuffers();
-	m_Font->CreateBuffers();
-	m_Font->Render();
+	//m_Font->Clear();
+    //m_Font->PrintList( Positions, Scale, Angle, CaptionsStr, CaptionsSize, vx, vy );
+	//m_Font->ClearBuffers();
+	//m_Font->CreateBuffers();
+	//m_Font->Render();
 	
 	free( CaptionsStr );    // ³añcuchy nie zosta³y skopiowane, nie ma koniecznoœci zwalniania ca³ej listy
     free( Positions );
