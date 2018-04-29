@@ -177,7 +177,7 @@ const wchar_t *nvLanguage[][200] =
 		{L"..",L".."},
 		{L"Simple",L"Prosty"},
 		{L"All",L"Wszystko"},
-		{L"Options",L"Opjce"},
+		{L"Options",L"Opcje"},
 		{L"Frequency",L"Częstotliwość"},
 		{L"View Names Scale",L"Skala czcionki"},
 		{L"COG Color",L"Kolor COG"},

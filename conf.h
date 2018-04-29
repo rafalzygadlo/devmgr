@@ -454,9 +454,11 @@ enum nvDistanceUnits { nvNauticMiles, nvKilometer, nvMeter, nvDistanceSize = 3 }
 //typy urzadzen
 #define DEVICE_TYPE_AIS 1
 
-
 // funkcje ustawiajace z parsera (definicja w protokole)
 #define SET_SHIP 0
+
+#define PICTURE_MAX_WIDTH	300
+#define PICTURE_MAX_HEIGHT	200
 
 typedef struct SData
 {

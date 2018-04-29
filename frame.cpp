@@ -14,9 +14,9 @@
 DEFINE_EVENT_TYPE(EVT_SHOW_WINDOW)
 
 BEGIN_EVENT_TABLE(CMyFrame,wxDialog)
-	EVT_BUTTON(ID_CLOSE,CMyFrame::OnCloseButton)
+	EVT_BUTTON(ID_CLOSE,OnCloseButton)
 //	EVT_BUTTON(ID_SAVE,CMyFrame::OnSaveButton)
-	EVT_COMMAND(ID_SHOW,EVT_SHOW_WINDOW,CMyFrame::OnShowWindow)
+	EVT_COMMAND(ID_SHOW,EVT_SHOW_WINDOW,OnShowWindow)
 END_EVENT_TABLE()
 
 //. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -41,8 +41,8 @@ CMyFrame::CMyFrame(void *Parent, wxWindow *ParentPtr)
 	m_Page0->SetSizer(Page1Sizer);
 		
 	wxBitmap bmp;
-	m_ShipImage = new wxStaticBitmap(m_Page0,wxID_ANY,bmp,wxDefaultPosition,wxSize(300,150));
-	Page1Sizer->Add(m_ShipImage,0,wxALL,0);
+	m_ShipImage = new wxStaticBitmap(m_Page0,wxID_ANY,bmp,wxDefaultPosition,wxDefaultSize);// wxSize(PICTURE_MAX_WIDTH,PICTURE_MAX_HEIGHT));
+	Page1Sizer->Add(m_ShipImage,0,wxALL|wxALIGN_CENTER_HORIZONTAL,0);
 		
 	wxBoxSizer *ScrollSizer = new wxBoxSizer(wxVERTICAL);
 	wxScrolledWindow *Scroll = new wxScrolledWindow(m_Page0, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -401,7 +401,22 @@ void CMyFrame::SetImage()
 		wxMemoryInputStream in_0(buffer, size);
 		wxImage img_0(in_0,wxBITMAP_TYPE_ANY);
 
-		img_0.ResampleNearest(100,150);
+		int height = img_0.GetHeight();
+		int width = img_0.GetWidth();
+		float ratio = 1;
+			
+		if(height > PICTURE_MAX_HEIGHT || width > PICTURE_MAX_WIDTH)
+		{
+			if(height > width)
+			{
+				ratio = (float)height/width;
+				img_0.Rescale(PICTURE_MAX_WIDTH /ratio,PICTURE_MAX_HEIGHT);
+			}else{
+				ratio = (float)width/height;
+				img_0.Rescale(PICTURE_MAX_WIDTH ,PICTURE_MAX_HEIGHT/ ratio);
+			}
+		}
+				
 		free(buffer);		
 		
 		if(img_0.IsOk())
@@ -409,6 +424,7 @@ void CMyFrame::SetImage()
 			wxBitmap bmp_0(img_0);
 			m_ShipImage->SetBitmap(bmp_0);
 			m_ShipImage->Show();
+					
 			m_Page0->Layout();
 		}
 
